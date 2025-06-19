@@ -351,7 +351,30 @@ if uploaded_file:
                 
                         da_anim = da_anim.sel({lat_var: slice(*lat_range), lon_var: slice(*lon_range)})
                 
+                        # fig_anim, ax_anim = plt.subplots(figsize=(8, 5), subplot_kw={"projection": ccrs.PlateCarree()})
                         fig_anim, ax_anim = plt.subplots(figsize=(8, 5), subplot_kw={"projection": ccrs.PlateCarree()})
+
+                        # Draw colorbar once for the whole animation
+                        first_frame = da_anim.isel({time_var: 0})
+                        im_cbar = first_frame.plot.pcolormesh(
+                            ax=ax_anim,
+                            transform=ccrs.PlateCarree(),
+                            cmap=cmap_choice,
+                            vmin=vmin if set_clim else None,
+                            vmax=vmax if set_clim else None,
+                            add_colorbar=False
+                        )
+                        cbar = fig_anim.colorbar(im_cbar, ax=ax_anim, orientation="vertical", shrink=0.7, pad=0.05)
+                        cbar.set_label(cbar_label, fontsize=10)
+                        
+                        # Define animation logic
+                        ani = animation.FuncAnimation(
+                            fig_anim,
+                            update_anim,
+                            frames=da_anim.sizes["time"],
+                            blit=False
+                        )
+
                 
                         def update_anim(frame):
                             ax_anim.clear()
