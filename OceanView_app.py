@@ -403,7 +403,7 @@ if uploaded_file:
                             
                             # Axis labels (as text because Cartopy disables set_xlabel)
                             ax_anim.text(0.5, -0.1, xlabel, transform=ax_anim.transAxes, ha='center', va='top', fontsize=10)
-                            ax_anim.text(-0.07, 0.5, ylabel, transform=ax_anim.transAxes, ha='right', va='center', rotation='vertical', fontsize=10)
+                            ax_anim.text(-0.15, 0.5, ylabel, transform=ax_anim.transAxes, ha='right', va='center', rotation='vertical', fontsize=10)
                         
                             # Title with time + depth
                             time_value = da_anim[time_var].isel({time_var: frame}).values
