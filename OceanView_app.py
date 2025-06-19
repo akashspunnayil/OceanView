@@ -245,6 +245,23 @@ if uploaded_file:
                 gl.xlabel_style = {'size': 12}
                 gl.ylabel_style = {'size': 12}
                 
+                if st.session_state.get("manual_ticks", False):
+                    xtick_step = st.session_state.get("xtick_step", None)
+                    ytick_step = st.session_state.get("ytick_step", None)
+                
+                    if xtick_step and ytick_step:
+                        gl.xlocator = mticker.FixedLocator(np.arange(lon_range[0], lon_range[1] + xtick_step, xtick_step))
+                        gl.ylocator = mticker.FixedLocator(np.arange(lat_range[0], lat_range[1] + ytick_step, ytick_step))
+
+
+                
+                # # Add gridlines and enable coordinate labels
+                # gl = ax.gridlines(draw_labels=True, linewidth=0.5, color='gray', alpha=0.5, linestyle='--')
+                # gl.top_labels = False
+                # gl.right_labels = False
+                # gl.xlabel_style = {'size': 12}
+                # gl.ylabel_style = {'size': 12}
+                
                 # Title
                 ax.set_title(plot_title, fontsize=14)
                 
@@ -252,9 +269,9 @@ if uploaded_file:
                 if hasattr(im, 'colorbar') and im.colorbar:
                     im.colorbar.set_label(cbar_label, fontsize=12)
 
-                # Apply user-defined tick step
-                gl.xlocator = mticker.FixedLocator(np.arange(lon_range[0], lon_range[1] + xtick_step, xtick_step))
-                gl.ylocator = mticker.FixedLocator(np.arange(lat_range[0], lat_range[1] + ytick_step, ytick_step))
+                # # Apply user-defined tick step
+                # gl.xlocator = mticker.FixedLocator(np.arange(lon_range[0], lon_range[1] + xtick_step, xtick_step))
+                # gl.ylocator = mticker.FixedLocator(np.arange(lat_range[0], lat_range[1] + ytick_step, ytick_step))
 
                 # Add custom axis labels manually
                 ax.text(0.5, -0.1, xlabel, transform=ax.transAxes, ha='center', va='top', fontsize=12)
