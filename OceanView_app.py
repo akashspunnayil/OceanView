@@ -118,8 +118,8 @@ if uploaded_file:
                 ax.set_title(f"{var} at {time_sel}" if time_sel is not None else var)
                 st.pyplot(fig)
         
-        except Exception as e:
-            st.error(f"⚠️ Failed to subset and plot data: {e}")
+            except Exception as e:
+                st.error(f"⚠️ Failed to subset and plot data: {e}")
 
 
                 st.subheader("📍 Map View")
