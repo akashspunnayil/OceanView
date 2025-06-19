@@ -229,8 +229,6 @@ if uploaded_file:
                 with tick_cols[1]:
                     st.button("🔄 Reset", on_click=reset_tick_settings)
 
-
-
                 
             with st.expander("💾 Save Plot Options"):
                 save_format = st.selectbox("Select file format", ["png", "jpg", "pdf", "svg", "tiff"], index=0)
@@ -304,13 +302,6 @@ if uploaded_file:
                     ax.add_feature(cfeature.LAND, facecolor=mask_color, zorder=3)
                 if mask_sea:
                     ax.add_feature(cfeature.OCEAN, facecolor=mask_color, zorder=3)
-
-                # # Add gridlines and enable coordinate labels
-                # gl = ax.gridlines(draw_labels=True, linewidth=0.5, color='gray', alpha=0.5, linestyle='--')
-                # gl.top_labels = False
-                # gl.right_labels = False
-                # gl.xlabel_style = {'size': 12}
-                # gl.ylabel_style = {'size': 12}
                 
                 # Title
                 ax.set_title(plot_title, fontsize=14)
@@ -318,10 +309,6 @@ if uploaded_file:
                 # Colorbar label
                 if hasattr(im, 'colorbar') and im.colorbar:
                     im.colorbar.set_label(cbar_label, fontsize=12)
-
-                # # Apply user-defined tick step
-                # gl.xlocator = mticker.FixedLocator(np.arange(lon_range[0], lon_range[1] + xtick_step, xtick_step))
-                # gl.ylocator = mticker.FixedLocator(np.arange(lat_range[0], lat_range[1] + ytick_step, ytick_step))
 
                 # Add custom axis labels manually
                 ax.text(0.5, -0.1, xlabel, transform=ax.transAxes, ha='center', va='top', fontsize=12)
@@ -349,6 +336,49 @@ if uploaded_file:
                         mime=f"image/{'jpeg' if save_format == 'jpg' else save_format}"
                     )
             
+            
+            # === Create Animated Plot over Time ===
+            
+            import matplotlib.animation as animation
+
+            if time_var and len(ds[time_var]) > 1:
+                st.subheader("🎞️ Time Series Animation")
+            
+                # Extract 3D or 4D data based on depth availability
+                anim_data = ds[var]
+                if depth_var and selected_depth is not None:
+                    anim_data = anim_data.sel({depth_var: selected_depth}, method="nearest")
+            
+                fig_anim, ax_anim = plt.subplots(figsize=(7, 5), subplot_kw={'projection': ccrs.PlateCarree()})
+            
+                def update(frame):
+                    ax_anim.clear()
+                    slice_data = anim_data.isel({time_var: frame})
+                    time_label = pd.to_datetime(slice_data[time_var].values).strftime("%Y-%m")
+                    p = slice_data.plot.pcolormesh(
+                        ax=ax_anim,
+                        transform=ccrs.PlateCarree(),
+                        cmap=cmap_choice,
+                        vmin=vmin if set_clim else None,
+                        vmax=vmax if set_clim else None,
+                        add_colorbar=False
+                    )
+                    ax_anim.set_title(f"{var} | {time_label} | Depth: {selected_depth if depth_var else 'Surface'}", fontsize=12)
+                    ax_anim.coastlines()
+                    return p,
+            
+                ani = animation.FuncAnimation(fig_anim, update, frames=anim_data.sizes[time_var], blit=False)
+            
+                # Save animation to GIF in memory
+                import io
+                from PIL import Image
+            
+                gif_path = "/tmp/ocean_anim.gif"
+                ani.save(gif_path, writer="pillow", fps=2)
+            
+                with open(gif_path, "rb") as f:
+                    st.image(f.read(), caption="📽️ Animated Time Series", use_column_width=True)
+
         
             except Exception as e:
                 st.error(f"⚠️ Failed to subset or plot data: {e}")
