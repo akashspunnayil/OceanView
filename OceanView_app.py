@@ -6,26 +6,31 @@ import io
 
 st.title("🌊 Ocean Data Viewer")
 
-
 @st.cache_data
-def load_netcdf(file):
+def load_netcdf(file_bytes):
     try:
-        return xr.open_dataset(file, engine="netcdf4")  # Force backend
+        return xr.open_dataset(file_bytes, engine="netcdf4")  # Force backend
     except ValueError as e:
         if "decode time units" in str(e) or "decode variable" in str(e):
             st.warning("⚠️ Time decoding failed due to non-standard calendar. Loading with decode_times=False.")
-            return xr.open_dataset(file, decode_times=False, engine="netcdf4")
+            return xr.open_dataset(file_bytes, decode_times=False, engine="netcdf4")
         elif "valid dataset engines" in str(e):
             st.error("❌ Could not determine the backend engine. Ensure the uploaded file is a valid NetCDF.")
             return None
         else:
             raise e
 
-
 uploaded_file = st.file_uploader("Upload NetCDF file", type=["nc"])
 
 if uploaded_file:
-    ds = load_netcdf(uploaded_file)
+    file_bytes = io.BytesIO(uploaded_file.read())  # 🔁 This is the missing step
+    ds = load_netcdf(file_bytes)
+
+    if ds is not None:
+        st.success("✅ NetCDF file loaded successfully!")
+        st.write("**Dimensions:**", ds.dims)
+        st.write("**Variables:**", list(ds.data_vars))
+
     #ds = xr.open_dataset(uploaded_file)
 
     st.subheader("Dataset Dimensions and Variables")
