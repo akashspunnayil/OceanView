@@ -347,6 +347,7 @@ if uploaded_file:
                 # Skip if time is not available
                 # if time_var and ds[var].dims and "time" in ds[var].dims:
                 if time_var and time_var in ds[var].dims:
+
                     da_anim = ds[var]
                     if depth_var and selected_depth is not None and "depth" in ds[var].dims:
                         da_anim = da_anim.sel({depth_var: selected_depth}, method="nearest")
@@ -375,8 +376,17 @@ if uploaded_file:
                         ax_anim.text(0.5, -0.1, xlabel, transform=ax_anim.transAxes, ha='center', va='top', fontsize=10)
                         ax_anim.text(-0.07, 0.5, ylabel, transform=ax_anim.transAxes, ha='right', va='center', rotation='vertical', fontsize=10)
                 
-                        ax_anim.set_title(f"{var} | Time: {str(frame_data[time_var].values)[:10]}" +
+                        # ax_anim.set_title(f"{var} | Time: {str(frame_data[time_var].values)[:10]}" +
+                        #                   (f" | Depth: {selected_depth} m" if depth_var and selected_depth is not None else ""), fontsize=12)
+                        time_value = da_anim[time_var].isel(time=frame).values
+                        try:
+                            time_str = pd.to_datetime(str(time_value)).strftime("%Y-%m-%d")
+                        except:
+                            time_str = str(time_value)[:15]  # fallback for non-datetime types
+                        
+                        ax_anim.set_title(f"{var} | Time: {time_str}" +
                                           (f" | Depth: {selected_depth} m" if depth_var and selected_depth is not None else ""), fontsize=12)
+
                         return [im]
                 
                     ani = animation.FuncAnimation(fig_anim, update_anim, frames=da_anim.sizes["time"], blit=False)
