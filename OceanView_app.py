@@ -77,7 +77,8 @@ if uploaded_file:
             # --- Fix descending latitude ---
             if lat_var and ds[lat_var][0] > ds[lat_var][-1]:
                 ds = ds.sortby(lat_var)
-            
+
+
             # --- Mask extreme fill values ---
             if "missing_value" in ds[var].attrs:
                 missing_val = ds[var].attrs["missing_value"]
