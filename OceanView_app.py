@@ -167,7 +167,9 @@ if uploaded_file:
                     )
             
                 with cols_colorbar[1]:
-                    st.button("🔄 Reset", on_click=reset_colorbar_settings)
+                    # st.button("🔄 Reset", on_click=reset_colorbar_settings)
+                    st.button("🔄 Reset", on_click=reset_colorbar_settings, key="reset_colorbar_btn")
+                    
 
 
             with st.expander("🖊️ Plot Custom Labels"):
