@@ -458,7 +458,7 @@ if uploaded_file:
 
                         st.download_button(
                             label="📥 Download GIF",
-                            data=gif_buf.getvalue(),
+                            data=gif_bytes.getvalue(),
                             file_name=f"{var}_animation.gif",
                             mime="image/gif"
                         )
