@@ -149,6 +149,11 @@ if uploaded_file:
                 dpi_value = st.number_input("DPI (dots per inch)", min_value=50, max_value=600, value=150, step=10)
                 save_btn = st.button("💾 Save & Download Plot")
 
+            with st.expander("🖊️ Plot Custom Labels"):
+                plot_title = st.text_input("📌 Plot Title", value="Ocean Variable Plot")
+                xlabel = st.text_input("🧭 X-axis Label", value="Longitude")
+                ylabel = st.text_input("🧭 Y-axis Label", value="Latitude")
+                cbar_label = st.text_input("🎨 Colorbar Label", value=var)
 
         #-------RIGHT SIDE--------
 
@@ -209,7 +214,7 @@ if uploaded_file:
                         file_name=f"ocean_plot.{save_format}",
                         mime=f"image/{'jpeg' if save_format == 'jpg' else save_format}"
                     )
-
+            
         
             except Exception as e:
                 st.error(f"⚠️ Failed to subset or plot data: {e}")
