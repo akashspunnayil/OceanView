@@ -125,7 +125,17 @@ if uploaded_file:
                 else:
                     raw_time_value = None
 
-        
+
+            with st.expander("🌍 Land/Sea Masking"):
+                mask_land = st.checkbox("Mask Land", value=False)
+                mask_sea = st.checkbox("Mask Ocean", value=False)
+            
+                mask_color = st.selectbox(
+                    "Mask Color",
+                    options=["lightgray", "gray", "black", "white", "skyblue", "khaki", "coral", "forestgreen"],
+                    index=0
+                )
+
             with st.expander("🎨 Colorbar & Colormap Settings"):
                 set_clim = st.checkbox("🔧 Manually set colorbar range")
             
@@ -254,7 +264,13 @@ if uploaded_file:
                         gl.ylocator = mticker.FixedLocator(np.arange(lat_range[0], lat_range[1] + ytick_step, ytick_step))
 
 
-                
+                import cartopy.feature as cfeature
+
+                if mask_land:
+                    ax.add_feature(cfeature.LAND, facecolor=mask_color, zorder=0)
+                if mask_sea:
+                    ax.add_feature(cfeature.OCEAN, facecolor=mask_color, zorder=0)
+
                 # # Add gridlines and enable coordinate labels
                 # gl = ax.gridlines(draw_labels=True, linewidth=0.5, color='gray', alpha=0.5, linestyle='--')
                 # gl.top_labels = False
