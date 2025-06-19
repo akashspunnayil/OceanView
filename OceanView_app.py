@@ -54,9 +54,11 @@ if uploaded_file:
 
     if ds is not None:
         st.success("✅ File loaded successfully.")
+        st.write("### 📦 Dataset Summary")
+        st.write(ds)
         st.write("**Dimensions:**", ds.dims)
         st.write("**Variables:**", list(ds.data_vars))
-
+        
         var = st.selectbox("🔎 Select a variable to visualize", list(ds.data_vars.keys()))
 
         lat_var = find_coord_name(ds, "lat")
