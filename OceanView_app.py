@@ -193,8 +193,15 @@ if uploaded_file:
                 if set_clim:
                     plot_kwargs["vmin"] = vmin
                     plot_kwargs["vmax"] = vmax
-                
-                data.squeeze().plot.pcolormesh(**plot_kwargs)
+
+                im = data.squeeze().plot.pcolormesh(**plot_kwargs)
+                ax.set_xlabel(xlabel)
+                ax.set_ylabel(ylabel)
+                ax.set_title(plot_title)
+                if hasattr(im, 'colorbar') and im.colorbar:
+                    im.colorbar.set_label(cbar_label)
+
+                # data.squeeze().plot.pcolormesh(**plot_kwargs)
 
                 ax.coastlines()
                 title = f"{var}"
