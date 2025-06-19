@@ -455,17 +455,17 @@ if uploaded_file:
                             gif_bytes = f.read()
                         
                         st.image(gif_bytes, caption="Time-animated plot", use_container_width=True)
-
+                        
                         st.download_button(
                             label="📥 Download GIF",
-                            data=gif_bytes.getvalue(),
+                            data=gif_bytes,  # ✅ Use directly, no .getvalue()
                             file_name=f"{var}_animation.gif",
                             mime="image/gif"
                         )
-
                         
-                        # Optional cleanup (if desired)
+                        # Optional cleanup
                         os.remove(temp_gif_path)
+
 
 
                 
