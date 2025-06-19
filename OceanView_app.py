@@ -201,10 +201,12 @@ if uploaded_file:
                 if hasattr(im, 'colorbar') and im.colorbar:
                     im.colorbar.set_label(cbar_label)
 
+                ax.set_xlabel(xlabel)
+
                 # data.squeeze().plot.pcolormesh(**plot_kwargs)
 
                 ax.coastlines()
-    
+                title = f"{plot_title}"
                 if time_var: title += f" | Time: {time_sel}"
                 if depth_var: title += f" | Depth: {selected_depth} m"
                 st.pyplot(fig)
