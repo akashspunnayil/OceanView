@@ -165,11 +165,15 @@ if uploaded_file:
             
                 with tick_cols[0]:
                     manual_ticks = st.checkbox("🔧 Manually set tick intervals", value=False, key="manual_ticks")
-                    if manual_ticks:
-                        xtick_step = st.number_input("Longitude Tick Interval (°)", min_value=0.1, max_value=60.0,
-                                                     value=10.0, step=1.0, key="xtick_step")
-                        ytick_step = st.number_input("Latitude Tick Interval (°)", min_value=0.1, max_value=60.0,
-                                                     value=5.0, step=1.0, key="ytick_step")
+                    # if manual_ticks:
+                    #     xtick_step = st.number_input("Longitude Tick Interval (°)", min_value=0.1, max_value=60.0,
+                    #                                  value=10.0, step=1.0, key="xtick_step")
+                    #     ytick_step = st.number_input("Latitude Tick Interval (°)", min_value=0.1, max_value=60.0,
+                    #                                  value=5.0, step=1.0, key="ytick_step")
+                    if manual_ticks and xtick_step and ytick_step:
+                        ax.set_xticks(np.arange(lon_range[0], lon_range[1] + xtick_step, xtick_step))
+                        ax.set_yticks(np.arange(lat_range[0], lat_range[1] + ytick_step, ytick_step))
+
                     else:
                         xtick_step, ytick_step = None, None
             
