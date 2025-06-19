@@ -181,7 +181,7 @@ if uploaded_file:
         
                 # === Plotting ===
                 st.subheader("🗺️ Map View")
-                fig, ax = plt.subplots(figsize=(10, 5), subplot_kw={"projection": ccrs.PlateCarree()})
+                fig, ax = plt.subplots(figsize=(10, 6), subplot_kw={"projection": ccrs.PlateCarree()})
 
                 plot_kwargs = {
                     "ax": ax,
