@@ -54,9 +54,9 @@ if uploaded_file:
     if ds is not None:
         st.success("✅ File loaded successfully.")
 
-        # === Dataset structure printout (like Jupyter repr) ===
-        st.subheader("📄 Dataset Structure (like Jupyter)")
-        st.code(ds.__repr__(), language="python")
+        # # === Dataset structure printout (like Jupyter repr) ===
+        # st.subheader("📄 Dataset Structure (like Jupyter)")
+        # st.code(ds.__repr__(), language="python")
 
         # === Layout split: controls on left, output on right ===
         left_col, right_col = st.columns([1, 2])  # or [1, 3] for wider output
