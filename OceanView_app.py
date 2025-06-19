@@ -172,15 +172,24 @@ if uploaded_file:
                     
 
 
-            with st.expander("🖊️ Plot Custom Labels"):
-                plot_title = st.text_input("📌 Plot Title", value="Ocean Variable Plot")
-                xlabel = st.text_input("🧭 X-axis Label", value="Longitude")
-                ylabel = st.text_input("🧭 Y-axis Label", value="Latitude")
-                cbar_label = st.text_input("🎨 Colorbar Label", value=var)
+            def reset_plot_labels():
+                st.session_state["plot_title"] = "Ocean Variable Plot"
+                st.session_state["xlabel"] = "Longitude"
+                st.session_state["ylabel"] = "Latitude"
+                st.session_state["cbar_label"] = var  # This assumes 'var' is still accessible
 
-            # with st.expander("📏 Axis Tick Settings"):
-            #     xtick_step = st.number_input("Longitude Tick Interval (°)", min_value=0.1, max_value=60.0, value=10.0, step=1.0)
-            #     ytick_step = st.number_input("Latitude Tick Interval (°)", min_value=0.1, max_value=60.0, value=5.0, step=1.0)
+            with st.expander("🖊️ Plot Custom Labels"):
+                label_cols = st.columns([2, 1])  # Text inputs and reset
+            
+                with label_cols[0]:
+                    plot_title = st.text_input("📌 Plot Title", value="Ocean Variable Plot", key="plot_title")
+                    xlabel = st.text_input("🧭 X-axis Label", value="Longitude", key="xlabel")
+                    ylabel = st.text_input("🧭 Y-axis Label", value="Latitude", key="ylabel")
+                    cbar_label = st.text_input("🎨 Colorbar Label", value=var, key="cbar_label")
+            
+                with label_cols[1]:
+                    st.button("🔄 Reset", on_click=reset_plot_labels, key="reset_labels_btn")
+
 
             # --- Define reset function ---
             def reset_tick_settings():
