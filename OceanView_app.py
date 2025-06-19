@@ -22,6 +22,7 @@ if "can_refresh" not in st.session_state:
 st.set_page_config(layout="wide")
 st.title("🌊 Ocean Data Viewer")
 
+st.button("🔄 Refresh App", on_click=refresh_app)
 
 # --- Safe NetCDF loader with fallback for time decoding errors ---
 @st.cache_data
