@@ -7,11 +7,6 @@ import numpy as np
 import pandas as pd
 import matplotlib.ticker as mticker
 
-
-    
-st.set_page_config(layout="wide")
-st.title("🌊 Ocean Data Viewer")
-
 # === Optional Refresh App Button ===
 import streamlit.components.v1 as components
 
@@ -24,6 +19,11 @@ if st.button("🔄 Refresh App"):
 with placeholder.container():
     # All other Streamlit logic goes here
     # This includes file uploader, selections, plots, etc.
+
+    
+    st.set_page_config(layout="wide")
+    st.title("🌊 Ocean Data Viewer")
+
 
 
     # --- Safe NetCDF loader with fallback for time decoding errors ---
