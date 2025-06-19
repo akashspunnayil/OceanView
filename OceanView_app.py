@@ -15,9 +15,15 @@ st.title("🌊 Ocean Data Viewer")
 # === Optional Refresh App Button ===
 import streamlit.components.v1 as components
 
+placeholder = st.empty()
+
 if st.button("🔄 Refresh App"):
     st.session_state.clear()
     components.html("<script>window.location.reload(true);</script>")
+
+with placeholder.container():
+    # All other Streamlit logic goes here
+    # This includes file uploader, selections, plots, etc.
 
 
 # --- Safe NetCDF loader with fallback for time decoding errors ---
