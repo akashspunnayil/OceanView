@@ -151,9 +151,9 @@ if uploaded_file:
                 ylabel = st.text_input("🧭 Y-axis Label", value="Latitude")
                 cbar_label = st.text_input("🎨 Colorbar Label", value=var)
 
-            # with st.expander("📏 Axis Tick Settings"):
-            #     xtick_step = st.number_input("Longitude Tick Interval (°)", min_value=0.1, max_value=60.0, value=10.0, step=1.0)
-            #     ytick_step = st.number_input("Latitude Tick Interval (°)", min_value=0.1, max_value=60.0, value=5.0, step=1.0)
+            with st.expander("📏 Axis Tick Settings"):
+                xtick_step = st.number_input("Longitude Tick Interval (°)", min_value=0.1, max_value=60.0, value=10.0, step=1.0)
+                ytick_step = st.number_input("Latitude Tick Interval (°)", min_value=0.1, max_value=60.0, value=5.0, step=1.0)
 
             # def reset_tick_settings():
             #     st.session_state["manual_ticks"] = False
