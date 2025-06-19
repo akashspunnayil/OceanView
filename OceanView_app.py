@@ -363,7 +363,7 @@ if uploaded_file:
                             vmax=vmax if set_clim else None,
                             add_colorbar=False
                         )
-                        cbar = fig_anim.colorbar(im_cbar, ax=ax_anim, orientation="vertical", shrink=0.7, pad=0.05)
+                        cbar = fig_anim.colorbar(im_cbar, ax=ax_anim, orientation="vertical", shrink=0.7, pad=0.05, extend='both')
                         cbar.set_label(cbar_label, fontsize=10)
                         
                         def update_anim(frame):
