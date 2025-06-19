@@ -375,68 +375,108 @@ if uploaded_file:
                         )
                         cbar = fig_anim.colorbar(im_cbar, ax=ax_anim, orientation="vertical", shrink=0.7, pad=0.05, extend='both')
                         cbar.set_label(cbar_label, fontsize=10)
-                        
+
                         def update_anim(frame):
                             ax_anim.clear()
                             frame_data = da_anim.isel({time_var: frame})
-                            
+                        
                             im = frame_data.plot.pcolormesh(
                                 ax=ax_anim,
                                 transform=ccrs.PlateCarree(),
                                 cmap=cmap_choice,
                                 vmin=vmin if set_clim else None,
                                 vmax=vmax if set_clim else None,
-                                add_colorbar=False  # handle colorbar only once outside
+                                add_colorbar=False
                             )
-                            
-                            # Coastlines and mask
+                        
                             ax_anim.coastlines()
                             if mask_land:
                                 ax_anim.add_feature(cfeature.LAND, facecolor=mask_color, zorder=3)
                             if mask_sea:
                                 ax_anim.add_feature(cfeature.OCEAN, facecolor=mask_color, zorder=3)
-                            
-                            # Gridlines
+                        
                             gl = ax_anim.gridlines(draw_labels=True, linewidth=0.5, color='gray', alpha=0.5, linestyle='--')
                             gl.top_labels = False
                             gl.right_labels = False
                             gl.xlabel_style = {'size': 10}
                             gl.ylabel_style = {'size': 10}
-                            
-                            # Apply manual tick intervals if set
+                        
                             if st.session_state.get("manual_ticks", False):
                                 xtick_step = st.session_state.get("xtick_step", None)
                                 ytick_step = st.session_state.get("ytick_step", None)
                                 if xtick_step and ytick_step:
                                     gl.xlocator = mticker.FixedLocator(np.arange(lon_range[0], lon_range[1] + xtick_step, xtick_step))
                                     gl.ylocator = mticker.FixedLocator(np.arange(lat_range[0], lat_range[1] + ytick_step, ytick_step))
-                            
-                            # Axis labels (as text because Cartopy disables set_xlabel)
+                        
                             ax_anim.text(0.5, -0.1, xlabel, transform=ax_anim.transAxes, ha='center', va='top', fontsize=10)
                             ax_anim.text(-0.15, 0.5, ylabel, transform=ax_anim.transAxes, ha='right', va='center', rotation='vertical', fontsize=10)
                         
-                            # Title with time + depth
-                            time_value = da_anim[time_var].isel({time_var: frame}).values
+                            # 🕒 Use decoded, formatted time string from time_labels
                             try:
-                                time_str = pd.to_datetime(str(time_value)).strftime("%Y-%m-%d")
+                                time_str = pd.to_datetime(time_labels[frame]).strftime("%Y-%m-%d")
                             except:
-                                time_str = str(time_value)[:15]
-                            
+                                time_str = str(time_labels[frame])[:15]
+                        
                             title = f"{var} | Time: {time_str}"
                             if depth_var and selected_depth is not None:
                                 title += f" | Depth: {selected_depth} m"
-                            
+                        
                             ax_anim.set_title(title, fontsize=12)
                             return [im]
 
-                
-                        # ani = animation.FuncAnimation(
-                        #     fig_anim, update_anim, frames=da_anim.sizes[time_var], blit=False
-                        # )
-                
-                        # gif_buf = io.BytesIO()
-                        # ani.save(gif_buf, format="gif", writer="pillow", fps=2)
-                        # st.image(gif_buf, caption="Time-animated plot", use_column_width=True)
+                        # def update_anim(frame):
+                        #     ax_anim.clear()
+                        #     frame_data = da_anim.isel({time_var: frame})
+                            
+                        #     im = frame_data.plot.pcolormesh(
+                        #         ax=ax_anim,
+                        #         transform=ccrs.PlateCarree(),
+                        #         cmap=cmap_choice,
+                        #         vmin=vmin if set_clim else None,
+                        #         vmax=vmax if set_clim else None,
+                        #         add_colorbar=False  # handle colorbar only once outside
+                        #     )
+                            
+                        #     # Coastlines and mask
+                        #     ax_anim.coastlines()
+                        #     if mask_land:
+                        #         ax_anim.add_feature(cfeature.LAND, facecolor=mask_color, zorder=3)
+                        #     if mask_sea:
+                        #         ax_anim.add_feature(cfeature.OCEAN, facecolor=mask_color, zorder=3)
+                            
+                        #     # Gridlines
+                        #     gl = ax_anim.gridlines(draw_labels=True, linewidth=0.5, color='gray', alpha=0.5, linestyle='--')
+                        #     gl.top_labels = False
+                        #     gl.right_labels = False
+                        #     gl.xlabel_style = {'size': 10}
+                        #     gl.ylabel_style = {'size': 10}
+                            
+                        #     # Apply manual tick intervals if set
+                        #     if st.session_state.get("manual_ticks", False):
+                        #         xtick_step = st.session_state.get("xtick_step", None)
+                        #         ytick_step = st.session_state.get("ytick_step", None)
+                        #         if xtick_step and ytick_step:
+                        #             gl.xlocator = mticker.FixedLocator(np.arange(lon_range[0], lon_range[1] + xtick_step, xtick_step))
+                        #             gl.ylocator = mticker.FixedLocator(np.arange(lat_range[0], lat_range[1] + ytick_step, ytick_step))
+                            
+                        #     # Axis labels (as text because Cartopy disables set_xlabel)
+                        #     ax_anim.text(0.5, -0.1, xlabel, transform=ax_anim.transAxes, ha='center', va='top', fontsize=10)
+                        #     ax_anim.text(-0.15, 0.5, ylabel, transform=ax_anim.transAxes, ha='right', va='center', rotation='vertical', fontsize=10)
+                        
+                        #     # Title with time + depth
+                        #     time_value = da_anim[time_var].isel({time_var: frame}).values
+                        #     try:
+                        #         time_str = pd.to_datetime(str(time_value)).strftime("%Y-%m-%d")
+                        #     except:
+                        #         time_str = str(time_value)[:15]
+                            
+                        #     title = f"{var} | Time: {time_str}"
+                        #     if depth_var and selected_depth is not None:
+                        #         title += f" | Depth: {selected_depth} m"
+                            
+                        #     ax_anim.set_title(title, fontsize=12)
+                        #     return [im]
+
 
                         ani = animation.FuncAnimation(
                             fig_anim, update_anim, frames=da_anim.sizes[time_var], blit=False
@@ -465,9 +505,6 @@ if uploaded_file:
                         
                         # Optional cleanup
                         os.remove(temp_gif_path)
-
-
-
                 
                     except Exception as e:
                         st.error(f"⚠️ Failed to create animation: {e}")
