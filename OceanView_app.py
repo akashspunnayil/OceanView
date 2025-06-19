@@ -345,7 +345,8 @@ if uploaded_file:
                 st.subheader("🎞️ Time-Loop Animation (GIF)")
                 
                 # Skip if time is not available
-                if time_var and ds[var].dims and "time" in ds[var].dims:
+                # if time_var and ds[var].dims and "time" in ds[var].dims:
+                if time_var and time_var in ds[var].dims:
                     da_anim = ds[var]
                     if depth_var and selected_depth is not None and "depth" in ds[var].dims:
                         da_anim = da_anim.sel({depth_var: selected_depth}, method="nearest")
