@@ -171,12 +171,20 @@ if uploaded_file:
                     st.button("🔄 Reset", on_click=reset_colorbar_settings, key="reset_colorbar_btn")
                     
 
-
             def reset_plot_labels():
-                st.session_state["plot_title"] = "Ocean Variable Plot"
+                # Generate dynamic title based on selections
+                title = var
+                if time_var:
+                    title += f" | {time_sel}"
+                if depth_var and selected_depth is not None:
+                    title += f" | {selected_depth} m"
+            
+                # Set default labels
+                st.session_state["plot_title"] = title
                 st.session_state["xlabel"] = "Longitude"
                 st.session_state["ylabel"] = "Latitude"
-                st.session_state["cbar_label"] = var  # This assumes 'var' is still accessible
+                st.session_state["cbar_label"] = var
+
 
             with st.expander("🖊️ Plot Custom Labels"):
                 label_cols = st.columns([2, 1])  # Text inputs and reset
