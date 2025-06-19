@@ -136,24 +136,39 @@ if uploaded_file:
                     index=0
                 )
 
+            def reset_colorbar_settings():
+                st.session_state["set_clim"] = False
+                st.session_state.pop("vmin", None)
+                st.session_state.pop("vmax", None)
+                st.session_state.pop("step", None)
+                st.session_state["cmap_choice"] = "viridis"
+            
             with st.expander("🎨 Colorbar & Colormap Settings"):
-                set_clim = st.checkbox("🔧 Manually set colorbar range")
+                cols_colorbar = st.columns([2, 1])  # settings + reset button
             
-                if set_clim:
-                    vmin = st.number_input("Minimum value (vmin)", value=0.0)
-                    vmax = st.number_input("Maximum value (vmax)", value=1.0)
-                    step = st.number_input("Tick interval (optional)", value=0.1)
-                else:
-                    vmin, vmax, step = None, None, None
+                with cols_colorbar[0]:
+                    set_clim = st.checkbox("🔧 Manually set colorbar range", key="set_clim")
             
-                cmap_choice = st.selectbox(
-                    "🎨 Choose a colormap",
-                    options=sorted([
-                        "viridis", "plasma", "inferno", "magma", "cividis",
-                        "jet", "turbo", "coolwarm", "RdBu_r", "YlGnBu", "BrBG", "bwr"
-                    ]),
-                    index=0
-                )
+                    if set_clim:
+                        vmin = st.number_input("Minimum value (vmin)", value=0.0, key="vmin")
+                        vmax = st.number_input("Maximum value (vmax)", value=1.0, key="vmax")
+                        step = st.number_input("Tick interval (optional)", value=0.1, key="step")
+                    else:
+                        vmin, vmax, step = None, None, None
+            
+                    cmap_choice = st.selectbox(
+                        "🎨 Choose a colormap",
+                        options=sorted([
+                            "viridis", "plasma", "inferno", "magma", "cividis",
+                            "jet", "turbo", "coolwarm", "RdBu_r", "YlGnBu", "BrBG", "bwr"
+                        ]),
+                        index=0,
+                        key="cmap_choice"
+                    )
+            
+                with cols_colorbar[1]:
+                    st.button("🔄 Reset", on_click=reset_colorbar_settings)
+
 
             with st.expander("🖊️ Plot Custom Labels"):
                 plot_title = st.text_input("📌 Plot Title", value="Ocean Variable Plot")
