@@ -336,71 +336,71 @@ if uploaded_file:
                         mime=f"image/{'jpeg' if save_format == 'jpg' else save_format}"
                     )
             
-            # === Create Animated Plot over Time ===
-            import matplotlib.animation as animation
-            import io
-            
-            st.subheader("🎞️ Time-Loop Animation (GIF)")
-            
-            if time_var and time_var in ds[var].dims:
-                try:
-                    da_anim = ds[var]
-            
-                    if depth_var and selected_depth is not None and depth_var in da_anim.dims:
-                        da_anim = da_anim.sel({depth_var: selected_depth}, method="nearest")
-            
-                    da_anim = da_anim.sel({lat_var: slice(*lat_range), lon_var: slice(*lon_range)})
-            
-                    fig_anim, ax_anim = plt.subplots(figsize=(8, 5), subplot_kw={"projection": ccrs.PlateCarree()})
-            
-                    def update_anim(frame):
-                        ax_anim.clear()
-                        frame_data = da_anim.isel({time_var: frame})
-            
-                        im = frame_data.plot.pcolormesh(
-                            ax=ax_anim,
-                            transform=ccrs.PlateCarree(),
-                            cmap=cmap_choice,
-                            vmin=vmin if set_clim else None,
-                            vmax=vmax if set_clim else None,
-                            add_colorbar=False
+                # === Create Animated Plot over Time ===
+                import matplotlib.animation as animation
+                import io
+                
+                st.subheader("🎞️ Time-Loop Animation (GIF)")
+                
+                if time_var and time_var in ds[var].dims:
+                    try:
+                        da_anim = ds[var]
+                
+                        if depth_var and selected_depth is not None and depth_var in da_anim.dims:
+                            da_anim = da_anim.sel({depth_var: selected_depth}, method="nearest")
+                
+                        da_anim = da_anim.sel({lat_var: slice(*lat_range), lon_var: slice(*lon_range)})
+                
+                        fig_anim, ax_anim = plt.subplots(figsize=(8, 5), subplot_kw={"projection": ccrs.PlateCarree()})
+                
+                        def update_anim(frame):
+                            ax_anim.clear()
+                            frame_data = da_anim.isel({time_var: frame})
+                
+                            im = frame_data.plot.pcolormesh(
+                                ax=ax_anim,
+                                transform=ccrs.PlateCarree(),
+                                cmap=cmap_choice,
+                                vmin=vmin if set_clim else None,
+                                vmax=vmax if set_clim else None,
+                                add_colorbar=False
+                            )
+                
+                            ax_anim.coastlines()
+                            if mask_land:
+                                ax_anim.add_feature(cfeature.LAND, facecolor=mask_color, zorder=3)
+                            if mask_sea:
+                                ax_anim.add_feature(cfeature.OCEAN, facecolor=mask_color, zorder=3)
+                
+                            ax_anim.text(0.5, -0.1, xlabel, transform=ax_anim.transAxes, ha='center', va='top', fontsize=10)
+                            ax_anim.text(-0.07, 0.5, ylabel, transform=ax_anim.transAxes, ha='right', va='center', rotation='vertical', fontsize=10)
+                
+                            # Title with robust datetime conversion
+                            time_value = da_anim[time_var].isel({time_var: frame}).values
+                            try:
+                                time_str = pd.to_datetime(str(time_value)).strftime("%Y-%m-%d")
+                            except:
+                                time_str = str(time_value)[:15]
+                
+                            title = f"{var} | Time: {time_str}"
+                            if depth_var and selected_depth is not None:
+                                title += f" | Depth: {selected_depth} m"
+                            ax_anim.set_title(title, fontsize=12)
+                
+                            return [im]
+                
+                        ani = animation.FuncAnimation(
+                            fig_anim, update_anim, frames=da_anim.sizes[time_var], blit=False
                         )
-            
-                        ax_anim.coastlines()
-                        if mask_land:
-                            ax_anim.add_feature(cfeature.LAND, facecolor=mask_color, zorder=3)
-                        if mask_sea:
-                            ax_anim.add_feature(cfeature.OCEAN, facecolor=mask_color, zorder=3)
-            
-                        ax_anim.text(0.5, -0.1, xlabel, transform=ax_anim.transAxes, ha='center', va='top', fontsize=10)
-                        ax_anim.text(-0.07, 0.5, ylabel, transform=ax_anim.transAxes, ha='right', va='center', rotation='vertical', fontsize=10)
-            
-                        # Title with robust datetime conversion
-                        time_value = da_anim[time_var].isel({time_var: frame}).values
-                        try:
-                            time_str = pd.to_datetime(str(time_value)).strftime("%Y-%m-%d")
-                        except:
-                            time_str = str(time_value)[:15]
-            
-                        title = f"{var} | Time: {time_str}"
-                        if depth_var and selected_depth is not None:
-                            title += f" | Depth: {selected_depth} m"
-                        ax_anim.set_title(title, fontsize=12)
-            
-                        return [im]
-            
-                    ani = animation.FuncAnimation(
-                        fig_anim, update_anim, frames=da_anim.sizes[time_var], blit=False
-                    )
-            
-                    gif_buf = io.BytesIO()
-                    ani.save(gif_buf, format="gif", writer="pillow", fps=2)
-                    st.image(gif_buf, caption="Time-animated plot", use_column_width=True)
-            
-                except Exception as e:
-                    st.error(f"⚠️ Failed to create animation: {e}")
-            else:
-                st.info("⏳ Animation unavailable: Time dimension not found in selected variable.")
+                
+                        gif_buf = io.BytesIO()
+                        ani.save(gif_buf, format="gif", writer="pillow", fps=2)
+                        st.image(gif_buf, caption="Time-animated plot", use_column_width=True)
+                
+                    except Exception as e:
+                        st.error(f"⚠️ Failed to create animation: {e}")
+                else:
+                    st.info("⏳ Animation unavailable: Time dimension not found in selected variable.")
 
                     
             except Exception as e:
