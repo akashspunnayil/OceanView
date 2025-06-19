@@ -26,6 +26,26 @@ def find_coord_name(ds, keyword):
             return coord
     return None
 
+#---- convert raw time values into datetime-like values using cftime ----
+import numpy as np
+import pandas as pd
+
+def try_decode_time(ds, time_var):
+    time_vals = ds[time_var].values
+    if np.issubdtype(time_vals.dtype, np.datetime64):
+        # Already decoded
+        return time_vals
+    else:
+        st.warning("⚠️ Time units not decoded. Approximating monthly time labels.")
+        try:
+            # Try creating fake time axis assuming months from 2000-01
+            start = pd.Timestamp("2000-01-01")
+            time_decoded = pd.date_range(start, periods=len(time_vals), freq="MS")
+            return time_decoded
+        except Exception as e:
+            st.error(f"❌ Time could not be approximated: {e}")
+            return time_vals  # fallback
+
 # ---- File Upload ----
 uploaded_file = st.file_uploader("📂 Upload a NetCDF file", type=["nc"])
 
@@ -58,11 +78,18 @@ if uploaded_file:
                                   float(lon_vals.min()), float(lon_vals.max()),
                                   (float(lon_vals.min()), float(lon_vals.max())))
 
+            # if time_var:
+            #     time_vals = ds[time_var].values
+            #     time_sel = st.selectbox("🕒 Select Time", time_vals)
+            # else:
+            #     time_sel = None
+
             if time_var:
-                time_vals = ds[time_var].values
+                time_vals = try_decode_time(ds, time_var)
                 time_sel = st.selectbox("🕒 Select Time", time_vals)
             else:
                 time_sel = None
+
 
             # ---- Subset the data ----
             subset_kwargs = {
