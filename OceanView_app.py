@@ -3,6 +3,8 @@ import xarray as xr
 import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
 import tempfile
+import numpy as np
+import pandas as pd
 
 st.set_page_config(layout="wide")
 st.title("🌊 Ocean Data Viewer")
@@ -26,25 +28,18 @@ def find_coord_name(ds, keyword):
             return coord
     return None
 
-#---- convert raw time values into datetime-like values using cftime ----
-import numpy as np
-import pandas as pd
-
 def try_decode_time(ds, time_var):
     time_vals = ds[time_var].values
     if np.issubdtype(time_vals.dtype, np.datetime64):
-        # Already decoded
         return time_vals
     else:
         st.warning("⚠️ Time units not decoded. Approximating monthly time labels.")
         try:
-            # Try creating fake time axis assuming months from 2000-01
             start = pd.Timestamp("2000-01-01")
-            time_decoded = pd.date_range(start, periods=len(time_vals), freq="MS")
-            return time_decoded
+            return pd.date_range(start, periods=len(time_vals), freq="MS")
         except Exception as e:
             st.error(f"❌ Time could not be approximated: {e}")
-            return time_vals  # fallback
+            return time_vals
 
 # ---- File Upload ----
 uploaded_file = st.file_uploader("📂 Upload a NetCDF file", type=["nc"])
@@ -57,10 +52,8 @@ if uploaded_file:
         st.write("**Dimensions:**", ds.dims)
         st.write("**Variables:**", list(ds.data_vars))
 
-        # ---- Select variable ----
         var = st.selectbox("🔎 Select a variable to visualize", list(ds.data_vars.keys()))
 
-        # ---- Coordinate identification ----
         lat_var = find_coord_name(ds, "lat")
         lon_var = find_coord_name(ds, "lon")
         time_var = find_coord_name(ds, "time")
@@ -78,56 +71,39 @@ if uploaded_file:
                                   float(lon_vals.min()), float(lon_vals.max()),
                                   (float(lon_vals.min()), float(lon_vals.max())))
 
-            # if time_var:
-            #     time_vals = ds[time_var].values
-            #     time_sel = st.selectbox("🕒 Select Time", time_vals)
-            # else:
-            #     time_sel = None
-
+            # ---- Handle time properly ----
+            time_sel = None
             if time_var:
                 time_vals = try_decode_time(ds, time_var)
                 time_sel = st.selectbox("🕒 Select Time", time_vals)
-            else:
-                time_sel = None
 
-
-            # ---- Subset the data ----
+            # ---- Prepare subsetting arguments ----
             subset_kwargs = {
                 lat_var: slice(*lat_range),
                 lon_var: slice(*lon_range),
             }
-            if time_sel:
-                subset_kwargs[time_var] = time_sel
 
+            if time_sel is not None and time_var:
+                time_dtype = ds[time_var].dtype
+                if np.issubdtype(time_dtype, np.datetime64):
+                    subset_kwargs[time_var] = np.datetime64(time_sel)
+                elif np.issubdtype(time_dtype, np.number):
+                    try:
+                        time_index = list(time_vals).index(time_sel)
+                        subset_kwargs[time_var] = time_index
+                    except ValueError:
+                        st.error("❌ Selected time not found in dataset index.")
+                else:
+                    subset_kwargs[time_var] = time_sel
+
+            # ---- Subset and Plot ----
             try:
                 data = ds[var].sel(**subset_kwargs)
                 st.subheader("📍 Map View")
                 fig, ax = plt.subplots(figsize=(10, 5), subplot_kw={"projection": ccrs.PlateCarree()})
                 data.squeeze().plot.pcolormesh(ax=ax, transform=ccrs.PlateCarree(), cmap="viridis", add_colorbar=True)
                 ax.coastlines()
-                ax.set_title(f"{var} at {time_sel}" if time_sel else var)
+                ax.set_title(f"{var} at {time_sel}" if time_sel is not None else var)
                 st.pyplot(fig)
             except Exception as e:
                 st.error(f"⚠️ Failed to subset and plot data: {e}")
-
-    
-        
-    # # Time selector (assumes time is available)
-    # if "time" in ds.coords:
-    #     time_vals = ds.time.values
-    #     time_sel = st.selectbox("Select Time", time_vals)
-
-    # # Subset data
-    # data = ds[var].sel(
-    #     lat=slice(*lat_range),
-    #     lon=slice(*lon_range),
-    #     time=time_sel if "time" in ds.coords else None
-    # )
-
-    # # Plot
-    # st.subheader("📍 Map View")
-    # fig, ax = plt.subplots(subplot_kw={"projection": ccrs.PlateCarree()})
-    # im = data.squeeze().plot.pcolormesh(ax=ax, transform=ccrs.PlateCarree(), cmap="viridis", add_colorbar=True)
-    # ax.coastlines()
-    # st.pyplot(fig)
-
