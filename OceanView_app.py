@@ -182,7 +182,7 @@ if uploaded_file:
                 # === Plotting ===
                 st.subheader("🗺️ Map View")
                 fig, ax = plt.subplots(figsize=(10, 5), subplot_kw={"projection": ccrs.PlateCarree()})
-                # data.squeeze().plot.pcolormesh(ax=ax, transform=ccrs.PlateCarree(), cmap="viridis", add_colorbar=True)
+
                 plot_kwargs = {
                     "ax": ax,
                     "transform": ccrs.PlateCarree(),
@@ -193,36 +193,34 @@ if uploaded_file:
                 if set_clim:
                     plot_kwargs["vmin"] = vmin
                     plot_kwargs["vmax"] = vmax
-
+                
+                # Plotting the data
                 im = data.squeeze().plot.pcolormesh(**plot_kwargs)
-                # ax.set_xlabel(xlabel)
-                # ax.set_ylabel(ylabel)
-                # ax.set_title(plot_title)
-                # if hasattr(im, 'colorbar') and im.colorbar:
-                #     im.colorbar.set_label(cbar_label)
-
-
-                # data.squeeze().plot.pcolormesh(**plot_kwargs)
-
+                
+                # Add coastlines
                 ax.coastlines()
-
+                
+                # Add gridlines and enable coordinate labels
                 gl = ax.gridlines(draw_labels=True, linewidth=0.5, color='gray', alpha=0.5, linestyle='--')
                 gl.top_labels = False
                 gl.right_labels = False
-                gl.xlabel_style = {'size': 10}
-                gl.ylabel_style = {'size': 10}
-
-                # Apply your custom labels
-                ax.set_xlabel(xlabel, fontsize=12)
-                ax.set_ylabel(ylabel, fontsize=12)
+                gl.xlabel_style = {'size': 12}
+                gl.ylabel_style = {'size': 12}
+                
+                # Title
                 ax.set_title(plot_title, fontsize=14)
+                
+                # Colorbar label
                 if hasattr(im, 'colorbar') and im.colorbar:
                     im.colorbar.set_label(cbar_label, fontsize=12)
-                    
+                
+                # Optional subtitle
                 title = f"{plot_title}"
                 if time_var: title += f" | Time: {time_sel}"
                 if depth_var: title += f" | Depth: {selected_depth} m"
+                
                 st.pyplot(fig)
+
 
                 import io
 
