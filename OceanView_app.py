@@ -401,11 +401,23 @@ if uploaded_file:
                             fig_anim, update_anim, frames=da_anim.sizes[time_var], blit=False
                         )
                         
-                        gif_buf = io.BytesIO()
-                        ani.save(gif_buf, writer="pillow", fps=2)  # ❌ No 'format=' here
-                        gif_buf.seek(0)
+                        import tempfile
+                        import os
                         
-                        st.image(gif_buf, caption="Time-animated plot", use_column_width=True)
+                        with tempfile.NamedTemporaryFile(delete=False, suffix=".gif") as tmpfile:
+                            temp_gif_path = tmpfile.name
+                        
+                        ani.save(temp_gif_path, writer="pillow", fps=2)
+                        
+                        # Display the animation in Streamlit
+                        with open(temp_gif_path, "rb") as f:
+                            gif_bytes = f.read()
+                        
+                        st.image(gif_bytes, caption="Time-animated plot", use_column_width=True)
+                        
+                        # Optional cleanup (if desired)
+                        os.remove(temp_gif_path)
+
 
                 
                     except Exception as e:
