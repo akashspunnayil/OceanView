@@ -344,9 +344,9 @@ if uploaded_file:
                 # --- Animation Section ---
                 st.subheader("🎞️ Time-Loop Animation (GIF)")
 
-                if not time_var or time_var not in ds[var].dims:
-                    st.info("⏳ Animation unavailable: Time dimension not found in selected variable.")
-                    return
+                # if not time_var or time_var not in ds[var].dims:
+                #     st.info("⏳ Animation unavailable: Time dimension not found in selected variable.")
+                #     return
 
                 # Skip if time is not available
                 # if time_var and ds[var].dims and "time" in ds[var].dims:
