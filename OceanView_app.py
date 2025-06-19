@@ -2,6 +2,7 @@ import streamlit as st
 import xarray as xr
 import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
+import io
 
 st.title("🌊 Ocean Data Viewer")
 
@@ -9,16 +10,17 @@ st.title("🌊 Ocean Data Viewer")
 @st.cache_data
 def load_netcdf(file):
     try:
-        return xr.open_dataset(file)
+        return xr.open_dataset(file, engine="netcdf4")  # Force backend
     except ValueError as e:
         if "decode time units" in str(e) or "decode variable" in str(e):
-            st.warning("⚠️ Time decoding failed due to non-standard calendar. Loading with `decode_times=False`.")
-            return xr.open_dataset(file, decode_times=False)
+            st.warning("⚠️ Time decoding failed due to non-standard calendar. Loading with decode_times=False.")
+            return xr.open_dataset(file, decode_times=False, engine="netcdf4")
+        elif "valid dataset engines" in str(e):
+            st.error("❌ Could not determine the backend engine. Ensure the uploaded file is a valid NetCDF.")
+            return None
         else:
             raise e
 
-# Use in your Streamlit flow
-#ds = load_netcdf(uploaded_file)
 
 uploaded_file = st.file_uploader("Upload NetCDF file", type=["nc"])
 
