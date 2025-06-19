@@ -389,13 +389,24 @@ if uploaded_file:
                 
                             return [im]
                 
+                        # ani = animation.FuncAnimation(
+                        #     fig_anim, update_anim, frames=da_anim.sizes[time_var], blit=False
+                        # )
+                
+                        # gif_buf = io.BytesIO()
+                        # ani.save(gif_buf, format="gif", writer="pillow", fps=2)
+                        # st.image(gif_buf, caption="Time-animated plot", use_column_width=True)
+
                         ani = animation.FuncAnimation(
                             fig_anim, update_anim, frames=da_anim.sizes[time_var], blit=False
                         )
-                
+                        
                         gif_buf = io.BytesIO()
-                        ani.save(gif_buf, format="gif", writer="pillow", fps=2)
+                        ani.save(gif_buf, writer="pillow", fps=2)  # ❌ No 'format=' here
+                        gif_buf.seek(0)
+                        
                         st.image(gif_buf, caption="Time-animated plot", use_column_width=True)
+
                 
                     except Exception as e:
                         st.error(f"⚠️ Failed to create animation: {e}")
