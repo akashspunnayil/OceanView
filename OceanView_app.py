@@ -213,7 +213,11 @@ if uploaded_file:
                 # Colorbar label
                 if hasattr(im, 'colorbar') and im.colorbar:
                     im.colorbar.set_label(cbar_label, fontsize=12)
-                
+
+                # Add custom axis labels manually
+                ax.text(0.5, -0.1, xlabel, transform=ax.transAxes, ha='center', va='top', fontsize=12)
+                ax.text(-0.1, 0.5, ylabel, transform=ax.transAxes, ha='right', va='center', rotation='vertical', fontsize=12)
+
                 # Optional subtitle
                 title = f"{plot_title}"
                 if time_var: title += f" | Time: {time_sel}"
