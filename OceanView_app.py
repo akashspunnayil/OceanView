@@ -365,7 +365,10 @@ if uploaded_file:
                                 vmax=vmax if set_clim else None,
                                 add_colorbar=False
                             )
-                
+                            # Colorbar label
+                            if hasattr(im, 'colorbar') and im.colorbar:
+                                im.colorbar.set_label(cbar_label, fontsize=12)
+                                
                             ax_anim.coastlines()
                             if mask_land:
                                 ax_anim.add_feature(cfeature.LAND, facecolor=mask_color, zorder=3)
