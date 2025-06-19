@@ -267,9 +267,9 @@ if uploaded_file:
                 import cartopy.feature as cfeature
 
                 if mask_land:
-                    ax.add_feature(cfeature.LAND, facecolor=mask_color, zorder=0)
+                    ax.add_feature(cfeature.LAND, facecolor=mask_color, zorder=3)
                 if mask_sea:
-                    ax.add_feature(cfeature.OCEAN, facecolor=mask_color, zorder=0)
+                    ax.add_feature(cfeature.OCEAN, facecolor=mask_color, zorder=3)
 
                 # # Add gridlines and enable coordinate labels
                 # gl = ax.gridlines(draw_labels=True, linewidth=0.5, color='gray', alpha=0.5, linestyle='--')
