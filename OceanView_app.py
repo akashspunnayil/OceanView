@@ -70,6 +70,23 @@ if uploaded_file:
             lon_var = find_coord_name(ds, "lon")
             time_var = find_coord_name(ds, "time")
             depth_var = find_coord_name(ds, "depth")
+            
+            # 🔧 Manual fallback if any not found
+            if not lat_var or not lon_var:
+                st.warning("⚠️ Latitude or Longitude not automatically detected.")
+                st.info("Refer to the dataset summary on the right to find actual coordinate names.")
+                
+            if not lat_var:
+                lat_var = st.text_input("Enter Latitude Dimension Name", value="")
+            if not lon_var:
+                lon_var = st.text_input("Enter Longitude Dimension Name", value="")
+            
+            if not time_var:
+                time_var = st.text_input("Enter Time Dimension Name (if available)", value="")
+            
+            if not depth_var:
+                depth_var = st.text_input("Enter Depth Dimension Name (optional)", value="")
+
         
             if not lat_var or not lon_var:
                 st.error("❌ Latitude or Longitude coordinate not found.")
