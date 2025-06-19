@@ -5,18 +5,16 @@ import cartopy.crs as ccrs
 import tempfile
 import numpy as np
 import pandas as pd
-from xarray import decode_cf
 
 st.set_page_config(layout="wide")
 st.title("🌊 Ocean Data Viewer")
 
-# ---- Safe NetCDF Loader ----
+# --- Safe NetCDF loader with fallback for time decoding errors ---
 @st.cache_data
 def load_netcdf_safe(file_obj):
     with tempfile.NamedTemporaryFile(delete=False, suffix=".nc") as tmp_file:
         tmp_file.write(file_obj.read())
         tmp_path = tmp_file.name
-
     try:
         return xr.open_dataset(tmp_path, engine="netcdf4")
     except ValueError as e:
@@ -26,19 +24,20 @@ def load_netcdf_safe(file_obj):
         else:
             raise
 
-# ---- Helper Functions ----
+# --- Coordinate finder ---
 def find_coord_name(ds, keyword):
     for coord in ds.coords:
         if keyword.lower() in coord.lower():
             return coord
     return None
 
+# --- Time decoding fallback ---
 def try_decode_time(ds, time_var):
     time_vals = ds[time_var].values
     if np.issubdtype(time_vals.dtype, np.datetime64):
         return time_vals, time_vals
     else:
-        st.warning("⚠️ Time not decoded. Approximating time as monthly steps from 2000-01.")
+        st.warning("⚠️ Time not decoded. Approximating monthly time from 2000-01.")
         try:
             fake_time = pd.date_range("2000-01-01", periods=len(time_vals), freq="MS")
             return time_vals, fake_time
@@ -46,7 +45,7 @@ def try_decode_time(ds, time_var):
             st.error(f"❌ Failed to create fake time labels: {e}")
             return time_vals, time_vals
 
-# ---- File Upload ----
+# --- File uploader ---
 uploaded_file = st.file_uploader("📂 Upload a NetCDF file", type=["nc"])
 
 if uploaded_file:
@@ -54,20 +53,22 @@ if uploaded_file:
 
     if ds is not None:
         st.success("✅ File loaded successfully.")
-        st.write("### 📦 Dataset Summary")
+
+        # === Dataset structure printout (like Jupyter repr) ===
+        st.subheader("📄 Dataset Structure (like Jupyter)")
         st.code(ds.__repr__(), language="python")
-        st.write("**Dimensions:**", ds.dims)
-        st.write("**Variables:**", list(ds.data_vars))
-        
+
         var = st.selectbox("🔎 Select a variable to visualize", list(ds.data_vars.keys()))
 
         lat_var = find_coord_name(ds, "lat")
         lon_var = find_coord_name(ds, "lon")
         time_var = find_coord_name(ds, "time")
+        depth_var = find_coord_name(ds, "depth")
 
         if not lat_var or not lon_var:
-            st.error("❌ Latitude or Longitude variable not found.")
+            st.error("❌ Latitude or Longitude coordinate not found.")
         else:
+            # === Lat/Lon sliders ===
             lat_vals = ds[lat_var].values
             lon_vals = ds[lon_var].values
 
@@ -78,12 +79,23 @@ if uploaded_file:
                                   float(lon_vals.min()), float(lon_vals.max()),
                                   (float(lon_vals.min()), float(lon_vals.max())))
 
-            time_sel = None
+            # === Depth slider ===
+            if depth_var:
+                depth_vals = ds[depth_var].values
+                if len(depth_vals) == 1:
+                    selected_depth = depth_vals[0]
+                    st.info(f"🧭 Only one depth level: {selected_depth}")
+                else:
+                    selected_depth = st.slider("🧭 Select Depth Level",
+                                               float(depth_vals.min()), float(depth_vals.max()),
+                                               float(depth_vals.min()))
+            else:
+                selected_depth = None
+
+            # === Time selectbox ===
             if time_var:
                 raw_time_vals, time_labels = try_decode_time(ds, time_var)
                 time_sel = st.selectbox("🕒 Select Time", time_labels, key="select_time")
-
-                # Map selection back to original raw time index (for datasets with decode_times=False)
                 try:
                     time_index = list(time_labels).index(time_sel)
                     raw_time_value = raw_time_vals[time_index]
@@ -92,26 +104,34 @@ if uploaded_file:
             else:
                 raw_time_value = None
 
-            # ---- Subset the data ----
+            # === Subsetting ===
             try:
-                # 1. Time selection (if applicable)
+                # 1. Time
                 if time_var and raw_time_value is not None:
-                    ds_time_sel = ds[var].sel({time_var: raw_time_value}, method="nearest")
+                    ds_sel = ds[var].sel({time_var: raw_time_value}, method="nearest")
                 else:
-                    ds_time_sel = ds[var]
+                    ds_sel = ds[var]
 
-                # 2. Spatial slice
-                data = ds_time_sel.sel({
+                # 2. Depth
+                if depth_var and selected_depth is not None:
+                    ds_sel = ds_sel.sel({depth_var: selected_depth}, method="nearest")
+
+                # 3. Lat/Lon
+                subset_kwargs = {
                     lat_var: slice(*lat_range),
                     lon_var: slice(*lon_range)
-                })
+                }
+                data = ds_sel.sel(subset_kwargs)
 
-                # ---- Plotting ----
+                # === Plotting ===
                 st.subheader("📍 Map View")
                 fig, ax = plt.subplots(figsize=(10, 5), subplot_kw={"projection": ccrs.PlateCarree()})
                 data.squeeze().plot.pcolormesh(ax=ax, transform=ccrs.PlateCarree(), cmap="viridis", add_colorbar=True)
                 ax.coastlines()
-                ax.set_title(f"{var} at {time_sel}" if time_sel is not None else var)
+                title = f"{var}"
+                if time_var: title += f" | Time: {time_sel}"
+                if depth_var: title += f" | Depth: {selected_depth} m"
+                ax.set_title(title)
                 st.pyplot(fig)
 
             except Exception as e:
