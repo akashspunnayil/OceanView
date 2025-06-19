@@ -152,7 +152,20 @@ if uploaded_file:
                 # === Plotting ===
                 st.subheader("🗺️ Map View")
                 fig, ax = plt.subplots(figsize=(10, 5), subplot_kw={"projection": ccrs.PlateCarree()})
-                data.squeeze().plot.pcolormesh(ax=ax, transform=ccrs.PlateCarree(), cmap="viridis", add_colorbar=True)
+                # data.squeeze().plot.pcolormesh(ax=ax, transform=ccrs.PlateCarree(), cmap="viridis", add_colorbar=True)
+                plot_kwargs = {
+                    "ax": ax,
+                    "transform": ccrs.PlateCarree(),
+                    "cmap": cmap_choice,
+                    "add_colorbar": True
+                }
+                
+                if set_clim:
+                    plot_kwargs["vmin"] = vmin
+                    plot_kwargs["vmax"] = vmax
+                
+                data.squeeze().plot.pcolormesh(**plot_kwargs)
+
                 ax.coastlines()
                 title = f"{var}"
                 if time_var: title += f" | Time: {time_sel}"
