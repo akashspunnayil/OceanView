@@ -351,10 +351,9 @@ if uploaded_file:
                 
                         da_anim = da_anim.sel({lat_var: slice(*lat_range), lon_var: slice(*lon_range)})
                 
-                        # fig_anim, ax_anim = plt.subplots(figsize=(8, 5), subplot_kw={"projection": ccrs.PlateCarree()})
                         fig_anim, ax_anim = plt.subplots(figsize=(8, 5), subplot_kw={"projection": ccrs.PlateCarree()})
-
-                        # Draw colorbar once for the whole animation
+                
+                        # --- Draw colorbar once outside animation loop ---
                         first_frame = da_anim.isel({time_var: 0})
                         im_cbar = first_frame.plot.pcolormesh(
                             ax=ax_anim,
@@ -366,105 +365,70 @@ if uploaded_file:
                         )
                         cbar = fig_anim.colorbar(im_cbar, ax=ax_anim, orientation="vertical", shrink=0.7, pad=0.05)
                         cbar.set_label(cbar_label, fontsize=10)
-                        
-                        # Define animation logic
-                        ani = animation.FuncAnimation(
-                            fig_anim,
-                            update_anim,
-                            frames=da_anim.sizes["time"],
-                            blit=False
-                        )
-
                 
                         def update_anim(frame):
                             ax_anim.clear()
                             frame_data = da_anim.isel({time_var: frame})
-                            
+                
                             im = frame_data.plot.pcolormesh(
                                 ax=ax_anim,
                                 transform=ccrs.PlateCarree(),
                                 cmap=cmap_choice,
                                 vmin=vmin if set_clim else None,
                                 vmax=vmax if set_clim else None,
-                                add_colorbar=False  # handle colorbar only once outside
+                                add_colorbar=False
                             )
-                            
+                
                             # Coastlines and mask
                             ax_anim.coastlines()
                             if mask_land:
                                 ax_anim.add_feature(cfeature.LAND, facecolor=mask_color, zorder=3)
                             if mask_sea:
                                 ax_anim.add_feature(cfeature.OCEAN, facecolor=mask_color, zorder=3)
-                            
+                
                             # Gridlines
                             gl = ax_anim.gridlines(draw_labels=True, linewidth=0.5, color='gray', alpha=0.5, linestyle='--')
                             gl.top_labels = False
                             gl.right_labels = False
                             gl.xlabel_style = {'size': 10}
                             gl.ylabel_style = {'size': 10}
-                            
-                            # Apply manual tick intervals if set
+                
+                            # Manual tick intervals
                             if st.session_state.get("manual_ticks", False):
                                 xtick_step = st.session_state.get("xtick_step", None)
                                 ytick_step = st.session_state.get("ytick_step", None)
                                 if xtick_step and ytick_step:
                                     gl.xlocator = mticker.FixedLocator(np.arange(lon_range[0], lon_range[1] + xtick_step, xtick_step))
                                     gl.ylocator = mticker.FixedLocator(np.arange(lat_range[0], lat_range[1] + ytick_step, ytick_step))
-                            
-                            # Axis labels (as text because Cartopy disables set_xlabel)
+                
+                            # Axis labels
                             ax_anim.text(0.5, -0.1, xlabel, transform=ax_anim.transAxes, ha='center', va='top', fontsize=10)
                             ax_anim.text(-0.07, 0.5, ylabel, transform=ax_anim.transAxes, ha='right', va='center', rotation='vertical', fontsize=10)
-                        
-                            # Title with time + depth
+                
+                            # Title
                             time_value = da_anim[time_var].isel({time_var: frame}).values
                             try:
                                 time_str = pd.to_datetime(str(time_value)).strftime("%Y-%m-%d")
                             except:
                                 time_str = str(time_value)[:15]
-                            
                             title = f"{var} | Time: {time_str}"
                             if depth_var and selected_depth is not None:
                                 title += f" | Depth: {selected_depth} m"
-                            
                             ax_anim.set_title(title, fontsize=12)
+                
                             return [im]
-
                 
-                        # ani = animation.FuncAnimation(
-                        #     fig_anim, update_anim, frames=da_anim.sizes[time_var], blit=False
-                        # )
+                        ani = animation.FuncAnimation(fig_anim, update_anim, frames=da_anim.sizes[time_var], blit=False)
                 
-                        # gif_buf = io.BytesIO()
-                        # ani.save(gif_buf, format="gif", writer="pillow", fps=2)
-                        # st.image(gif_buf, caption="Time-animated plot", use_column_width=True)
-
-                        ani = animation.FuncAnimation(
-                            fig_anim, update_anim, frames=da_anim.sizes[time_var], blit=False
-                        )
-                        
-                        import tempfile
-                        import os
-                        
-                        with tempfile.NamedTemporaryFile(delete=False, suffix=".gif") as tmpfile:
-                            temp_gif_path = tmpfile.name
-                        
-                        ani.save(temp_gif_path, writer="pillow", fps=2)
-                        
-                        # Display the animation in Streamlit
-                        with open(temp_gif_path, "rb") as f:
-                            gif_bytes = f.read()
-                        
-                        st.image(gif_bytes, caption="Time-animated plot", use_container_width=True)
-                        
-                        # Optional cleanup (if desired)
-                        os.remove(temp_gif_path)
-
-
+                        gif_buf = io.BytesIO()
+                        ani.save(gif_buf, writer="pillow", fps=2)
+                        st.image(gif_buf, caption="Time-animated plot", use_column_width=True)
                 
                     except Exception as e:
                         st.error(f"⚠️ Failed to create animation: {e}")
                 else:
                     st.info("⏳ Animation unavailable: Time dimension not found in selected variable.")
+
 
                     
             except Exception as e:
