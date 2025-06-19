@@ -204,10 +204,9 @@ if uploaded_file:
                 # data.squeeze().plot.pcolormesh(**plot_kwargs)
 
                 ax.coastlines()
-                title = f"{var}"
+    
                 if time_var: title += f" | Time: {time_sel}"
                 if depth_var: title += f" | Depth: {selected_depth} m"
-                ax.set_title(title)
                 st.pyplot(fig)
 
                 import io
