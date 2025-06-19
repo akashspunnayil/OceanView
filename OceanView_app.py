@@ -336,50 +336,50 @@ if uploaded_file:
                         mime=f"image/{'jpeg' if save_format == 'jpg' else save_format}"
                     )
             
-            
-            # === Create Animated Plot over Time ===
-            
-            import matplotlib.animation as animation
-
-            if time_var and len(ds[time_var]) > 1:
-                st.subheader("🎞️ Time Series Animation")
-            
-                # Extract 3D or 4D data based on depth availability
-                anim_data = ds[var]
-                if depth_var and selected_depth is not None:
-                    anim_data = anim_data.sel({depth_var: selected_depth}, method="nearest")
-            
-                fig_anim, ax_anim = plt.subplots(figsize=(7, 5), subplot_kw={'projection': ccrs.PlateCarree()})
-            
-                def update(frame):
-                    ax_anim.clear()
-                    slice_data = anim_data.isel({time_var: frame})
-                    time_label = pd.to_datetime(slice_data[time_var].values).strftime("%Y-%m")
-                    p = slice_data.plot.pcolormesh(
-                        ax=ax_anim,
-                        transform=ccrs.PlateCarree(),
-                        cmap=cmap_choice,
-                        vmin=vmin if set_clim else None,
-                        vmax=vmax if set_clim else None,
-                        add_colorbar=False
-                    )
-                    ax_anim.set_title(f"{var} | {time_label} | Depth: {selected_depth if depth_var else 'Surface'}", fontsize=12)
-                    ax_anim.coastlines()
-                    return p,
-            
-                ani = animation.FuncAnimation(fig_anim, update, frames=anim_data.sizes[time_var], blit=False)
-            
-                # Save animation to GIF in memory
-                import io
-                from PIL import Image
-            
-                gif_path = "/tmp/ocean_anim.gif"
-                ani.save(gif_path, writer="pillow", fps=2)
-            
-                with open(gif_path, "rb") as f:
-                    st.image(f.read(), caption="📽️ Animated Time Series", use_column_width=True)
-
-        
+                    
             except Exception as e:
                 st.error(f"⚠️ Failed to subset or plot data: {e}")
+
+
+        # === Create Animated Plot over Time ===
+        
+        import matplotlib.animation as animation
+
+        if time_var and len(ds[time_var]) > 1:
+            st.subheader("🎞️ Time Series Animation")
+        
+            # Extract 3D or 4D data based on depth availability
+            anim_data = ds[var]
+            if depth_var and selected_depth is not None:
+                anim_data = anim_data.sel({depth_var: selected_depth}, method="nearest")
+        
+            fig_anim, ax_anim = plt.subplots(figsize=(7, 5), subplot_kw={'projection': ccrs.PlateCarree()})
+        
+            def update(frame):
+                ax_anim.clear()
+                slice_data = anim_data.isel({time_var: frame})
+                time_label = pd.to_datetime(slice_data[time_var].values).strftime("%Y-%m")
+                p = slice_data.plot.pcolormesh(
+                    ax=ax_anim,
+                    transform=ccrs.PlateCarree(),
+                    cmap=cmap_choice,
+                    vmin=vmin if set_clim else None,
+                    vmax=vmax if set_clim else None,
+                    add_colorbar=False
+                )
+                ax_anim.set_title(f"{var} | {time_label} | Depth: {selected_depth if depth_var else 'Surface'}", fontsize=12)
+                ax_anim.coastlines()
+                return p,
+        
+            ani = animation.FuncAnimation(fig_anim, update, frames=anim_data.sizes[time_var], blit=False)
+        
+            # Save animation to GIF in memory
+            import io
+            from PIL import Image
+        
+            gif_path = "/tmp/ocean_anim.gif"
+            ani.save(gif_path, writer="pillow", fps=2)
+        
+            with open(gif_path, "rb") as f:
+                st.image(f.read(), caption="📽️ Animated Time Series", use_column_width=True)
 
