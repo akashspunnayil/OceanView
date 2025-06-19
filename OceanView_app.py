@@ -2,12 +2,12 @@ import streamlit as st
 import xarray as xr
 import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
-import io
-
-st.title("🌊 Ocean Data Viewer")
-
 import tempfile
 
+st.set_page_config(layout="wide")
+st.title("🌊 Ocean Data Viewer")
+
+# ---- NetCDF Loader ----
 @st.cache_data
 def load_netcdf(file_obj):
     with tempfile.NamedTemporaryFile(delete=False, suffix=".nc") as tmp_file:
@@ -15,80 +15,92 @@ def load_netcdf(file_obj):
         tmp_path = tmp_file.name
     try:
         return xr.open_dataset(tmp_path, engine="netcdf4")
-    except ValueError as e:
-        st.warning("Fallback to decode_times=False due to calendar error.")
+    except ValueError:
+        st.warning("⚠️ Calendar decoding failed. Retrying with `decode_times=False`.")
         return xr.open_dataset(tmp_path, decode_times=False, engine="netcdf4")
 
+# ---- Helper Functions ----
+def find_coord_name(ds, keyword):
+    for coord in ds.coords:
+        if keyword.lower() in coord.lower():
+            return coord
+    return None
 
-def find_lat_lon_coords(ds):
-    lat_name = [coord for coord in ds.coords if "lat" in coord.lower()]
-    lon_name = [coord for coord in ds.coords if "lon" in coord.lower()]
-    return lat_name[0] if lat_name else None, lon_name[0] if lon_name else None
-
-
-uploaded_file = st.file_uploader("Upload NetCDF file", type=["nc"])
-
+# ---- File Upload ----
+uploaded_file = st.file_uploader("📂 Upload a NetCDF file", type=["nc"])
 
 if uploaded_file:
     ds = load_netcdf(uploaded_file)
 
-# if uploaded_file:
-#     file_bytes = io.BytesIO(uploaded_file.read())  # 🔁 This is the missing step
-#     ds = load_netcdf(file_bytes)
-
     if ds is not None:
-        st.success("✅ NetCDF file loaded successfully!")
+        st.success("✅ File loaded successfully.")
         st.write("**Dimensions:**", ds.dims)
         st.write("**Variables:**", list(ds.data_vars))
 
-    #ds = xr.open_dataset(uploaded_file)
+        # ---- Select variable ----
+        var = st.selectbox("🔎 Select a variable to visualize", list(ds.data_vars.keys()))
 
-    st.subheader("Dataset Dimensions and Variables")
-    st.write("Dimensions:", ds.dims)
-    st.write("Variables:", list(ds.data_vars.keys()))
+        # ---- Coordinate identification ----
+        lat_var = find_coord_name(ds, "lat")
+        lon_var = find_coord_name(ds, "lon")
+        time_var = find_coord_name(ds, "time")
 
-    # Variable selection
-    var = st.selectbox("Select a variable", list(ds.data_vars.keys()))
+        if not lat_var or not lon_var:
+            st.error("❌ Latitude or Longitude variable not found.")
+        else:
+            lat_vals = ds[lat_var].values
+            lon_vals = ds[lon_var].values
 
-    # # Latitude/Longitude selectors
-    # lat_range = st.slider("Latitude Range", float(ds.lat.min()), float(ds.lat.max()), 
-    #                       (float(ds.lat.min()), float(ds.lat.max())))
-    # lon_range = st.slider("Longitude Range", float(ds.lon.min()), float(ds.lon.max()), 
-    #                       (float(ds.lon.min()), float(ds.lon.max())))
+            lat_range = st.slider("🌐 Latitude Range",
+                                  float(lat_vals.min()), float(lat_vals.max()),
+                                  (float(lat_vals.min()), float(lat_vals.max())))
+            lon_range = st.slider("🗺️ Longitude Range",
+                                  float(lon_vals.min()), float(lon_vals.max()),
+                                  (float(lon_vals.min()), float(lon_vals.max())))
 
-    lat_var, lon_var = find_lat_lon_coords(ds)
+            if time_var:
+                time_vals = ds[time_var].values
+                time_sel = st.selectbox("🕒 Select Time", time_vals)
+            else:
+                time_sel = None
 
-    if lat_var is None or lon_var is None:
-        st.error("❌ Latitude or Longitude variable not found in the dataset.")
-    else:
-        lat_vals = ds[lat_var].values
-        lon_vals = ds[lon_var].values
-    
-        lat_range = st.slider("Latitude Range",
-                              float(lat_vals.min()), float(lat_vals.max()),
-                              (float(lat_vals.min()), float(lat_vals.max())))
-    
-        lon_range = st.slider("Longitude Range",
-                              float(lon_vals.min()), float(lon_vals.max()),
-                              (float(lon_vals.min()), float(lon_vals.max())))
+            # ---- Subset the data ----
+            subset_kwargs = {
+                lat_var: slice(*lat_range),
+                lon_var: slice(*lon_range),
+            }
+            if time_sel:
+                subset_kwargs[time_var] = time_sel
+
+            try:
+                data = ds[var].sel(**subset_kwargs)
+                st.subheader("📍 Map View")
+                fig, ax = plt.subplots(figsize=(10, 5), subplot_kw={"projection": ccrs.PlateCarree()})
+                data.squeeze().plot.pcolormesh(ax=ax, transform=ccrs.PlateCarree(), cmap="viridis", add_colorbar=True)
+                ax.coastlines()
+                ax.set_title(f"{var} at {time_sel}" if time_sel else var)
+                st.pyplot(fig)
+            except Exception as e:
+                st.error(f"⚠️ Failed to subset and plot data: {e}")
+
     
         
-    # Time selector (assumes time is available)
-    if "time" in ds.coords:
-        time_vals = ds.time.values
-        time_sel = st.selectbox("Select Time", time_vals)
+    # # Time selector (assumes time is available)
+    # if "time" in ds.coords:
+    #     time_vals = ds.time.values
+    #     time_sel = st.selectbox("Select Time", time_vals)
 
-    # Subset data
-    data = ds[var].sel(
-        lat=slice(*lat_range),
-        lon=slice(*lon_range),
-        time=time_sel if "time" in ds.coords else None
-    )
+    # # Subset data
+    # data = ds[var].sel(
+    #     lat=slice(*lat_range),
+    #     lon=slice(*lon_range),
+    #     time=time_sel if "time" in ds.coords else None
+    # )
 
-    # Plot
-    st.subheader("📍 Map View")
-    fig, ax = plt.subplots(subplot_kw={"projection": ccrs.PlateCarree()})
-    im = data.squeeze().plot.pcolormesh(ax=ax, transform=ccrs.PlateCarree(), cmap="viridis", add_colorbar=True)
-    ax.coastlines()
-    st.pyplot(fig)
+    # # Plot
+    # st.subheader("📍 Map View")
+    # fig, ax = plt.subplots(subplot_kw={"projection": ccrs.PlateCarree()})
+    # im = data.squeeze().plot.pcolormesh(ax=ax, transform=ccrs.PlateCarree(), cmap="viridis", add_colorbar=True)
+    # ax.coastlines()
+    # st.pyplot(fig)
 
