@@ -201,11 +201,17 @@ if uploaded_file:
                 if hasattr(im, 'colorbar') and im.colorbar:
                     im.colorbar.set_label(cbar_label)
 
-                ax.set_xlabel(xlabel)
 
                 # data.squeeze().plot.pcolormesh(**plot_kwargs)
 
                 ax.coastlines()
+
+                gl = ax.gridlines(draw_labels=True, linewidth=0.5, color='gray', alpha=0.5, linestyle='--')
+                gl.top_labels = False
+                gl.right_labels = False
+                gl.xlabel_style = {'size': 10}
+                gl.ylabel_style = {'size': 10}
+
                 title = f"{plot_title}"
                 if time_var: title += f" | Time: {time_sel}"
                 if depth_var: title += f" | Depth: {selected_depth} m"
