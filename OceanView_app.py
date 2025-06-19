@@ -344,22 +344,25 @@ if uploaded_file:
         # === Create Animated Plot over Time ===
         
         import matplotlib.animation as animation
-
-        if time_var and len(ds[time_var]) > 1:
-            st.subheader("🎞️ Time Series Animation")
+        import io
         
-            # Extract 3D or 4D data based on depth availability
-            anim_data = ds[var]
-            if depth_var and selected_depth is not None:
-                anim_data = anim_data.sel({depth_var: selected_depth}, method="nearest")
+        # --- Animation Section ---
+        st.subheader("🎞️ Time-Loop Animation (GIF)")
         
-            fig_anim, ax_anim = plt.subplots(figsize=(7, 5), subplot_kw={'projection': ccrs.PlateCarree()})
+        # Skip if time is not available
+        if time_var and ds[var].dims and "time" in ds[var].dims:
+            da_anim = ds[var]
+            if depth_var and selected_depth is not None and "depth" in ds[var].dims:
+                da_anim = da_anim.sel({depth_var: selected_depth}, method="nearest")
         
-            def update(frame):
+            da_anim = da_anim.sel({lat_var: slice(*lat_range), lon_var: slice(*lon_range)})
+        
+            fig_anim, ax_anim = plt.subplots(figsize=(8, 5), subplot_kw={"projection": ccrs.PlateCarree()})
+        
+            def update_anim(frame):
                 ax_anim.clear()
-                slice_data = anim_data.isel({time_var: frame})
-                time_label = pd.to_datetime(slice_data[time_var].values).strftime("%Y-%m")
-                p = slice_data.plot.pcolormesh(
+                frame_data = da_anim.isel(time=frame)
+                im = frame_data.plot.pcolormesh(
                     ax=ax_anim,
                     transform=ccrs.PlateCarree(),
                     cmap=cmap_choice,
@@ -367,19 +370,25 @@ if uploaded_file:
                     vmax=vmax if set_clim else None,
                     add_colorbar=False
                 )
-                ax_anim.set_title(f"{var} | {time_label} | Depth: {selected_depth if depth_var else 'Surface'}", fontsize=12)
                 ax_anim.coastlines()
-                return p,
+                if mask_land:
+                    ax_anim.add_feature(cfeature.LAND, facecolor=mask_color, zorder=3)
+                if mask_sea:
+                    ax_anim.add_feature(cfeature.OCEAN, facecolor=mask_color, zorder=3)
         
-            ani = animation.FuncAnimation(fig_anim, update, frames=anim_data.sizes[time_var], blit=False)
+                ax_anim.text(0.5, -0.1, xlabel, transform=ax_anim.transAxes, ha='center', va='top', fontsize=10)
+                ax_anim.text(-0.07, 0.5, ylabel, transform=ax_anim.transAxes, ha='right', va='center', rotation='vertical', fontsize=10)
         
-            # Save animation to GIF in memory
-            import io
-            from PIL import Image
+                ax_anim.set_title(f"{var} | Time: {str(frame_data[time_var].values)[:10]}" +
+                                  (f" | Depth: {selected_depth} m" if depth_var and selected_depth is not None else ""), fontsize=12)
+                return [im]
         
-            gif_path = "/tmp/ocean_anim.gif"
-            ani.save(gif_path, writer="pillow", fps=2)
+            ani = animation.FuncAnimation(fig_anim, update_anim, frames=da_anim.sizes["time"], blit=False)
         
-            with open(gif_path, "rb") as f:
-                st.image(f.read(), caption="📽️ Animated Time Series", use_column_width=True)
+            gif_buf = io.BytesIO()
+            ani.save(gif_buf, format="gif", writer="pillow", fps=2)
+            st.image(gif_buf, caption="Time-animated plot", use_column_width=True)
+        else:
+            st.info("⏳ Animation unavailable: Time dimension not found in selected variable.")
+
 
