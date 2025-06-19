@@ -7,21 +7,18 @@ import numpy as np
 import pandas as pd
 import matplotlib.ticker as mticker
 
-# === Safe App Refresh Function ===
-def refresh_app():
-    for key in list(st.session_state.keys()):
-        del st.session_state[key]
-    st.experimental_rerun()
 
-
-# # Add flag to ensure safe rerun is only allowed after setup
-# if "can_refresh" not in st.session_state:
-#     st.session_state["can_refresh"] = True
     
 st.set_page_config(layout="wide")
 st.title("🌊 Ocean Data Viewer")
 
-st.button("🔄 Refresh App", on_click=refresh_app)
+# === Optional Refresh App Button ===
+import streamlit.components.v1 as components
+
+if st.button("🔄 Refresh App"):
+    st.session_state.clear()
+    components.html("<script>window.location.reload(true);</script>")
+
 
 # --- Safe NetCDF loader with fallback for time decoding errors ---
 @st.cache_data
