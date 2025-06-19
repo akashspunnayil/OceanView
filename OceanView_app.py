@@ -5,10 +5,26 @@ import cartopy.crs as ccrs
 
 st.title("🌊 Ocean Data Viewer")
 
+
+@st.cache_data
+def load_netcdf(file):
+    try:
+        return xr.open_dataset(file)
+    except ValueError as e:
+        if "decode time units" in str(e) or "decode variable" in str(e):
+            st.warning("⚠️ Time decoding failed due to non-standard calendar. Loading with `decode_times=False`.")
+            return xr.open_dataset(file, decode_times=False)
+        else:
+            raise e
+
+# Use in your Streamlit flow
+#ds = load_netcdf(uploaded_file)
+
 uploaded_file = st.file_uploader("Upload NetCDF file", type=["nc"])
 
 if uploaded_file:
-    ds = xr.open_dataset(uploaded_file)
+    ds = load_netcdf(uploaded_file)
+    #ds = xr.open_dataset(uploaded_file)
 
     st.subheader("Dataset Dimensions and Variables")
     st.write("Dimensions:", ds.dims)
