@@ -9,11 +9,11 @@ st.title("🌊 Ocean Data Viewer")
 @st.cache_data
 def load_netcdf(file_bytes):
     try:
-        return xr.open_dataset(file_bytes, engine="netcdf4")  # Force backend
+        return xr.open_dataset(file_bytes, engine="h5netcdf")
     except ValueError as e:
         if "decode time units" in str(e) or "decode variable" in str(e):
             st.warning("⚠️ Time decoding failed due to non-standard calendar. Loading with decode_times=False.")
-            return xr.open_dataset(file_bytes, decode_times=False, engine="netcdf4")
+            return xr.open_dataset(file_bytes, decode_times=False, engine="h5netcdf")
         elif "valid dataset engines" in str(e):
             st.error("❌ Could not determine the backend engine. Ensure the uploaded file is a valid NetCDF.")
             return None

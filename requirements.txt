@@ -2,6 +2,8 @@ streamlit>=1.25.0
 cftime>=1.6.0
 xarray>=2023.1.0
 netCDF4>=1.6.0
+h5netcdf>=1.2.0
+h5py
 matplotlib>=3.7.0
 cartopy>=0.21.0
 numpy>=1.23.0
