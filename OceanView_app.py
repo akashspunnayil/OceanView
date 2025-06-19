@@ -14,9 +14,9 @@ def refresh_app():
     st.experimental_rerun()
 
 
-# Add flag to ensure safe rerun is only allowed after setup
-if "can_refresh" not in st.session_state:
-    st.session_state["can_refresh"] = True
+# # Add flag to ensure safe rerun is only allowed after setup
+# if "can_refresh" not in st.session_state:
+#     st.session_state["can_refresh"] = True
     
 st.set_page_config(layout="wide")
 st.title("🌊 Ocean Data Viewer")
