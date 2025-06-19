@@ -336,59 +336,60 @@ if uploaded_file:
                         mime=f"image/{'jpeg' if save_format == 'jpg' else save_format}"
                     )
             
+                # === Create Animated Plot over Time ===
+        
+                import matplotlib.animation as animation
+                import io
+                
+                # --- Animation Section ---
+                st.subheader("🎞️ Time-Loop Animation (GIF)")
+                
+                # Skip if time is not available
+                if time_var and ds[var].dims and "time" in ds[var].dims:
+                    da_anim = ds[var]
+                    if depth_var and selected_depth is not None and "depth" in ds[var].dims:
+                        da_anim = da_anim.sel({depth_var: selected_depth}, method="nearest")
+                
+                    da_anim = da_anim.sel({lat_var: slice(*lat_range), lon_var: slice(*lon_range)})
+                
+                    fig_anim, ax_anim = plt.subplots(figsize=(8, 5), subplot_kw={"projection": ccrs.PlateCarree()})
+                
+                    def update_anim(frame):
+                        ax_anim.clear()
+                        frame_data = da_anim.isel(time=frame)
+                        im = frame_data.plot.pcolormesh(
+                            ax=ax_anim,
+                            transform=ccrs.PlateCarree(),
+                            cmap=cmap_choice,
+                            vmin=vmin if set_clim else None,
+                            vmax=vmax if set_clim else None,
+                            add_colorbar=False
+                        )
+                        ax_anim.coastlines()
+                        if mask_land:
+                            ax_anim.add_feature(cfeature.LAND, facecolor=mask_color, zorder=3)
+                        if mask_sea:
+                            ax_anim.add_feature(cfeature.OCEAN, facecolor=mask_color, zorder=3)
+                
+                        ax_anim.text(0.5, -0.1, xlabel, transform=ax_anim.transAxes, ha='center', va='top', fontsize=10)
+                        ax_anim.text(-0.07, 0.5, ylabel, transform=ax_anim.transAxes, ha='right', va='center', rotation='vertical', fontsize=10)
+                
+                        ax_anim.set_title(f"{var} | Time: {str(frame_data[time_var].values)[:10]}" +
+                                          (f" | Depth: {selected_depth} m" if depth_var and selected_depth is not None else ""), fontsize=12)
+                        return [im]
+                
+                    ani = animation.FuncAnimation(fig_anim, update_anim, frames=da_anim.sizes["time"], blit=False)
+                
+                    gif_buf = io.BytesIO()
+                    ani.save(gif_buf, format="gif", writer="pillow", fps=2)
+                    st.image(gif_buf, caption="Time-animated plot", use_column_width=True)
+                else:
+                    st.info("⏳ Animation unavailable: Time dimension not found in selected variable.")
                     
             except Exception as e:
                 st.error(f"⚠️ Failed to subset or plot data: {e}")
 
 
-        # === Create Animated Plot over Time ===
         
-        # import matplotlib.animation as animation
-        # import io
-        
-        # # --- Animation Section ---
-        # st.subheader("🎞️ Time-Loop Animation (GIF)")
-        
-        # # Skip if time is not available
-        # if time_var and ds[var].dims and "time" in ds[var].dims:
-        #     da_anim = ds[var]
-        #     if depth_var and selected_depth is not None and "depth" in ds[var].dims:
-        #         da_anim = da_anim.sel({depth_var: selected_depth}, method="nearest")
-        
-        #     da_anim = da_anim.sel({lat_var: slice(*lat_range), lon_var: slice(*lon_range)})
-        
-        #     fig_anim, ax_anim = plt.subplots(figsize=(8, 5), subplot_kw={"projection": ccrs.PlateCarree()})
-        
-        #     def update_anim(frame):
-        #         ax_anim.clear()
-        #         frame_data = da_anim.isel(time=frame)
-        #         im = frame_data.plot.pcolormesh(
-        #             ax=ax_anim,
-        #             transform=ccrs.PlateCarree(),
-        #             cmap=cmap_choice,
-        #             vmin=vmin if set_clim else None,
-        #             vmax=vmax if set_clim else None,
-        #             add_colorbar=False
-        #         )
-        #         ax_anim.coastlines()
-        #         if mask_land:
-        #             ax_anim.add_feature(cfeature.LAND, facecolor=mask_color, zorder=3)
-        #         if mask_sea:
-        #             ax_anim.add_feature(cfeature.OCEAN, facecolor=mask_color, zorder=3)
-        
-        #         ax_anim.text(0.5, -0.1, xlabel, transform=ax_anim.transAxes, ha='center', va='top', fontsize=10)
-        #         ax_anim.text(-0.07, 0.5, ylabel, transform=ax_anim.transAxes, ha='right', va='center', rotation='vertical', fontsize=10)
-        
-        #         ax_anim.set_title(f"{var} | Time: {str(frame_data[time_var].values)[:10]}" +
-        #                           (f" | Depth: {selected_depth} m" if depth_var and selected_depth is not None else ""), fontsize=12)
-        #         return [im]
-        
-        #     ani = animation.FuncAnimation(fig_anim, update_anim, frames=da_anim.sizes["time"], blit=False)
-        
-        #     gif_buf = io.BytesIO()
-        #     ani.save(gif_buf, format="gif", writer="pillow", fps=2)
-        #     st.image(gif_buf, caption="Time-animated plot", use_column_width=True)
-        # else:
-        #     st.info("⏳ Animation unavailable: Time dimension not found in selected variable.")
 
 
