@@ -52,8 +52,8 @@ def try_decode_time(ds, time_var):
 uploaded_file = st.file_uploader("📂 Upload a NetCDF file", type=["nc"])
 
 if uploaded_file:
-    ds = load_netcdf_safe(uploaded_file)
-
+    ds = load_netcdf_safe(uploaded_file)    
+        
     if ds is not None:
         st.success("✅ File loaded successfully.")
 
@@ -73,7 +73,27 @@ if uploaded_file:
             lon_var = find_coord_name(ds, "lon")
             time_var = find_coord_name(ds, "time")
             depth_var = find_coord_name(ds, "depth")
+
+            # --- Fix descending latitude ---
+            if lat_var and ds[lat_var][0] > ds[lat_var][-1]:
+                ds = ds.sortby(lat_var)
             
+            # --- Mask extreme fill values ---
+            if "missing_value" in ds[var].attrs:
+                missing_val = ds[var].attrs["missing_value"]
+                if abs(missing_val) > 1e10:  # sanity check
+                    ds[var] = ds[var].where(ds[var] != missing_val)
+            
+            # --- Optional: time decoding fallback (if not datetime64)
+            if time_var and not np.issubdtype(ds[time_var].dtype, np.datetime64):
+                st.warning("⚠️ Time not decoded. Approximating from base date 1800-01-01.")
+                try:
+                    ds[time_var] = xr.decode_cf(ds[[time_var]])
+                except:
+                    fake_time = pd.date_range("1800-01-01", periods=ds.dims[time_var], freq="MS")
+                    ds[time_var] = ("time", fake_time)
+            
+                    
             # 🔧 Manual fallback if any not found
             if not lat_var or not lon_var:
                 st.warning("⚠️ Latitude or Longitude not automatically detected.")
