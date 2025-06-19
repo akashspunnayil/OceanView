@@ -5,6 +5,7 @@ import cartopy.crs as ccrs
 import tempfile
 import numpy as np
 import pandas as pd
+import matplotlib.ticker as mticker
 
 st.set_page_config(layout="wide")
 st.title("🌊 Ocean Data Viewer")
