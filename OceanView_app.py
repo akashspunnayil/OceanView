@@ -413,7 +413,7 @@ if uploaded_file:
                         with open(temp_gif_path, "rb") as f:
                             gif_bytes = f.read()
                         
-                        st.image(gif_bytes, caption="Time-animated plot", use_column_width=True)
+                        st.image(gif_bytes, caption="Time-animated plot", use_container_width=True)
                         
                         # Optional cleanup (if desired)
                         os.remove(temp_gif_path)
