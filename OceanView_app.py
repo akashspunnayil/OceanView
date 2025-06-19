@@ -8,12 +8,10 @@ import pandas as pd
 import matplotlib.ticker as mticker
 
 # === Safe App Refresh Function ===
-from streamlit.runtime.scriptrunner import rerun
-
 def refresh_app():
     for key in list(st.session_state.keys()):
         del st.session_state[key]
-    rerun()
+    st.experimental_rerun()
 
 
 # Add flag to ensure safe rerun is only allowed after setup
