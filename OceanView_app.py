@@ -55,7 +55,7 @@ if uploaded_file:
     if ds is not None:
         st.success("✅ File loaded successfully.")
         st.write("### 📦 Dataset Summary")
-        st.write(ds)
+        st.code(ds.__repr__())
         st.write("**Dimensions:**", ds.dims)
         st.write("**Variables:**", list(ds.data_vars))
         
