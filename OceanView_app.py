@@ -98,7 +98,12 @@ if uploaded_file:
 
             # ---- Subset and Plot ----
             try:
-                data = ds[var].sel(**subset_kwargs)
+                # data = ds[var].sel(**subset_kwargs)
+                if time_sel is not None and time_var:
+                    data = ds[var].sel(method='nearest', **subset_kwargs)
+                else:
+                    data = ds[var].sel(**subset_kwargs)
+
                 st.subheader("📍 Map View")
                 fig, ax = plt.subplots(figsize=(10, 5), subplot_kw={"projection": ccrs.PlateCarree()})
                 data.squeeze().plot.pcolormesh(ax=ax, transform=ccrs.PlateCarree(), cmap="viridis", add_colorbar=True)
