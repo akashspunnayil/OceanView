@@ -108,24 +108,24 @@ if uploaded_file:
                     raw_time_value = None
 
         
-        with st.expander("🎨 Colorbar & Colormap Settings"):
-            set_clim = st.checkbox("🔧 Manually set colorbar range")
-        
-            if set_clim:
-                vmin = st.number_input("Minimum value (vmin)", value=0.0)
-                vmax = st.number_input("Maximum value (vmax)", value=1.0)
-                step = st.number_input("Tick interval (optional)", value=0.1)
-            else:
-                vmin, vmax, step = None, None, None
-        
-            cmap_choice = st.selectbox(
-                "🎨 Choose a colormap",
-                options=sorted([
-                    "viridis", "plasma", "inferno", "magma", "cividis",
-                    "jet", "turbo", "coolwarm", "RdBu_r", "YlGnBu", "BrBG", "bwr"
-                ]),
-                index=0
-            )
+            with st.expander("🎨 Colorbar & Colormap Settings"):
+                set_clim = st.checkbox("🔧 Manually set colorbar range")
+            
+                if set_clim:
+                    vmin = st.number_input("Minimum value (vmin)", value=0.0)
+                    vmax = st.number_input("Maximum value (vmax)", value=1.0)
+                    step = st.number_input("Tick interval (optional)", value=0.1)
+                else:
+                    vmin, vmax, step = None, None, None
+            
+                cmap_choice = st.selectbox(
+                    "🎨 Choose a colormap",
+                    options=sorted([
+                        "viridis", "plasma", "inferno", "magma", "cividis",
+                        "jet", "turbo", "coolwarm", "RdBu_r", "YlGnBu", "BrBG", "bwr"
+                    ]),
+                    index=0
+                )
 
         #-------RIGHT SIDE--------
 
