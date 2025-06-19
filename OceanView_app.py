@@ -122,11 +122,11 @@ if uploaded_file:
                 st.error(f"⚠️ Failed to subset and plot data: {e}")
 
 
-                st.subheader("📍 Map View")
-                fig, ax = plt.subplots(figsize=(10, 5), subplot_kw={"projection": ccrs.PlateCarree()})
-                data.squeeze().plot.pcolormesh(ax=ax, transform=ccrs.PlateCarree(), cmap="viridis", add_colorbar=True)
-                ax.coastlines()
-                ax.set_title(f"{var} at {time_sel}" if time_sel is not None else var)
-                st.pyplot(fig)
-            except Exception as e:
-                st.error(f"⚠️ Failed to subset and plot data: {e}")
+            #     st.subheader("📍 Map View")
+            #     fig, ax = plt.subplots(figsize=(10, 5), subplot_kw={"projection": ccrs.PlateCarree()})
+            #     data.squeeze().plot.pcolormesh(ax=ax, transform=ccrs.PlateCarree(), cmap="viridis", add_colorbar=True)
+            #     ax.coastlines()
+            #     ax.set_title(f"{var} at {time_sel}" if time_sel is not None else var)
+            #     st.pyplot(fig)
+            # except Exception as e:
+            #     st.error(f"⚠️ Failed to subset and plot data: {e}")
