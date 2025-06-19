@@ -98,25 +98,25 @@ if uploaded_file:
 
             # ---- Subset and Plot ----
             try:
-            # Step 1: select time separately if present
-            if time_sel is not None and time_var:
-                ds_time_sel = ds[var].sel({time_var: time_sel}, method="nearest")
-            else:
-                ds_time_sel = ds[var]
-        
-            # Step 2: slice lat/lon using slice objects
-            data = ds_time_sel.sel({
-                lat_var: slice(*lat_range),
-                lon_var: slice(*lon_range)
-            })
-        
-            # Plotting
-            st.subheader("📍 Map View")
-            fig, ax = plt.subplots(figsize=(10, 5), subplot_kw={"projection": ccrs.PlateCarree()})
-            data.squeeze().plot.pcolormesh(ax=ax, transform=ccrs.PlateCarree(), cmap="viridis", add_colorbar=True)
-            ax.coastlines()
-            ax.set_title(f"{var} at {time_sel}" if time_sel is not None else var)
-            st.pyplot(fig)
+                # Step 1: select time separately if present
+                if time_sel is not None and time_var:
+                    ds_time_sel = ds[var].sel({time_var: time_sel}, method="nearest")
+                else:
+                    ds_time_sel = ds[var]
+            
+                # Step 2: slice lat/lon using slice objects
+                data = ds_time_sel.sel({
+                    lat_var: slice(*lat_range),
+                    lon_var: slice(*lon_range)
+                })
+            
+                # Plotting
+                st.subheader("📍 Map View")
+                fig, ax = plt.subplots(figsize=(10, 5), subplot_kw={"projection": ccrs.PlateCarree()})
+                data.squeeze().plot.pcolormesh(ax=ax, transform=ccrs.PlateCarree(), cmap="viridis", add_colorbar=True)
+                ax.coastlines()
+                ax.set_title(f"{var} at {time_sel}" if time_sel is not None else var)
+                st.pyplot(fig)
         
         except Exception as e:
             st.error(f"⚠️ Failed to subset and plot data: {e}")
