@@ -275,7 +275,7 @@ if uploaded_file:
 
                 # Add custom axis labels manually
                 ax.text(0.5, -0.1, xlabel, transform=ax.transAxes, ha='center', va='top', fontsize=12)
-                ax.text(-0.3, 0.5, ylabel, transform=ax.transAxes, ha='right', va='center', rotation='vertical', fontsize=12)
+                ax.text(-0.4, 0.5, ylabel, transform=ax.transAxes, ha='right', va='center', rotation='vertical', fontsize=12)
 
                 # Optional subtitle
                 title = f"{plot_title}"
