@@ -20,6 +20,12 @@ def load_netcdf(file_obj):
         return xr.open_dataset(tmp_path, decode_times=False, engine="netcdf4")
 
 
+def find_lat_lon_coords(ds):
+    lat_name = [coord for coord in ds.coords if "lat" in coord.lower()]
+    lon_name = [coord for coord in ds.coords if "lon" in coord.lower()]
+    return lat_name[0] if lat_name else None, lon_name[0] if lon_name else None
+
+
 uploaded_file = st.file_uploader("Upload NetCDF file", type=["nc"])
 
 
@@ -44,12 +50,29 @@ if uploaded_file:
     # Variable selection
     var = st.selectbox("Select a variable", list(ds.data_vars.keys()))
 
-    # Latitude/Longitude selectors
-    lat_range = st.slider("Latitude Range", float(ds.lat.min()), float(ds.lat.max()), 
-                          (float(ds.lat.min()), float(ds.lat.max())))
-    lon_range = st.slider("Longitude Range", float(ds.lon.min()), float(ds.lon.max()), 
-                          (float(ds.lon.min()), float(ds.lon.max())))
+    # # Latitude/Longitude selectors
+    # lat_range = st.slider("Latitude Range", float(ds.lat.min()), float(ds.lat.max()), 
+    #                       (float(ds.lat.min()), float(ds.lat.max())))
+    # lon_range = st.slider("Longitude Range", float(ds.lon.min()), float(ds.lon.max()), 
+    #                       (float(ds.lon.min()), float(ds.lon.max())))
 
+    lat_var, lon_var = find_lat_lon_coords(ds)
+
+    if lat_var is None or lon_var is None:
+        st.error("❌ Latitude or Longitude variable not found in the dataset.")
+    else:
+        lat_vals = ds[lat_var].values
+        lon_vals = ds[lon_var].values
+    
+        lat_range = st.slider("Latitude Range",
+                              float(lat_vals.min()), float(lat_vals.max()),
+                              (float(lat_vals.min()), float(lat_vals.max())))
+    
+        lon_range = st.slider("Longitude Range",
+                              float(lon_vals.min()), float(lon_vals.max()),
+                              (float(lon_vals.min()), float(lon_vals.max())))
+    
+        
     # Time selector (assumes time is available)
     if "time" in ds.coords:
         time_vals = ds.time.values
