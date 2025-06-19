@@ -97,22 +97,25 @@ if uploaded_file:
                     subset_kwargs[time_var] = time_sel
 
             # ---- Subset and Plot ----
+            # Step 1: Decode or fake time axis
+            raw_time_vals = ds[time_var].values
+            time_vals = try_decode_time(ds, time_var)  # This gives readable Pandas timestamps
+            
+            # Step 2: Let user choose readable timestamp
+            time_sel = st.selectbox("🕒 Select Time", time_vals)
+            
+            # Step 3: Map back to original raw index
+            # This returns integer index like 0, 1, 2...
             try:
-                # Step 1: select time (if applicable)
-                if time_sel is not None and time_var:
-                    ds_time_sel = ds[var].sel({time_var: time_sel}, method="nearest")
-                else:
-                    ds_time_sel = ds[var]
+                time_index = list(time_vals).index(time_sel)
+                raw_time_value = raw_time_vals[time_index]
+            except ValueError:
+                st.error("❌ Failed to map selected time to original index.")
+                raw_time_value = raw_time_vals[0]  # fallback
             
-                # Step 2: slice spatial dimensions
-                data = ds_time_sel.sel({
-                    lat_var: slice(*lat_range),
-                    lon_var: slice(*lon_range)
-                })
-            
-            except Exception as e:
-                st.error(f"⚠️ Failed to subset data: {e}")
-                data = None  # Ensure it's not used later
+            # Step 4: Use the raw value in ds.sel()
+            ds_time_sel = ds[var].sel({time_var: raw_time_value})
+
             
             # 🖼️ Plot only if data is valid
             if data is not None:
