@@ -144,16 +144,18 @@ if uploaded_file:
                     index=0
                 )
 
-            with st.expander("💾 Save Plot Options"):
-                save_format = st.selectbox("Select file format", ["png", "jpg", "pdf", "svg", "tiff"], index=0)
-                dpi_value = st.number_input("DPI (dots per inch)", min_value=50, max_value=600, value=150, step=10)
-                save_btn = st.button("💾 Save & Download Plot")
-
             with st.expander("🖊️ Plot Custom Labels"):
                 plot_title = st.text_input("📌 Plot Title", value="Ocean Variable Plot")
                 xlabel = st.text_input("🧭 X-axis Label", value="Longitude")
                 ylabel = st.text_input("🧭 Y-axis Label", value="Latitude")
                 cbar_label = st.text_input("🎨 Colorbar Label", value=var)
+                
+            with st.expander("💾 Save Plot Options"):
+                save_format = st.selectbox("Select file format", ["png", "jpg", "pdf", "svg", "tiff"], index=0)
+                dpi_value = st.number_input("DPI (dots per inch)", min_value=50, max_value=600, value=150, step=10)
+                save_btn = st.button("💾 Save & Download Plot")
+
+            
 
         #-------RIGHT SIDE--------
 
