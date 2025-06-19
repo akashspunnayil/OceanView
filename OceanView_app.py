@@ -10,6 +10,13 @@ import matplotlib.ticker as mticker
 st.set_page_config(layout="wide")
 st.title("🌊 Ocean Data Viewer")
 
+# 🔄 Refresh app state
+if st.button("🔄 Refresh App"):
+    for key in st.session_state.keys():
+        del st.session_state[key]
+    st.experimental_rerun()
+
+
 # --- Safe NetCDF loader with fallback for time decoding errors ---
 @st.cache_data
 def load_netcdf_safe(file_obj):
