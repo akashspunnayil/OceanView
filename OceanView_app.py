@@ -151,9 +151,25 @@ if uploaded_file:
                 ylabel = st.text_input("🧭 Y-axis Label", value="Latitude")
                 cbar_label = st.text_input("🎨 Colorbar Label", value=var)
 
+            # with st.expander("📏 Axis Tick Settings"):
+            #     xtick_step = st.number_input("Longitude Tick Interval (°)", min_value=0.1, max_value=60.0, value=10.0, step=1.0)
+            #     ytick_step = st.number_input("Latitude Tick Interval (°)", min_value=0.1, max_value=60.0, value=5.0, step=1.0)
+
             with st.expander("📏 Axis Tick Settings"):
-                xtick_step = st.number_input("Longitude Tick Interval (°)", min_value=0.1, max_value=60.0, value=10.0, step=1.0)
-                ytick_step = st.number_input("Latitude Tick Interval (°)", min_value=0.1, max_value=60.0, value=5.0, step=1.0)
+                tick_cols = st.columns([2, 1])  # Wider input column, narrow reset button
+                with tick_cols[0]:
+                    manual_ticks = st.checkbox("🔧 Manually set tick intervals", value=False, key="manual_ticks")
+                    if manual_ticks:
+                        xtick_step = st.number_input("Longitude Tick Interval (°)", min_value=0.1, max_value=60.0, value=10.0, step=1.0, key="xtick_step")
+                        ytick_step = st.number_input("Latitude Tick Interval (°)", min_value=0.1, max_value=60.0, value=5.0, step=1.0, key="ytick_step")
+                    else:
+                        xtick_step, ytick_step = None, None
+            
+                with tick_cols[1]:
+                    if st.button("🔄 Reset"):
+                        st.session_state.manual_ticks = False
+                        if "xtick_step" in st.session_state: del st.session_state.xtick_step
+                        if "ytick_step" in st.session_state: del st.session_state.ytick_step
 
                 
             with st.expander("💾 Save Plot Options"):
