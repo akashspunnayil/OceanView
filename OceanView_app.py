@@ -6,25 +6,29 @@ import io
 
 st.title("🌊 Ocean Data Viewer")
 
+import tempfile
+
 @st.cache_data
-def load_netcdf(file_bytes):
+def load_netcdf(file_obj):
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".nc") as tmp_file:
+        tmp_file.write(file_obj.read())
+        tmp_path = tmp_file.name
     try:
-        return xr.open_dataset(file_bytes, engine="h5netcdf")
+        return xr.open_dataset(tmp_path, engine="netcdf4")
     except ValueError as e:
-        if "decode time units" in str(e) or "decode variable" in str(e):
-            st.warning("⚠️ Time decoding failed due to non-standard calendar. Loading with decode_times=False.")
-            return xr.open_dataset(file_bytes, decode_times=False, engine="h5netcdf")
-        elif "valid dataset engines" in str(e):
-            st.error("❌ Could not determine the backend engine. Ensure the uploaded file is a valid NetCDF.")
-            return None
-        else:
-            raise e
+        st.warning("Fallback to decode_times=False due to calendar error.")
+        return xr.open_dataset(tmp_path, decode_times=False, engine="netcdf4")
+
 
 uploaded_file = st.file_uploader("Upload NetCDF file", type=["nc"])
 
+
 if uploaded_file:
-    file_bytes = io.BytesIO(uploaded_file.read())  # 🔁 This is the missing step
-    ds = load_netcdf(file_bytes)
+    ds = load_netcdf(uploaded_file)
+
+# if uploaded_file:
+#     file_bytes = io.BytesIO(uploaded_file.read())  # 🔁 This is the missing step
+#     ds = load_netcdf(file_bytes)
 
     if ds is not None:
         st.success("✅ NetCDF file loaded successfully!")
