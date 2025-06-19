@@ -195,11 +195,11 @@ if uploaded_file:
                     plot_kwargs["vmax"] = vmax
 
                 im = data.squeeze().plot.pcolormesh(**plot_kwargs)
-                ax.set_xlabel(xlabel)
-                ax.set_ylabel(ylabel)
-                ax.set_title(plot_title)
-                if hasattr(im, 'colorbar') and im.colorbar:
-                    im.colorbar.set_label(cbar_label)
+                # ax.set_xlabel(xlabel)
+                # ax.set_ylabel(ylabel)
+                # ax.set_title(plot_title)
+                # if hasattr(im, 'colorbar') and im.colorbar:
+                #     im.colorbar.set_label(cbar_label)
 
 
                 # data.squeeze().plot.pcolormesh(**plot_kwargs)
@@ -212,6 +212,13 @@ if uploaded_file:
                 gl.xlabel_style = {'size': 10}
                 gl.ylabel_style = {'size': 10}
 
+                # Apply your custom labels
+                ax.set_xlabel(xlabel, fontsize=12)
+                ax.set_ylabel(ylabel, fontsize=12)
+                ax.set_title(plot_title, fontsize=14)
+                if hasattr(im, 'colorbar') and im.colorbar:
+                    im.colorbar.set_label(cbar_label, fontsize=12)
+                    
                 title = f"{plot_title}"
                 if time_var: title += f" | Time: {time_sel}"
                 if depth_var: title += f" | Depth: {selected_depth} m"
