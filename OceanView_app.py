@@ -11,8 +11,10 @@ st.set_page_config(layout="wide")
 st.title("🌊 Ocean Data Viewer")
 
 # 🔄 Refresh app state
+# === Refresh Button ===
 def refresh_app():
-    st.session_state.clear()
+    for key in st.session_state.keys():
+        del st.session_state[key]
     st.experimental_rerun()
 
 st.button("🔄 Refresh App", on_click=refresh_app)
