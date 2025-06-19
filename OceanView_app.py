@@ -144,6 +144,12 @@ if uploaded_file:
                     index=0
                 )
 
+            with st.expander("💾 Save Plot Options"):
+                save_format = st.selectbox("Select file format", ["png", "jpg", "pdf", "svg", "tiff"], index=0)
+                dpi_value = st.number_input("DPI (dots per inch)", min_value=50, max_value=600, value=150, step=10)
+                save_btn = st.button("💾 Save & Download Plot")
+
+
         #-------RIGHT SIDE--------
 
         with right_col:
@@ -189,6 +195,21 @@ if uploaded_file:
                 if depth_var: title += f" | Depth: {selected_depth} m"
                 ax.set_title(title)
                 st.pyplot(fig)
+
+                import io
+
+                if save_btn:
+                    buf = io.BytesIO()
+                    fig.savefig(buf, format=save_format, dpi=dpi_value, bbox_inches="tight")
+                    st.success(f"✅ Plot saved as {save_format.upper()} ({dpi_value} DPI)")
+                
+                    st.download_button(
+                        label=f"📥 Download {save_format.upper()} file",
+                        data=buf.getvalue(),
+                        file_name=f"ocean_plot.{save_format}",
+                        mime=f"image/{'jpeg' if save_format == 'jpg' else save_format}"
+                    )
+
         
             except Exception as e:
                 st.error(f"⚠️ Failed to subset or plot data: {e}")
