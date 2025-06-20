@@ -226,7 +226,7 @@ if uploaded_file:
                         "Arial",
                         "Times New Roman",
                         "Courier New",
-                        "Calibri",
+                        "Calibri Light",
                         "Verdana",
                         "Comic Sans MS"
                     ],
