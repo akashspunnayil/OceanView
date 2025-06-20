@@ -625,6 +625,59 @@ if uploaded_file:
                     except Exception as e:
                         st.error(f"❌ Failed to extract profile: {e}")
 
+            
+            #---------------------------Normal Vertical Profile ----------------------------------#
+            if show_vertical_profile:
+                st.markdown("### 📉 Vertical Profile")
+            
+                # Reuse coordinate map for flexibility
+                coord_map = detect_coord_names(ds_sel)
+            
+                lat_key = coord_map["latitude"]
+                lon_key = coord_map["longitude"]
+                depth_key = coord_map["depth"]
+                time_key = coord_map["time"]
+            
+                if not all([lat_key, lon_key, depth_key]):
+                    st.error("❌ Could not detect necessary coordinate names (lat/lon/depth).")
+                else:
+                    sel_dict = {
+                        lat_key: input_lat,
+                        lon_key: input_lon
+                    }
+            
+                    if time_key and time_sel is not None:
+                        sel_dict[time_key] = time_sel
+            
+                    try:
+                        profile = ds[var].sel(sel_dict, method="nearest")
+            
+                        # Get depth values
+                        if depth_key in profile.coords:
+                            depth_vals = profile[depth_key].values
+                        elif depth_key in ds.coords:
+                            depth_vals = ds[depth_key].values
+                        else:
+                            st.error("❌ Could not find depth values in dataset.")
+                            st.stop()
+            
+                        var_vals = profile.values
+            
+                        if depth_vals.shape[0] != var_vals.shape[0]:
+                            st.warning("⚠️ Depth and variable value shapes may not match.")
+            
+                        # Matplotlib plot
+                        fig, ax = plt.subplots(figsize=(6, 5))
+                        ax.plot(var_vals, depth_vals, marker='o', linestyle='-')
+                        ax.set_xlabel(var)
+                        ax.set_ylabel("Depth (m)")
+                        ax.invert_yaxis()
+                        ax.set_title(f"{var} Profile at ({input_lat:.2f}, {input_lon:.2f})")
+            
+                        st.pyplot(fig)
+            
+                    except Exception as e:
+                        st.error(f"❌ Failed to extract profile: {e}")
 
 
 
