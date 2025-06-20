@@ -540,7 +540,8 @@ if uploaded_file:
             #-------------------------------------------------------------------------------------------------------------------#
             if show_vertical_profile and trigger_profile_plot:
                 st.subheader(f"Vertical Profile at ({input_lat:.2f}, {input_lon:.2f})")
-            
+                
+
                 depth_key = coord_map["depth"]
                 lat_key = coord_map["latitude"]
                 lon_key = coord_map["longitude"]
@@ -558,6 +559,9 @@ if uploaded_file:
                 if depth_key and depth_key in profile.dims:
                     depth_vals = profile[depth_key].values
                     var_vals = profile.values  # don't squeeze
+
+                    st.write("Profile dims after selection:", profile.dims)
+                    st.write("Depth key:", depth_key)
                 
                     fig_profile = go.Figure()
                     fig_profile.add_trace(go.Scatter(
