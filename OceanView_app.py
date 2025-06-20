@@ -277,38 +277,53 @@ if uploaded_file:
             # Apply the selected font family first
             plt.rcParams['font.family'] = st.session_state.get("font_family", "DejaVu Sans")                
 
-            # fig, ax = plt.subplots(figsize=(10, 6), subplot_kw={"projection": ccrs.PlateCarree()})
-            # plot_kwargs = {"ax": ax, "transform": ccrs.PlateCarree(), "cmap": cmap_choice, "add_colorbar": True}
-            # if set_clim:
-            #     plot_kwargs["vmin"] = vmin
-            #     plot_kwargs["vmax"] = vmax
+            fig, ax = plt.subplots(figsize=(10, 6), subplot_kw={"projection": ccrs.PlateCarree()})
+            plot_kwargs = {"ax": ax, "transform": ccrs.PlateCarree(), "cmap": cmap_choice, "add_colorbar": True}
+            if set_clim:
+                plot_kwargs["vmin"] = vmin
+                plot_kwargs["vmax"] = vmax
 
-            # im = data.squeeze().plot.pcolormesh(**plot_kwargs)
-            # ax.coastlines()
-            # gl = ax.gridlines(draw_labels=True, linewidth=0.5, color='gray', alpha=0.5, linestyle='--')
-            # gl.top_labels = gl.right_labels = False
-            # gl.xlabel_style = gl.ylabel_style = {'size': 12}
+            im = data.squeeze().plot.pcolormesh(**plot_kwargs)
+            ax.coastlines()
+            gl = ax.gridlines(draw_labels=True, linewidth=0.5, color='gray', alpha=0.5, linestyle='--')
+            gl.top_labels = gl.right_labels = False
+            gl.xlabel_style = gl.ylabel_style = {'size': 12}
 
-            # if st.session_state.get("manual_ticks", False):
-            #     xtick_step = st.session_state.get("xtick_step")
-            #     ytick_step = st.session_state.get("ytick_step")
-            #     if xtick_step and ytick_step:
-            #         gl.xlocator = mticker.FixedLocator(np.arange(lon_range[0], lon_range[1] + xtick_step, xtick_step))
-            #         gl.ylocator = mticker.FixedLocator(np.arange(lat_range[0], lat_range[1] + ytick_step, ytick_step))
+            if st.session_state.get("manual_ticks", False):
+                xtick_step = st.session_state.get("xtick_step")
+                ytick_step = st.session_state.get("ytick_step")
+                if xtick_step and ytick_step:
+                    gl.xlocator = mticker.FixedLocator(np.arange(lon_range[0], lon_range[1] + xtick_step, xtick_step))
+                    gl.ylocator = mticker.FixedLocator(np.arange(lat_range[0], lat_range[1] + ytick_step, ytick_step))
 
 
-            # if mask_land:
-            #     ax.add_feature(cfeature.LAND, facecolor=mask_color, zorder=3)
-            # if mask_sea:
-            #     ax.add_feature(cfeature.OCEAN, facecolor=mask_color, zorder=3)
+            if mask_land:
+                ax.add_feature(cfeature.LAND, facecolor=mask_color, zorder=3)
+            if mask_sea:
+                ax.add_feature(cfeature.OCEAN, facecolor=mask_color, zorder=3)
 
-            # ax.set_title(plot_title, fontsize=14)
-            # if hasattr(im, 'colorbar') and im.colorbar:
-            #     im.colorbar.set_label(cbar_label, fontsize=12)
-            # ax.text(0.5, -0.1, xlabel, transform=ax.transAxes, ha='center', va='top', fontsize=12)
-            # ax.text(-0.15, 0.5, ylabel, transform=ax.transAxes, ha='right', va='center', rotation='vertical', fontsize=12)
-            # st.pyplot(fig)
+            ax.set_title(plot_title, fontsize=14)
+            if hasattr(im, 'colorbar') and im.colorbar:
+                im.colorbar.set_label(cbar_label, fontsize=12)
+            ax.text(0.5, -0.1, xlabel, transform=ax.transAxes, ha='center', va='top', fontsize=12)
+            ax.text(-0.15, 0.5, ylabel, transform=ax.transAxes, ha='right', va='center', rotation='vertical', fontsize=12)
+            st.pyplot(fig)
 
+
+            if save_btn:
+                buf = io.BytesIO()
+                fig.savefig(buf, format=save_format, dpi=dpi_value, bbox_inches="tight")
+                st.success(f"✅ Plot saved as {save_format.upper()} ({dpi_value} DPI)")
+                st.download_button(
+                    label=f"📥 Download {save_format.upper()} file",
+                    data=buf.getvalue(),
+                    file_name=f"ocean_plot.{save_format}",
+                    mime=f"image/{'jpeg' if save_format == 'jpg' else save_format}"
+                )
+
+            #---------------------------------Intercative Map View----------------------------------------------------------#
+
+            st.subheader("🎞️ Intercative Map View")
             import streamlit as st
             import xarray as xr
             import plotly.graph_objects as go
@@ -370,22 +385,7 @@ if uploaded_file:
             )
             
             st.plotly_chart(fig, use_container_width=True)
-
-
-
-
-            if save_btn:
-                buf = io.BytesIO()
-                fig.savefig(buf, format=save_format, dpi=dpi_value, bbox_inches="tight")
-                st.success(f"✅ Plot saved as {save_format.upper()} ({dpi_value} DPI)")
-                st.download_button(
-                    label=f"📥 Download {save_format.upper()} file",
-                    data=buf.getvalue(),
-                    file_name=f"ocean_plot.{save_format}",
-                    mime=f"image/{'jpeg' if save_format == 'jpg' else save_format}"
-                )
-
-
+            
             #-------------------------------------------------------------------------------------------------------------------#
             # === Create Animated Plot over Time ===
             import matplotlib.animation as animation
