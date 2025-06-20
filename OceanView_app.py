@@ -249,8 +249,16 @@ if uploaded_file:
             data = ds_sel.sel(subset_kwargs)
 
             st.subheader("🗺️ Map View")
+            # Apply the selected font family first
             plt.rcParams['font.family'] = st.session_state.get("font_family", "DejaVu Sans")
+            
+            # Now check the effective font
+            import matplotlib.font_manager as fm
+            current_font = plt.rcParams["font.family"]
+            resolved_font = fm.FontProperties(family=current_font).get_name()
+            st.text(f"Font setting: {current_font} → resolved to: {resolved_font}")
 
+        
 
             fig, ax = plt.subplots(figsize=(10, 6), subplot_kw={"projection": ccrs.PlateCarree()})
             plot_kwargs = {"ax": ax, "transform": ccrs.PlateCarree(), "cmap": cmap_choice, "add_colorbar": True}
