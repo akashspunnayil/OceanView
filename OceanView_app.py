@@ -144,7 +144,7 @@ if uploaded_file:
                 show_vertical_profile = st.checkbox("Vertical Profile (Single Location)")
                 show_interactive_vertical_profile =  st.checkbox("Vertical Interactive Profile (Single Location)")
 
-            if show_vertical_profile:
+            if show_vertical_profile and show_interactive_vertical_profile:
                 st.markdown("### 📍 Vertical Profile Location")
                 input_lat = st.number_input("Latitude", value=0.0, format="%.2f")
                 input_lon = st.number_input("Longitude", value=60.0, format="%.2f")
