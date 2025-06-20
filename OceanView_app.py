@@ -158,14 +158,17 @@ if uploaded_file:
                     # st.button("🔄 Reset", on_click=reset_colorbar_settings)
                     st.button("🔄 Reset", on_click=reset_colorbar_settings, key="reset_colorbar_btn")
 
-            def reset_plot_labels():
+            def reset_plot_labels(time_sel_value=None, depth_value=None):
                 title = var
-                if time_var and 'time_sel' in locals():
-                    title += f" | {time_sel}"
+                if time_sel_value:
+                    title += f" | {time_sel_value}"
+                if depth_value is not None:
+                    title += f" | {depth_value} m"
                 st.session_state["plot_title"] = title
                 st.session_state["xlabel"] = "Longitude"
                 st.session_state["ylabel"] = "Latitude"
                 st.session_state["cbar_label"] = var
+
 
             with st.expander("🖊️ Plot Custom Labels"):
                 label_cols = st.columns([2, 1])
@@ -176,7 +179,9 @@ if uploaded_file:
                     cbar_label = st.text_input("🎨 Colorbar Label", value=var, key="cbar_label")
                 with label_cols[1]:
                     # st.button("🔄 Reset", on_click=reset_plot_labels)
-                    st.button("🔄 Reset", on_click=reset_plot_labels, key="reset_plot_labels_btn")
+                    # st.button("🔄 Reset", on_click=reset_plot_labels, key="reset_plot_labels_btn")
+                    st.button("🔄 Reset", on_click=lambda: reset_plot_labels(time_sel, selected_depth), key="reset_plot_labels_btn")
+
 
             def reset_tick_settings():
                 st.session_state.pop("manual_ticks", None)
