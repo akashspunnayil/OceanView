@@ -324,7 +324,7 @@ if uploaded_file:
 
             #---------------------------------Intercative Map View----------------------------------------------------------#
 
-            st.subheader("🎞️ Intercative Map View")
+            st.subheader("🎞️ Interactive Map View")
 
             def figsize_to_plotly(width_in, height_in, dpi=100):
                 return int(width_in * dpi), int(height_in * dpi)
@@ -368,8 +368,6 @@ if uploaded_file:
             lon = data_2d[coord_map['longitude']].values
             z = data_2d.values
 
-            width, height = figsize_to_plotly(10, 6)
-            # fig.update_layout(width=width, height=height)
 
             fig = go.Figure(
                 data=go.Heatmap(
@@ -384,7 +382,7 @@ if uploaded_file:
                 )
             )
 
-            
+            width, height = figsize_to_plotly(10, 6)
             fig.update_layout(
                 title=plot_title,
                 xaxis_title=xlabel,
