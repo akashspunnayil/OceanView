@@ -389,7 +389,9 @@ if uploaded_file:
                 title=plot_title,
                 xaxis_title=xlabel,
                 yaxis_title=ylabel,
-                height=600
+                # height=600,
+                width=width,
+                height=height
             )
             
             st.plotly_chart(fig, use_container_width=True)
