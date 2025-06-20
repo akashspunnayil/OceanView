@@ -137,7 +137,6 @@ if uploaded_file:
                 raw_time_value = None
                 
             # Use left_col for plot selection checkboxes
-            # with left_col:
             with st.expander("🗺️ Select Plot Options", expanded=True):
                 show_spatial_map = st.checkbox("Spatial Map")
                 show_interactive_spatial_map = st.checkbox("Spatial Interactive Map")
@@ -538,48 +537,85 @@ if uploaded_file:
                     st.info("⏳ Animation unavailable: Time dimension not found in selected variable.")
 
             #-------------------------------------------------------------------------------------------------------------------#
+            def detect_coord_names(dataarray):
+                # Known patterns (case-insensitive)
+                candidates = {
+                    "latitude": ["lat", "latitude"],
+                    "longitude": ["lon", "longitude"],
+                    "depth": ["depth", "depth1_1", "DEPTH", "z"],
+                    "time": ["time", "TIME"]
+                }
+            
+                # Match from dataarray coords
+                found = {}
+                coords_lower = {k.lower(): k for k in dataarray.coords}
+            
+                for standard_name, options in candidates.items():
+                    for name in options:
+                        if name.lower() in coords_lower:
+                            found[standard_name] = coords_lower[name.lower()]
+                            break
+                    else:
+                        found[standard_name] = None  # Not found
+            
+                return found
+            
+
             if show_vertical_profile and trigger_profile_plot:
-                st.subheader(f"Vertical Profile at ({input_lat:.2f}, {input_lon:.2f})")
-                
+                st.markdown("### 📍 Vertical Profile Location")
+                input_lat = st.number_input("Latitude", value=0.0, format="%.2f")
+                input_lon = st.number_input("Longitude", value=60.0, format="%.2f")
+            
+                selected_time = None
+                if "time" in ds_sel.dims or "TIME" in ds_sel.coords:
+                    try:
+                        selected_time = st.selectbox("Select Time", ds_sel[coord_map['time']].values)
+                    except:
+                        pass  # Optional
+            
+                if st.button("Plot Vertical Profile"):
+                    coord_map = detect_coord_names(ds_sel)
+            
+                    lat_key = coord_map["latitude"]
+                    lon_key = coord_map["longitude"]
+                    depth_key = coord_map["depth"]
+                    time_key = coord_map["time"]
+            
+                    if not all([lat_key, lon_key, depth_key]):
+                        st.error("Could not detect necessary coordinate names (lat/lon/depth).")
+                    else:
+                        # Select by lat/lon/time
+                        sel_dict = {
+                            lat_key: input_lat,
+                            lon_key: input_lon
+                        }
+            
+                        if time_key and selected_time is not None:
+                            sel_dict[time_key] = selected_time
+            
+                        profile = ds_sel.sel(sel_dict, method="nearest")
+            
+                        # Get depth and values
+                        depth_vals = ds_sel[depth_key].values
+                        var_vals = profile.values
+            
+                        fig = go.Figure()
+                        fig.add_trace(go.Scatter(
+                            y=depth_vals,
+                            x=var_vals,
+                            mode='lines+markers',
+                            name=f"{var}"
+                        ))
+                        fig.update_layout(
+                            title=f"{var} Profile at ({input_lat:.2f}, {input_lon:.2f})",
+                            xaxis_title=var,
+                            yaxis_title="Depth (m)",
+                            yaxis_autorange="reversed",
+                            height=500,
+                            width=500
+                        )
+                        st.plotly_chart(fig)
 
-                depth_key = coord_map["depth"]
-                lat_key = coord_map["latitude"]
-                lon_key = coord_map["longitude"]
-                
-                # Select by lat/lon only — leave depth intact
-                profile = data.sel(
-                    {
-                        lat_key: input_lat,
-                        lon_key: input_lon
-                    },
-                    method="nearest"
-                )
-                
-                # Double-check depth is still a dimension
-                if depth_key and depth_key in profile.dims:
-                    depth_vals = profile[depth_key].values
-                    var_vals = profile.values  # don't squeeze
-
-                    st.write("Profile dims after selection:", profile.dims)
-                    st.write("Depth key:", depth_key)
-                
-                    fig_profile = go.Figure()
-                    fig_profile.add_trace(go.Scatter(
-                        y=depth_vals,
-                        x=var_vals,
-                        mode='lines+markers',
-                        name='Profile'
-                    ))
-                    fig_profile.update_layout(
-                        xaxis_title=cbar_label,
-                        yaxis_title="Depth (m)",
-                        yaxis_autorange="reversed",
-                        height=500,
-                        width=500
-                    )
-                    st.plotly_chart(fig_profile)
-                else:
-                    st.error("Depth dimension not found in selected profile.")
 
 
                 
