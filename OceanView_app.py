@@ -356,8 +356,8 @@ if uploaded_file:
                             time_str = str(time_labels[frame])[:15]
                     
                         title = f"{plot_title}"# | Time: {time_str}"
-                        if depth_var and selected_depth is not None:
-                            title += f" | Depth: {selected_depth} m"
+                        # if depth_var and selected_depth is not None:
+                        #     title += f" | Depth: {selected_depth} m"
                     
                         ax_anim.set_title(title, fontsize=12)
                         return [im]
