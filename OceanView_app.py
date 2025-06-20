@@ -143,12 +143,22 @@ if uploaded_file:
                 show_interactive_spatial_map = st.checkbox("Spatial Interactive Map")
                 show_time_animation = st.checkbox("Spatial Map - Time Animation")
                 show_vertical_profile = st.checkbox("Vertical Profile (Single Location)")
-                    
-            with st.expander("🌍 Land/Sea Masking"):
-                mask_land = st.checkbox("Mask Land", value=False)
-                mask_sea = st.checkbox("Mask Ocean", value=False)
-                mask_color = st.selectbox("Mask Color", ["lightgray", "gray", "black", "white", "skyblue", "khaki", "coral", "forestgreen"])
 
+            if show_vertical_profile:
+                st.markdown("### 📍 Vertical Profile Location")
+                input_lat = st.number_input("Latitude", value=0.0, format="%.2f")
+                input_lon = st.number_input("Longitude", value=60.0, format="%.2f")
+                if st.button("Extract Vertical Profile"):
+                    trigger_profile_plot = True
+                else:
+                    trigger_profile_plot = False
+                    
+            if show_spatial_map or show_time_animation or show_interactive_spatial_map:
+                with st.expander("🌍 Land/Sea Masking"):
+                    mask_land = st.checkbox("Mask Land", value=False)
+                    mask_sea = st.checkbox("Mask Ocean", value=False)
+                    mask_color = st.selectbox("Mask Color", ["lightgray", "gray", "black", "white", "skyblue", "khaki", "coral", "forestgreen"])
+            
             def reset_colorbar_settings():
                 st.session_state["set_clim"] = False
                 for key in ["vmin", "vmax", "step", "cmap_choice"]:
@@ -525,6 +535,29 @@ if uploaded_file:
                 else:
                     st.info("⏳ Animation unavailable: Time dimension not found in selected variable.")
 
+            if show_vertical_profile:
+                if trigger_profile_plot:
+                    profile = data.sel(
+                        {coord_map["latitude"]: input_lat, coord_map["longitude"]: input_lon},
+                        method="nearest"
+                    ).squeeze()
+                
+                    st.subheader(f"Vertical Profile at ({input_lat:.2f}, {input_lon:.2f})")
+                    fig_profile = go.Figure()
+                    fig_profile.add_trace(go.Scatter(
+                        y=profile[coord_map['depth']].values,
+                        x=profile.values,
+                        mode='lines+markers',
+                        name='Profile'
+                    ))
+                    fig_profile.update_layout(
+                        xaxis_title=cbar_label,
+                        yaxis_title="Depth (m)",
+                        yaxis_autorange="reversed",  # Depth increases downward
+                        height=500,
+                        width=500
+                    )
+                    st.plotly_chart(fig_profile)
                 
         # except Exception as e:
         #     st.error(f"⚠️ Failed to subset or plot data: {e}")
