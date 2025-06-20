@@ -159,7 +159,10 @@ if uploaded_file:
                     st.button("🔄 Reset", on_click=reset_colorbar_settings, key="reset_colorbar_btn")
 
             def reset_plot_labels():
-                st.session_state["plot_title"] = var
+                title = var
+                if time_var and 'time_sel' in locals():
+                    title += f" | {time_sel}"
+                st.session_state["plot_title"] = title
                 st.session_state["xlabel"] = "Longitude"
                 st.session_state["ylabel"] = "Latitude"
                 st.session_state["cbar_label"] = var
