@@ -311,45 +311,37 @@ if uploaded_file:
 
             import streamlit as st
             import xarray as xr
-            import plotly.express as px
-            import numpy as np
+            import plotly.graph_objects as go
             
-            # Assume 'data' is your 2D DataArray (lat x lon)
-            # Example: data = xr.open_dataset(...).your_variable
-            
+            # Assuming `data` is your 2D DataArray (lat x lon)
             data_2d = data.squeeze()
+            lon = data_2d['lon'].values
+            lat = data_2d['lat'].values
+            z = data_2d.values
             
-            # Convert to DataFrame for Plotly (ensures labeled coords)
-            df = data_2d.to_dataframe(name="value").reset_index()
-            
-            # Generate hover-friendly plot
-            fig = px.density_heatmap(
-                df,
-                x='lon',
-                y='lat',
-                z='value',
-                color_continuous_scale=cmap_choice,
-                zmin=vmin if set_clim else None,
-                zmax=vmax if set_clim else None,
-                labels={'lon': xlabel, 'lat': ylabel, 'value': cbar_label},
-                nbinsx=200,  # adjust based on resolution
-                nbinsy=200
+            # Create Heatmap with hover
+            fig = go.Figure(
+                data=go.Heatmap(
+                    z=z,
+                    x=lon,
+                    y=lat,
+                    colorscale=cmap_choice,
+                    zmin=vmin if set_clim else None,
+                    zmax=vmax if set_clim else None,
+                    colorbar=dict(title=cbar_label),
+                    hovertemplate="Lon: %{x:.2f}<br>Lat: %{y:.2f}<br>Value: %{z:.2f}<extra></extra>"
+                )
             )
             
             fig.update_layout(
                 title=plot_title,
                 xaxis_title=xlabel,
                 yaxis_title=ylabel,
-                coloraxis_colorbar=dict(title=cbar_label),
                 height=600
             )
             
-            fig.update_traces(
-                hovertemplate="Lon: %{x:.2f}<br>Lat: %{y:.2f}<br>Value: %{z:.2f}<extra></extra>"
-            )
-            
-            # Display the interactive plot
             st.plotly_chart(fig, use_container_width=True)
+
 
 
 
