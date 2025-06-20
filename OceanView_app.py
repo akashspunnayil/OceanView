@@ -142,6 +142,7 @@ if uploaded_file:
                 show_interactive_spatial_map = st.checkbox("Spatial Interactive Map")
                 show_time_animation = st.checkbox("Spatial Map - Time Animation")
                 show_vertical_profile = st.checkbox("Vertical Profile (Single Location)")
+                show_interactive_vertical_profile =  st.checkbox("Vertical Profile (Single Location)")
 
             if show_vertical_profile:
                 st.markdown("### 📍 Vertical Profile Location")
@@ -559,9 +560,10 @@ if uploaded_file:
                         found[standard_name] = None  # Not found
             
                 return found
-            
+
+            # -----------------------Interactive Vetical Profile --------------------------------#
             import plotly.graph_objects as go
-            if show_vertical_profile:# and trigger_profile_plot:
+            if show_interactive_vertical_profile:
                 st.markdown("### 📉 Vertical Profile")
             
                 # Reuse coord map for robustness
