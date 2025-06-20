@@ -541,21 +541,24 @@ if uploaded_file:
             if show_vertical_profile and trigger_profile_plot:
                 st.subheader(f"Vertical Profile at ({input_lat:.2f}, {input_lon:.2f})")
             
-                # Select nearest point
+                depth_key = coord_map["depth"]
+                lat_key = coord_map["latitude"]
+                lon_key = coord_map["longitude"]
+                
+                # Select by lat/lon only — leave depth intact
                 profile = data.sel(
                     {
-                        coord_map["latitude"]: input_lat,
-                        coord_map["longitude"]: input_lon
+                        lat_key: input_lat,
+                        lon_key: input_lon
                     },
                     method="nearest"
                 )
-            
-                # Check for depth dimension
-                depth_key = coord_map["depth"]
+                
+                # Double-check depth is still a dimension
                 if depth_key and depth_key in profile.dims:
                     depth_vals = profile[depth_key].values
-                    var_vals = profile.squeeze().values
-            
+                    var_vals = profile.values  # don't squeeze
+                
                     fig_profile = go.Figure()
                     fig_profile.add_trace(go.Scatter(
                         y=depth_vals,
@@ -573,6 +576,7 @@ if uploaded_file:
                     st.plotly_chart(fig_profile)
                 else:
                     st.error("Depth dimension not found in selected profile.")
+
 
                 
         # except Exception as e:
