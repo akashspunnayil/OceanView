@@ -362,7 +362,10 @@ if uploaded_file:
                         ax_anim.set_title(title, fontsize=12)
                         return [im]
 
-                
+                    # fig.tight_layout()
+                    fig.subplots_adjust(left=0.05, right=0.95, bottom=0.1, top=0.95)
+
+
                     ani = animation.FuncAnimation(
                         fig_anim, update_anim, frames=da_anim.sizes[time_var], blit=False
                     )
