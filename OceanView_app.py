@@ -578,12 +578,12 @@ if uploaded_file:
             
                 if st.button("Plot Vertical Profile"):
                     coord_map = detect_coord_names(ds_sel)
-            
+                
                     lat_key = coord_map["latitude"]
                     lon_key = coord_map["longitude"]
                     depth_key = coord_map["depth"]
                     time_key = coord_map["time"]
-            
+                
                     if not all([lat_key, lon_key, depth_key]):
                         st.error("Could not detect necessary coordinate names (lat/lon/depth).")
                     else:
@@ -592,16 +592,16 @@ if uploaded_file:
                             lat_key: input_lat,
                             lon_key: input_lon
                         }
-            
-                        if time_key and selected_time is not None:
-                            sel_dict[time_key] = selected_time
-            
+                
+                        if time_key and time_sel is not None:
+                            sel_dict[time_key] = time_sel
+                
                         profile = ds_sel.sel(sel_dict, method="nearest")
-            
+                
                         # Get depth and values
                         depth_vals = ds_sel[depth_key].values
                         var_vals = profile.values
-            
+                
                         fig = go.Figure()
                         fig.add_trace(go.Scatter(
                             y=depth_vals,
@@ -618,6 +618,7 @@ if uploaded_file:
                             width=500
                         )
                         st.plotly_chart(fig)
+
 
 
 
