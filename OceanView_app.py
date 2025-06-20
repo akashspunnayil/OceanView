@@ -214,16 +214,43 @@ if uploaded_file:
                 st.session_state["font_family"] = "DejaVu Sans"
             
             # Font settings block
+            import os
+            import matplotlib.font_manager as fm
+            
+            # Font settings block
             with st.expander("🖋️ Plot Font Settings"):
                 font_family = st.selectbox(
                     "Font Family",
-                    options=["DejaVu Sans", "Arial", "Times New Roman", "Courier New", "Calibri", "Verdana", "Comic Sans MS"],
+                    options=[
+                        "DejaVu Sans",
+                        "Arial",
+                        "Times New Roman",
+                        "Courier New",
+                        "Calibri",
+                        "Verdana",
+                        "Comic Sans MS"
+                    ],
                     index=0,
                     key="font_family"
                 )
             
-                # Use on_click with a reset function
+                # Try to load custom font from fonts/ directory
+                font_path = f"fonts/{font_family}.ttf"
+                if os.path.exists(font_path):
+                    fm.fontManager.addfont(font_path)
+                    resolved_font = fm.FontProperties(fname=font_path).get_name()
+                    plt.rcParams["font.family"] = resolved_font
+                    st.success(f"✅ Custom font applied: {resolved_font}")
+                else:
+                    plt.rcParams["font.family"] = font_family
+                    st.warning(f"⚠️ '{font_family}' .ttf not found in /fonts. Using system font fallback.")
+            
+                # Reset button
+                def reset_font():
+                    st.session_state["font_family"] = "DejaVu Sans"
+            
                 st.button("Reset Font to Default", on_click=reset_font, key="reset_font_btn")
+
 
 
 
