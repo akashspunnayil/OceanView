@@ -208,6 +208,16 @@ if uploaded_file:
                 with tick_cols[1]:
                     # st.button("🔄 Reset", on_click=reset_tick_settings)
                     st.button("🔄 Reset", on_click=reset_tick_settings, key="reset_tick_settings_btn")
+            
+            with st.expander("🖋️ Plot Font Settings"):
+                font_family = st.selectbox(
+                    "Font Family",
+                    options=["DejaVu Sans", "Arial", "Times New Roman", "Courier New", "Calibri", "Verdana", "Comic Sans MS"],
+                    index=0,
+                    key="font_family"
+                )
+                if st.button("Reset Font to Default", key="reset_font_btn"):
+                    st.session_state["font_family"] = "DejaVu Sans"
 
 
             with st.expander("💾 Save Plot Options"):
@@ -232,6 +242,8 @@ if uploaded_file:
             data = ds_sel.sel(subset_kwargs)
 
             st.subheader("🗺️ Map View")
+            plt.rcParams['font.family'] = font_family
+
             fig, ax = plt.subplots(figsize=(10, 6), subplot_kw={"projection": ccrs.PlateCarree()})
             plot_kwargs = {"ax": ax, "transform": ccrs.PlateCarree(), "cmap": cmap_choice, "add_colorbar": True}
             if set_clim:
