@@ -13,7 +13,7 @@ import io
 
     
 st.set_page_config(layout="wide")
-st.title("🌊 Ocean Data Viewer")
+st.title("🌊 Ocean Viewer")
 
 
 # --- Safe NetCDF loader with fallback for time decoding errors ---
@@ -363,7 +363,7 @@ if uploaded_file:
                         return [im]
 
                     # fig.tight_layout()
-                    fig_anim.subplots_adjust(left=0.05, right=0.95, bottom=0.1, top=0.95)
+                    # fig_anim.subplots_adjust(left=0.05, right=0.95, bottom=0.1, top=0.95)
 
 
                     ani = animation.FuncAnimation(
