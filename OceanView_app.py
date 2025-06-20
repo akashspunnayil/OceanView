@@ -31,8 +31,9 @@ def load_netcdf_safe(file_obj):
 def find_coord_name(ds, keyword):
     for coord in ds.coords:
         if keyword.lower() in coord.lower():
-            return coord
+            return coord  # return the actual name, not lowercase
     return None
+
 
 # --- Time decoding fallback ---
 def try_decode_time(ds, time_var):
@@ -269,7 +270,16 @@ if uploaded_file:
             # === Subsetting ===
             try:
                 if time_var and raw_time_value is not None:
-                    ds_sel = ds[var].sel({time_var: raw_time_value}, method="nearest")
+                    # ds_sel = ds[var].sel({time_var: raw_time_value}, method="nearest")
+                    try:
+                        ds_sel = ds[var]
+                        if time_var and time_var in ds[var].dims and raw_time_value is not None:
+                            ds_sel = ds_sel.sel({time_var: raw_time_value}, method="nearest")
+                        if depth_var and depth_var in ds[var].dims and selected_depth is not None:
+                            ds_sel = ds_sel.sel({depth_var: selected_depth}, method="nearest")
+                    except Exception as e:
+                        st.error(f"⚠️ Subsetting failed for {var}: {e}")
+
                 else:
                     ds_sel = ds[var]
         
