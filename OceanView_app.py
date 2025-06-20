@@ -371,7 +371,7 @@ if uploaded_file:
     
                 # Assuming `data` is your 2D DataArray (lat x lon)
                 data_2d = data.squeeze()
-                st.write("Data coordinates:", data_2d.coords)
+                # st.write("Data coordinates:", data_2d.coords)
                 
                 coord_map = standardize_coords(data_2d)
     
