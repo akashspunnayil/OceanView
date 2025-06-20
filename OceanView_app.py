@@ -191,8 +191,20 @@ if uploaded_file:
                 tick_cols = st.columns([2, 1])
                 with tick_cols[0]:
                     manual_ticks = st.checkbox("🔧 Manually set tick intervals", key="manual_ticks")
-                    xtick_step = st.number_input("Longitude Tick Interval (°)", min_value=0.1, max_value=60.0, value=10.0, step=1.0) if manual_ticks else None
-                    ytick_step = st.number_input("Latitude Tick Interval (°)", min_value=0.1, max_value=60.0, value=5.0, step=1.0) if manual_ticks else None
+                    # xtick_step = st.number_input("Longitude Tick Interval (°)", min_value=0.1, max_value=60.0, value=10.0, step=1.0) if manual_ticks else None
+                    # ytick_step = st.number_input("Latitude Tick Interval (°)", min_value=0.1, max_value=60.0, value=5.0, step=1.0) if manual_ticks else None
+                    xtick_step = st.number_input(
+                        "Longitude Tick Interval (°)", 
+                        min_value=0.1, max_value=60.0, value=10.0, step=1.0, 
+                        key="xtick_step"
+                    ) if manual_ticks else None
+                    
+                    ytick_step = st.number_input(
+                        "Latitude Tick Interval (°)", 
+                        min_value=0.1, max_value=60.0, value=5.0, step=1.0, 
+                        key="ytick_step"
+                    ) if manual_ticks else None
+
                 with tick_cols[1]:
                     # st.button("🔄 Reset", on_click=reset_tick_settings)
                     st.button("🔄 Reset", on_click=reset_tick_settings, key="reset_tick_settings_btn")
@@ -232,12 +244,20 @@ if uploaded_file:
             gl.top_labels = gl.right_labels = False
             gl.xlabel_style = gl.ylabel_style = {'size': 12}
 
-            if st.session_state.get("manual_ticks"):
+            # if st.session_state.get("manual_ticks"):
+            #     xtick_step = st.session_state.get("xtick_step")
+            #     ytick_step = st.session_state.get("ytick_step")
+            #     if xtick_step and ytick_step:
+            #         gl.xlocator = mticker.FixedLocator(np.arange(lon_range[0], lon_range[1] + xtick_step, xtick_step))
+            #         gl.ylocator = mticker.FixedLocator(np.arange(lat_range[0], lat_range[1] + ytick_step, ytick_step))
+
+            if st.session_state.get("manual_ticks", False):
                 xtick_step = st.session_state.get("xtick_step")
                 ytick_step = st.session_state.get("ytick_step")
                 if xtick_step and ytick_step:
                     gl.xlocator = mticker.FixedLocator(np.arange(lon_range[0], lon_range[1] + xtick_step, xtick_step))
                     gl.ylocator = mticker.FixedLocator(np.arange(lat_range[0], lat_range[1] + ytick_step, ytick_step))
+
 
             if mask_land:
                 ax.add_feature(cfeature.LAND, facecolor=mask_color, zorder=3)
