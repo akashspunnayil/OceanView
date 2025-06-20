@@ -315,9 +315,15 @@ if uploaded_file:
             
             # Assuming `data` is your 2D DataArray (lat x lon)
             data_2d = data.squeeze()
-            lon = data_2d['lon'].values
-            lat = data_2d['lat'].values
+            st.write("Data coordinates:", data_2d.coords)
+            # Adjust these based on actual coordinate names
+            lon = data_2d.coords['longitude'].values
+            lat = data_2d.coords['latitude'].values
             z = data_2d.values
+
+            # lon = data_2d['lon'].values
+            # lat = data_2d['lat'].values
+            # z = data_2d.values
             
             # Create Heatmap with hover
             fig = go.Figure(
