@@ -560,7 +560,7 @@ if uploaded_file:
             
                 return found
             
-
+            import plotly.graph_objects as go
             if show_vertical_profile and trigger_profile_plot:
                 st.markdown("### 📉 Vertical Profile")
             
