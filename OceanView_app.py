@@ -364,6 +364,7 @@ if uploaded_file:
 
                     # fig.tight_layout()
                     # fig_anim.subplots_adjust(left=0.05, right=0.95, bottom=0.1, top=0.95)
+                    fig_anim.subplots_adjust(right=0.8)
 
 
                     ani = animation.FuncAnimation(
