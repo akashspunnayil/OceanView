@@ -147,10 +147,10 @@ if uploaded_file:
                 st.markdown("### 📍 Vertical Profile Location")
                 input_lat = st.number_input("Latitude", value=0.0, format="%.2f")
                 input_lon = st.number_input("Longitude", value=60.0, format="%.2f")
-                if st.button("Extract Vertical Profile"):
-                    trigger_profile_plot = True
-                else:
-                    trigger_profile_plot = False
+                # if st.button("Extract Vertical Profile"):
+                #     trigger_profile_plot = True
+                # else:
+                #     trigger_profile_plot = False
                     
             if show_spatial_map or show_time_animation or show_interactive_spatial_map:
                 with st.expander("🌍 Land/Sea Masking"):
@@ -561,7 +561,7 @@ if uploaded_file:
                 return found
             
             import plotly.graph_objects as go
-            if show_vertical_profile and trigger_profile_plot:
+            if show_vertical_profile:# and trigger_profile_plot:
                 st.markdown("### 📉 Vertical Profile")
             
                 # Reuse coord map for robustness
