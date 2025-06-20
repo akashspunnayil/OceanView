@@ -227,8 +227,6 @@ if uploaded_file:
                         "Times New Roman",
                         "Courier New",
                         "Calibri Light",
-                        "Verdana",
-                        "Comic Sans MS"
                     ],
                     index=0,
                     key="font_family"
