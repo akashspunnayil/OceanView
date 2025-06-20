@@ -165,17 +165,18 @@ if uploaded_file:
                     st.session_state.pop(key, None)
                 st.session_state["cmap_choice"] = "viridis"
 
-            with st.expander("🎨 Colorbar & Colormap Settings"):
-                cols_colorbar = st.columns([2, 1])
-                with cols_colorbar[0]:
-                    set_clim = st.checkbox("🔧 Manually set colorbar range", key="set_clim")
-                    vmin = st.number_input("Minimum value (vmin)", value=0.0) if set_clim else None
-                    vmax = st.number_input("Maximum value (vmax)", value=1.0) if set_clim else None
-                    step = st.number_input("Tick interval (optional)", value=0.1) if set_clim else None
-                    cmap_choice = st.selectbox("🎨 Choose a colormap", sorted(["viridis", "plasma", "inferno", "magma", "cividis", "jet", "turbo", "coolwarm", "RdBu_r", "YlGnBu", "BrBG", "bwr"]))
-                with cols_colorbar[1]:
-                    # st.button("🔄 Reset", on_click=reset_colorbar_settings)
-                    st.button("🔄 Reset", on_click=reset_colorbar_settings, key="reset_colorbar_btn")
+            if show_spatial_map or show_time_animation or show_interactive_spatial_map:
+                with st.expander("🎨 Colorbar & Colormap Settings"):
+                    cols_colorbar = st.columns([2, 1])
+                    with cols_colorbar[0]:
+                        set_clim = st.checkbox("🔧 Manually set colorbar range", key="set_clim")
+                        vmin = st.number_input("Minimum value (vmin)", value=0.0) if set_clim else None
+                        vmax = st.number_input("Maximum value (vmax)", value=1.0) if set_clim else None
+                        step = st.number_input("Tick interval (optional)", value=0.1) if set_clim else None
+                        cmap_choice = st.selectbox("🎨 Choose a colormap", sorted(["viridis", "plasma", "inferno", "magma", "cividis", "jet", "turbo", "coolwarm", "RdBu_r", "YlGnBu", "BrBG", "bwr"]))
+                    with cols_colorbar[1]:
+                        # st.button("🔄 Reset", on_click=reset_colorbar_settings)
+                        st.button("🔄 Reset", on_click=reset_colorbar_settings, key="reset_colorbar_btn")
 
             def reset_plot_labels(time_sel_value=None, depth_value=None):
                 title = var
@@ -205,28 +206,29 @@ if uploaded_file:
                 st.session_state.pop("manual_ticks", None)
                 for key in ["xtick_step", "ytick_step"]:
                     st.session_state.pop(key, None)
-
-            with st.expander("📏 Axis Tick Settings"):
-                tick_cols = st.columns([2, 1])
-                with tick_cols[0]:
-                    manual_ticks = st.checkbox("🔧 Manually set tick intervals", key="manual_ticks")
-                    # xtick_step = st.number_input("Longitude Tick Interval (°)", min_value=0.1, max_value=60.0, value=10.0, step=1.0) if manual_ticks else None
-                    # ytick_step = st.number_input("Latitude Tick Interval (°)", min_value=0.1, max_value=60.0, value=5.0, step=1.0) if manual_ticks else None
-                    xtick_step = st.number_input(
-                        "Longitude Tick Interval (°)", 
-                        min_value=0.1, max_value=60.0, value=10.0, step=1.0, 
-                        key="xtick_step"
-                    ) if manual_ticks else None
                     
-                    ytick_step = st.number_input(
-                        "Latitude Tick Interval (°)", 
-                        min_value=0.1, max_value=60.0, value=5.0, step=1.0, 
-                        key="ytick_step"
-                    ) if manual_ticks else None
-
-                with tick_cols[1]:
-                    # st.button("🔄 Reset", on_click=reset_tick_settings)
-                    st.button("🔄 Reset", on_click=reset_tick_settings, key="reset_tick_settings_btn")
+            if show_spatial_map or show_time_animation or show_interactive_spatial_map:
+                with st.expander("📏 Axis Tick Settings"):
+                    tick_cols = st.columns([2, 1])
+                    with tick_cols[0]:
+                        manual_ticks = st.checkbox("🔧 Manually set tick intervals", key="manual_ticks")
+                        # xtick_step = st.number_input("Longitude Tick Interval (°)", min_value=0.1, max_value=60.0, value=10.0, step=1.0) if manual_ticks else None
+                        # ytick_step = st.number_input("Latitude Tick Interval (°)", min_value=0.1, max_value=60.0, value=5.0, step=1.0) if manual_ticks else None
+                        xtick_step = st.number_input(
+                            "Longitude Tick Interval (°)", 
+                            min_value=0.1, max_value=60.0, value=10.0, step=1.0, 
+                            key="xtick_step"
+                        ) if manual_ticks else None
+                        
+                        ytick_step = st.number_input(
+                            "Latitude Tick Interval (°)", 
+                            min_value=0.1, max_value=60.0, value=5.0, step=1.0, 
+                            key="ytick_step"
+                        ) if manual_ticks else None
+    
+                    with tick_cols[1]:
+                        # st.button("🔄 Reset", on_click=reset_tick_settings)
+                        st.button("🔄 Reset", on_click=reset_tick_settings, key="reset_tick_settings_btn")
             
             # Define the callback function
             def reset_font():
