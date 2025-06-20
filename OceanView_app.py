@@ -537,29 +537,43 @@ if uploaded_file:
                 else:
                     st.info("⏳ Animation unavailable: Time dimension not found in selected variable.")
 
-            if show_vertical_profile:
-                if trigger_profile_plot:
-                    profile = data.sel(
-                        {coord_map["latitude"]: input_lat, coord_map["longitude"]: input_lon},
-                        method="nearest"
-                    ).squeeze()
-                
-                    st.subheader(f"Vertical Profile at ({input_lat:.2f}, {input_lon:.2f})")
+            #-------------------------------------------------------------------------------------------------------------------#
+            if show_vertical_profile and trigger_profile_plot:
+                st.subheader(f"Vertical Profile at ({input_lat:.2f}, {input_lon:.2f})")
+            
+                # Select nearest point
+                profile = data.sel(
+                    {
+                        coord_map["latitude"]: input_lat,
+                        coord_map["longitude"]: input_lon
+                    },
+                    method="nearest"
+                )
+            
+                # Check for depth dimension
+                depth_key = coord_map["depth"]
+                if depth_key and depth_key in profile.dims:
+                    depth_vals = profile[depth_key].values
+                    var_vals = profile.squeeze().values
+            
                     fig_profile = go.Figure()
                     fig_profile.add_trace(go.Scatter(
-                        y=profile[coord_map['depth']].values,
-                        x=profile.values,
+                        y=depth_vals,
+                        x=var_vals,
                         mode='lines+markers',
                         name='Profile'
                     ))
                     fig_profile.update_layout(
                         xaxis_title=cbar_label,
                         yaxis_title="Depth (m)",
-                        yaxis_autorange="reversed",  # Depth increases downward
+                        yaxis_autorange="reversed",
                         height=500,
                         width=500
                     )
                     st.plotly_chart(fig_profile)
+                else:
+                    st.error("Depth dimension not found in selected profile.")
+
                 
         # except Exception as e:
         #     st.error(f"⚠️ Failed to subset or plot data: {e}")
