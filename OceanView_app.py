@@ -209,6 +209,11 @@ if uploaded_file:
                     # st.button("🔄 Reset", on_click=reset_tick_settings)
                     st.button("🔄 Reset", on_click=reset_tick_settings, key="reset_tick_settings_btn")
             
+            # Define the callback function
+            def reset_font():
+                st.session_state["font_family"] = "DejaVu Sans"
+            
+            # Font settings block
             with st.expander("🖋️ Plot Font Settings"):
                 font_family = st.selectbox(
                     "Font Family",
@@ -216,8 +221,10 @@ if uploaded_file:
                     index=0,
                     key="font_family"
                 )
-                if st.button("Reset Font to Default", key="reset_font_btn"):
-                    st.session_state["font_family"] = "DejaVu Sans"
+            
+                # Use on_click with a reset function
+                st.button("Reset Font to Default", on_click=reset_font, key="reset_font_btn")
+
 
 
             with st.expander("💾 Save Plot Options"):
