@@ -70,10 +70,18 @@ if uploaded_file:
         with left_col:
             var = st.selectbox("🔎 Variable", list(ds.data_vars.keys()))
         
-            lat_var = find_coord_name(ds, "lat")
-            lon_var = find_coord_name(ds, "lon")
-            time_var = find_coord_name(ds, "time")
-            depth_var = find_coord_name(ds, "depth")
+            def find_coord_from_dims(da, keyword):
+                for dim in da.dims:
+                    if keyword.lower() in dim.lower():
+                        return dim
+                return None
+            
+            # 📌 Use dimension-level detection, not just global coords
+            time_var = find_coord_from_dims(ds[var], "time")
+            depth_var = find_coord_from_dims(ds[var], "depth")
+            lat_var = find_coord_from_dims(ds[var], "lat")
+            lon_var = find_coord_from_dims(ds[var], "lon")
+
 
             # --- Fix descending latitude ---
             if lat_var and ds[lat_var][0] > ds[lat_var][-1]:
@@ -87,13 +95,13 @@ if uploaded_file:
                     ds[var] = ds[var].where(ds[var] != missing_val)
             
             # --- Optional: time decoding fallback (if not datetime64)
+            # Optional: time decoding fallback
             if time_var and not np.issubdtype(ds[time_var].dtype, np.datetime64):
-                st.warning("⚠️ Time not decoded. Approximating from base date 1800-01-01.")
                 try:
-                    ds[time_var] = xr.decode_cf(ds[[time_var]])
-                except:
-                    fake_time = pd.date_range("1800-01-01", periods=ds.dims[time_var], freq="MS")
-                    ds[time_var] = ("time", fake_time)
+                    ds = ds.assign_coords({time_var: pd.date_range("2000-01-01", periods=ds.dims[time_var], freq="MS")})
+                except Exception as e:
+                    st.error(f"❌ Time decoding failed: {e}")
+
             
                     
             # 🔧 Manual fallback if any not found
