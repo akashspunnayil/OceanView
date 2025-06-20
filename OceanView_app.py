@@ -291,13 +291,6 @@ if uploaded_file:
             gl.top_labels = gl.right_labels = False
             gl.xlabel_style = gl.ylabel_style = {'size': 12}
 
-            # if st.session_state.get("manual_ticks"):
-            #     xtick_step = st.session_state.get("xtick_step")
-            #     ytick_step = st.session_state.get("ytick_step")
-            #     if xtick_step and ytick_step:
-            #         gl.xlocator = mticker.FixedLocator(np.arange(lon_range[0], lon_range[1] + xtick_step, xtick_step))
-            #         gl.ylocator = mticker.FixedLocator(np.arange(lat_range[0], lat_range[1] + ytick_step, ytick_step))
-
             if st.session_state.get("manual_ticks", False):
                 xtick_step = st.session_state.get("xtick_step")
                 ytick_step = st.session_state.get("ytick_step")
