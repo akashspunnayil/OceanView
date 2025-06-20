@@ -155,7 +155,8 @@ if uploaded_file:
                     step = st.number_input("Tick interval (optional)", value=0.1) if set_clim else None
                     cmap_choice = st.selectbox("🎨 Choose a colormap", sorted(["viridis", "plasma", "inferno", "magma", "cividis", "jet", "turbo", "coolwarm", "RdBu_r", "YlGnBu", "BrBG", "bwr"]))
                 with cols_colorbar[1]:
-                    st.button("🔄 Reset", on_click=reset_colorbar_settings)
+                    # st.button("🔄 Reset", on_click=reset_colorbar_settings)
+                    st.button("🔄 Reset", on_click=reset_colorbar_settings, key="reset_colorbar_btn")
 
             def reset_plot_labels():
                 st.session_state["plot_title"] = var
@@ -171,7 +172,8 @@ if uploaded_file:
                     ylabel = st.text_input("🧭 Y-axis Label", value="Latitude", key="ylabel")
                     cbar_label = st.text_input("🎨 Colorbar Label", value=var, key="cbar_label")
                 with label_cols[1]:
-                    st.button("🔄 Reset", on_click=reset_plot_labels)
+                    # st.button("🔄 Reset", on_click=reset_plot_labels)
+                    st.button("🔄 Reset", on_click=reset_plot_labels, key="reset_plot_labels_btn")
 
             def reset_tick_settings():
                 st.session_state.pop("manual_ticks", None)
@@ -185,7 +187,9 @@ if uploaded_file:
                     xtick_step = st.number_input("Longitude Tick Interval (°)", min_value=0.1, max_value=60.0, value=10.0, step=1.0) if manual_ticks else None
                     ytick_step = st.number_input("Latitude Tick Interval (°)", min_value=0.1, max_value=60.0, value=5.0, step=1.0) if manual_ticks else None
                 with tick_cols[1]:
-                    st.button("🔄 Reset", on_click=reset_tick_settings)
+                    # st.button("🔄 Reset", on_click=reset_tick_settings)
+                    st.button("🔄 Reset", on_click=reset_tick_settings, key="reset_tick_settings_btn")
+
 
             with st.expander("💾 Save Plot Options"):
                 save_format = st.selectbox("Select file format", ["png", "jpg", "pdf", "svg", "tiff"], index=0)
