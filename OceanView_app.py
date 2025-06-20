@@ -563,8 +563,11 @@ if uploaded_file:
 
             if show_vertical_profile and trigger_profile_plot:
                 st.markdown("### 📍 Vertical Profile Location")
-                input_lat = st.number_input("Latitude", value=0.0, format="%.2f")
-                input_lon = st.number_input("Longitude", value=60.0, format="%.2f")
+                # input_lat = st.number_input("Latitude", value=0.0, format="%.2f")
+                # input_lon = st.number_input("Longitude", value=60.0, format="%.2f")
+                input_lat = st.number_input("Latitude", value=0.0, format="%.2f", key="profile_lat")
+                input_lon = st.number_input("Longitude", value=60.0, format="%.2f", key="profile_lon")
+
             
                 selected_time = None
                 if "time" in ds_sel.dims or "TIME" in ds_sel.coords:
