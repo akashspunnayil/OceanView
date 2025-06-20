@@ -335,7 +335,7 @@ if uploaded_file:
                         except:
                             time_str = str(time_labels[frame])[:15]
                     
-                        title = f"{var} | Time: {time_str}"
+                        title = f"{plot_title} | Time: {time_str}"
                         if depth_var and selected_depth is not None:
                             title += f" | Depth: {selected_depth} m"
                     
