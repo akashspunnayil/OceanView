@@ -271,17 +271,27 @@ if uploaded_file:
             try:
                 if time_var and raw_time_value is not None:
                     # ds_sel = ds[var].sel({time_var: raw_time_value}, method="nearest")
-                    try:
-                        ds_sel = ds[var]
-                        if time_var and time_var in ds[var].dims and raw_time_value is not None:
-                            ds_sel = ds_sel.sel({time_var: raw_time_value}, method="nearest")
-                        if depth_var and depth_var in ds[var].dims and selected_depth is not None:
-                            ds_sel = ds_sel.sel({depth_var: selected_depth}, method="nearest")
-                    except Exception as e:
-                        st.error(f"⚠️ Subsetting failed for {var}: {e}")
-
-                else:
                     ds_sel = ds[var]
+
+                    # Only apply selection if dimension exists
+                    if time_var and time_var in ds_sel.dims and raw_time_value is not None:
+                        ds_sel = ds_sel.sel({time_var: raw_time_value}, method="nearest")
+                    
+                    if depth_var and depth_var in ds_sel.dims and selected_depth is not None:
+                        ds_sel = ds_sel.sel({depth_var: selected_depth}, method="nearest")
+                    
+                    # Always subset lat/lon if present
+                    subset_kwargs = {}
+                    if lat_var in ds_sel.dims:
+                        subset_kwargs[lat_var] = slice(*lat_range)
+                    if lon_var in ds_sel.dims:
+                        subset_kwargs[lon_var] = slice(*lon_range)
+                    
+                    if subset_kwargs:
+                        data = ds_sel.sel(subset_kwargs)
+                    else:
+                        data = ds_sel  # fallback
+
         
                 if depth_var and selected_depth is not None:
                     ds_sel = ds_sel.sel({depth_var: selected_depth}, method="nearest")
