@@ -135,7 +135,15 @@ if uploaded_file:
                     raw_time_value = raw_time_vals[0]
             else:
                 raw_time_value = None
-
+                
+            # Use left_col for plot selection checkboxes
+            # with left_col:
+            with st.expander("🗺️ Select Plot Options", expanded=True):
+                show_spatial_map = st.checkbox("Spatial Map")
+                show_interactive_spatial_map = st.checkbox("Spatial Interactive Map")
+                show_time_animation = st.checkbox("Spatial Map - Time Animation")
+                show_vertical_profile = st.checkbox("Vertical Profile (Single Location)")
+                    
             with st.expander("🌍 Land/Sea Masking"):
                 mask_land = st.checkbox("Mask Land", value=False)
                 mask_sea = st.checkbox("Mask Ocean", value=False)
@@ -274,163 +282,153 @@ if uploaded_file:
             data = ds_sel.sel(subset_kwargs)
 
             #---------------------------------Normal Map View----------------------------------------------------------#
-            st.subheader("🗺️ Map View")
-            # Apply the selected font family first
-            plt.rcParams['font.family'] = st.session_state.get("font_family", "DejaVu Sans")                
-
-            fig, ax = plt.subplots(figsize=(10, 6), subplot_kw={"projection": ccrs.PlateCarree()})
-            plot_kwargs = {"ax": ax, "transform": ccrs.PlateCarree(), "cmap": cmap_choice, "add_colorbar": True}
-            if set_clim:
-                plot_kwargs["vmin"] = vmin
-                plot_kwargs["vmax"] = vmax
-
-            im = data.squeeze().plot.pcolormesh(**plot_kwargs)
-            ax.coastlines()
-            gl = ax.gridlines(draw_labels=True, linewidth=0.5, color='gray', alpha=0.5, linestyle='--')
-            gl.top_labels = gl.right_labels = False
-            gl.xlabel_style = gl.ylabel_style = {'size': 12}
-
-            if st.session_state.get("manual_ticks", False):
-                xtick_step = st.session_state.get("xtick_step")
-                ytick_step = st.session_state.get("ytick_step")
-                if xtick_step and ytick_step:
-                    gl.xlocator = mticker.FixedLocator(np.arange(lon_range[0], lon_range[1] + xtick_step, xtick_step))
-                    gl.ylocator = mticker.FixedLocator(np.arange(lat_range[0], lat_range[1] + ytick_step, ytick_step))
-
-
-            if mask_land:
-                ax.add_feature(cfeature.LAND, facecolor=mask_color, zorder=3)
-            if mask_sea:
-                ax.add_feature(cfeature.OCEAN, facecolor=mask_color, zorder=3)
-
-            ax.set_title(plot_title, fontsize=14)
-            if hasattr(im, 'colorbar') and im.colorbar:
-                im.colorbar.set_label(cbar_label, fontsize=12)
-            ax.text(0.5, -0.1, xlabel, transform=ax.transAxes, ha='center', va='top', fontsize=12)
-            ax.text(-0.15, 0.5, ylabel, transform=ax.transAxes, ha='right', va='center', rotation='vertical', fontsize=12)
-            st.pyplot(fig)
-
-
-            if save_btn:
-                buf = io.BytesIO()
-                fig.savefig(buf, format=save_format, dpi=dpi_value, bbox_inches="tight")
-                st.success(f"✅ Plot saved as {save_format.upper()} ({dpi_value} DPI)")
-                st.download_button(
-                    label=f"📥 Download {save_format.upper()} file",
-                    data=buf.getvalue(),
-                    file_name=f"ocean_plot.{save_format}",
-                    mime=f"image/{'jpeg' if save_format == 'jpg' else save_format}"
-                )
+            
+            if show_spatial_map:
+                st.subheader("🗺️ Map View")
+                # Apply the selected font family first
+                plt.rcParams['font.family'] = st.session_state.get("font_family", "DejaVu Sans")                
+    
+                fig, ax = plt.subplots(figsize=(10, 6), subplot_kw={"projection": ccrs.PlateCarree()})
+                plot_kwargs = {"ax": ax, "transform": ccrs.PlateCarree(), "cmap": cmap_choice, "add_colorbar": True}
+                if set_clim:
+                    plot_kwargs["vmin"] = vmin
+                    plot_kwargs["vmax"] = vmax
+    
+                im = data.squeeze().plot.pcolormesh(**plot_kwargs)
+                ax.coastlines()
+                gl = ax.gridlines(draw_labels=True, linewidth=0.5, color='gray', alpha=0.5, linestyle='--')
+                gl.top_labels = gl.right_labels = False
+                gl.xlabel_style = gl.ylabel_style = {'size': 12}
+    
+                if st.session_state.get("manual_ticks", False):
+                    xtick_step = st.session_state.get("xtick_step")
+                    ytick_step = st.session_state.get("ytick_step")
+                    if xtick_step and ytick_step:
+                        gl.xlocator = mticker.FixedLocator(np.arange(lon_range[0], lon_range[1] + xtick_step, xtick_step))
+                        gl.ylocator = mticker.FixedLocator(np.arange(lat_range[0], lat_range[1] + ytick_step, ytick_step))
+    
+    
+                if mask_land:
+                    ax.add_feature(cfeature.LAND, facecolor=mask_color, zorder=3)
+                if mask_sea:
+                    ax.add_feature(cfeature.OCEAN, facecolor=mask_color, zorder=3)
+    
+                ax.set_title(plot_title, fontsize=14)
+                if hasattr(im, 'colorbar') and im.colorbar:
+                    im.colorbar.set_label(cbar_label, fontsize=12)
+                ax.text(0.5, -0.1, xlabel, transform=ax.transAxes, ha='center', va='top', fontsize=12)
+                ax.text(-0.15, 0.5, ylabel, transform=ax.transAxes, ha='right', va='center', rotation='vertical', fontsize=12)
+                st.pyplot(fig)
+    
+    
+                if save_btn:
+                    buf = io.BytesIO()
+                    fig.savefig(buf, format=save_format, dpi=dpi_value, bbox_inches="tight")
+                    st.success(f"✅ Plot saved as {save_format.upper()} ({dpi_value} DPI)")
+                    st.download_button(
+                        label=f"📥 Download {save_format.upper()} file",
+                        data=buf.getvalue(),
+                        file_name=f"ocean_plot.{save_format}",
+                        mime=f"image/{'jpeg' if save_format == 'jpg' else save_format}"
+                    )
 
             #---------------------------------Intercative Map View----------------------------------------------------------#
-
-            st.subheader("🎞️ Interactive Map View")
-
-            def figsize_to_plotly(width_in, height_in, dpi=100):
-                return int(width_in * dpi), int(height_in * dpi)
-
-            import streamlit as st
-            import xarray as xr
-            import plotly.graph_objects as go
-
-            def standardize_coords(dataarray):
-                coord_map = {
-                    'latitude': None,
-                    'longitude': None,
-                    'time': None,
-                    'depth': None
-                }
             
-                coord_candidates = {k.lower(): k for k in dataarray.coords}
-            
-                # Match based on known naming variants
-                for standard, options in {
-                    'latitude': ['lat', 'latitude'],
-                    'longitude': ['lon', 'longitude'],
-                    'time': ['time'],
-                    'depth': ['depth', 'depth1_1', 'z']
-                }.items():
-                    for opt in options:
-                        if opt in coord_candidates:
-                            coord_map[standard] = coord_candidates[opt]
-                            break
-            
-                return coord_map
-            
-
-            # Assuming `data` is your 2D DataArray (lat x lon)
-            data_2d = data.squeeze()
-            st.write("Data coordinates:", data_2d.coords)
-            
-            coord_map = standardize_coords(data_2d)
-
-            lat = data_2d[coord_map['latitude']].values
-            lon = data_2d[coord_map['longitude']].values
-            z = data_2d.values
-
-
-            fig = go.Figure(
-                data=go.Heatmap(
-                    z=z,
-                    x=lon,
-                    y=lat,
-                    colorscale=cmap_choice,
-                    zmin=vmin if set_clim else None,
-                    zmax=vmax if set_clim else None,
-                    colorbar=dict(title=cbar_label),
-                    hovertemplate="Lon: %{x:.2f}<br>Lat: %{y:.2f}<br>Value: %{z:.2f}<extra></extra>"
+            if show_interactive_spatial_map:
+                st.subheader("🎞️ Interactive Map View")
+    
+                def figsize_to_plotly(width_in, height_in, dpi=100):
+                    return int(width_in * dpi), int(height_in * dpi)
+    
+                import streamlit as st
+                import xarray as xr
+                import plotly.graph_objects as go
+    
+                def standardize_coords(dataarray):
+                    coord_map = {
+                        'latitude': None,
+                        'longitude': None,
+                        'time': None,
+                        'depth': None
+                    }
+                
+                    coord_candidates = {k.lower(): k for k in dataarray.coords}
+                
+                    # Match based on known naming variants
+                    for standard, options in {
+                        'latitude': ['lat', 'latitude'],
+                        'longitude': ['lon', 'longitude'],
+                        'time': ['time'],
+                        'depth': ['depth', 'depth1_1', 'z']
+                    }.items():
+                        for opt in options:
+                            if opt in coord_candidates:
+                                coord_map[standard] = coord_candidates[opt]
+                                break
+                
+                    return coord_map
+                
+    
+                # Assuming `data` is your 2D DataArray (lat x lon)
+                data_2d = data.squeeze()
+                st.write("Data coordinates:", data_2d.coords)
+                
+                coord_map = standardize_coords(data_2d)
+    
+                lat = data_2d[coord_map['latitude']].values
+                lon = data_2d[coord_map['longitude']].values
+                z = data_2d.values
+    
+    
+                fig = go.Figure(
+                    data=go.Heatmap(
+                        z=z,
+                        x=lon,
+                        y=lat,
+                        colorscale=cmap_choice,
+                        zmin=vmin if set_clim else None,
+                        zmax=vmax if set_clim else None,
+                        colorbar=dict(title=cbar_label),
+                        hovertemplate="Lon: %{x:.2f}<br>Lat: %{y:.2f}<br>Value: %{z:.2f}<extra></extra>"
+                    )
                 )
-            )
-
-            width, height = figsize_to_plotly(10, 6)
-            fig.update_layout(
-                title=plot_title,
-                xaxis_title=xlabel,
-                yaxis_title=ylabel,
-                # height=600,
-                width=width,
-                height=height
-            )
-            
-            st.plotly_chart(fig, use_container_width=True)
+    
+                width, height = figsize_to_plotly(10, 6)
+                fig.update_layout(
+                    title=plot_title,
+                    xaxis_title=xlabel,
+                    yaxis_title=ylabel,
+                    # height=600,
+                    width=width,
+                    height=height
+                )
+                
+                st.plotly_chart(fig, use_container_width=True)
             
             #-------------------------------------------------------------------------------------------------------------------#
-            # === Create Animated Plot over Time ===
-            import matplotlib.animation as animation
-            import io
             
-            st.subheader("🎞️ Time-Loop Animation (GIF)")
-            plt.rcParams['font.family'] = st.session_state.get("font_family", "DejaVu Sans")
-            
-            if time_var and time_var in ds[var].dims:
-                try:
-                    da_anim = ds[var]
-            
-                    if depth_var and selected_depth is not None and depth_var in da_anim.dims:
-                        da_anim = da_anim.sel({depth_var: selected_depth}, method="nearest")
-            
-                    da_anim = da_anim.sel({lat_var: slice(*lat_range), lon_var: slice(*lon_range)})
-            
-                    fig_anim, ax_anim = plt.subplots(figsize=(8, 5), subplot_kw={"projection": ccrs.PlateCarree()})
-                    
-                    # --- Draw colorbar once outside animation loop ---
-                    first_frame = da_anim.isel({time_var: 0})
-                    im_cbar = first_frame.plot.pcolormesh(
-                        ax=ax_anim,
-                        transform=ccrs.PlateCarree(),
-                        cmap=cmap_choice,
-                        vmin=vmin if set_clim else None,
-                        vmax=vmax if set_clim else None,
-                        add_colorbar=False
-                    )
-                    cbar = fig_anim.colorbar(im_cbar, ax=ax_anim, orientation="vertical", shrink=0.7, pad=0.05, extend='both')
-                    cbar.set_label(cbar_label, fontsize=10)
-
-                    def update_anim(frame):
-                        ax_anim.clear()
-                        frame_data = da_anim.isel({time_var: frame})
-                    
-                        im = frame_data.plot.pcolormesh(
+            if show_time_animation:
+                # === Create Animated Plot over Time ===
+                import matplotlib.animation as animation
+                import io
+                
+                st.subheader("🎞️ Time-Loop Animation (GIF)")
+                plt.rcParams['font.family'] = st.session_state.get("font_family", "DejaVu Sans")
+                
+                if time_var and time_var in ds[var].dims:
+                    try:
+                        da_anim = ds[var]
+                
+                        if depth_var and selected_depth is not None and depth_var in da_anim.dims:
+                            da_anim = da_anim.sel({depth_var: selected_depth}, method="nearest")
+                
+                        da_anim = da_anim.sel({lat_var: slice(*lat_range), lon_var: slice(*lon_range)})
+                
+                        fig_anim, ax_anim = plt.subplots(figsize=(8, 5), subplot_kw={"projection": ccrs.PlateCarree()})
+                        
+                        # --- Draw colorbar once outside animation loop ---
+                        first_frame = da_anim.isel({time_var: 0})
+                        im_cbar = first_frame.plot.pcolormesh(
                             ax=ax_anim,
                             transform=ccrs.PlateCarree(),
                             cmap=cmap_choice,
@@ -438,79 +436,94 @@ if uploaded_file:
                             vmax=vmax if set_clim else None,
                             add_colorbar=False
                         )
-                    
-                        ax_anim.coastlines()
-                        if mask_land:
-                            ax_anim.add_feature(cfeature.LAND, facecolor=mask_color, zorder=3)
-                        if mask_sea:
-                            ax_anim.add_feature(cfeature.OCEAN, facecolor=mask_color, zorder=3)
-                    
-                        gl = ax_anim.gridlines(draw_labels=True, linewidth=0.5, color='gray', alpha=0.5, linestyle='--')
-                        gl.top_labels = False
-                        gl.right_labels = False
-                        gl.xlabel_style = {'size': 10}
-                        gl.ylabel_style = {'size': 10}
-                    
-                        if st.session_state.get("manual_ticks", False):
-                            xtick_step = st.session_state.get("xtick_step")
-                            ytick_step = st.session_state.get("ytick_step")
-                            if xtick_step and ytick_step:
-                                gl.xlocator = mticker.FixedLocator(np.arange(lon_range[0], lon_range[1] + xtick_step, xtick_step))
-                                gl.ylocator = mticker.FixedLocator(np.arange(lat_range[0], lat_range[1] + ytick_step, ytick_step))
-                    
-                        ax_anim.text(0.5, -0.1, xlabel, transform=ax_anim.transAxes, ha='center', va='top', fontsize=10)
-                        ax_anim.text(-0.15, 0.5, ylabel, transform=ax_anim.transAxes, ha='right', va='center', rotation='vertical', fontsize=10)
-                    
-                        # 🕒 Use decoded, formatted time string from time_labels
-                        try:
-                            time_str = pd.to_datetime(time_labels[frame]).strftime("%Y-%m-%d")
-                        except:
-                            time_str = str(time_labels[frame])[:15]
-                    
-                        title = f"{plot_title}"# | Time: {time_str}"
-                        # if depth_var and selected_depth is not None:
-                        #     title += f" | Depth: {selected_depth} m"
-                    
-                        ax_anim.set_title(title, fontsize=12)
-                        return [im]
-
-                    # fig.tight_layout()
-                    # fig_anim.subplots_adjust(left=0.05, right=0.95, bottom=0.1, top=0.95)
-                    fig_anim.subplots_adjust(left=0.01, right=1)
-
-
-                    ani = animation.FuncAnimation(
-                        fig_anim, update_anim, frames=da_anim.sizes[time_var], blit=False
-                    )
-                    
-                    import tempfile
-                    import os
-                    
-                    with tempfile.NamedTemporaryFile(delete=False, suffix=".gif") as tmpfile:
-                        temp_gif_path = tmpfile.name
-                    
-                    ani.save(temp_gif_path, writer="pillow", fps=2, savefig_kwargs={'bbox_inches': 'tight'})
-                    
-                    # Display the animation in Streamlit
-                    with open(temp_gif_path, "rb") as f:
-                        gif_bytes = f.read()
-                    
-                    st.image(gif_bytes, caption="Time-animated plot", use_container_width=True)
-                    
-                    st.download_button(
-                        label="📥 Download GIF",
-                        data=gif_bytes,  # ✅ Use directly, no .getvalue()
-                        file_name=f"{var}_animation.gif",
-                        mime="image/gif"
-                    )
-                    
-                    # Optional cleanup
-                    os.remove(temp_gif_path)
-            
-                except Exception as e:
-                    st.error(f"⚠️ Failed to create animation: {e}")
-            else:
-                st.info("⏳ Animation unavailable: Time dimension not found in selected variable.")
+                        cbar = fig_anim.colorbar(im_cbar, ax=ax_anim, orientation="vertical", shrink=0.7, pad=0.05, extend='both')
+                        cbar.set_label(cbar_label, fontsize=10)
+    
+                        def update_anim(frame):
+                            ax_anim.clear()
+                            frame_data = da_anim.isel({time_var: frame})
+                        
+                            im = frame_data.plot.pcolormesh(
+                                ax=ax_anim,
+                                transform=ccrs.PlateCarree(),
+                                cmap=cmap_choice,
+                                vmin=vmin if set_clim else None,
+                                vmax=vmax if set_clim else None,
+                                add_colorbar=False
+                            )
+                        
+                            ax_anim.coastlines()
+                            if mask_land:
+                                ax_anim.add_feature(cfeature.LAND, facecolor=mask_color, zorder=3)
+                            if mask_sea:
+                                ax_anim.add_feature(cfeature.OCEAN, facecolor=mask_color, zorder=3)
+                        
+                            gl = ax_anim.gridlines(draw_labels=True, linewidth=0.5, color='gray', alpha=0.5, linestyle='--')
+                            gl.top_labels = False
+                            gl.right_labels = False
+                            gl.xlabel_style = {'size': 10}
+                            gl.ylabel_style = {'size': 10}
+                        
+                            if st.session_state.get("manual_ticks", False):
+                                xtick_step = st.session_state.get("xtick_step")
+                                ytick_step = st.session_state.get("ytick_step")
+                                if xtick_step and ytick_step:
+                                    gl.xlocator = mticker.FixedLocator(np.arange(lon_range[0], lon_range[1] + xtick_step, xtick_step))
+                                    gl.ylocator = mticker.FixedLocator(np.arange(lat_range[0], lat_range[1] + ytick_step, ytick_step))
+                        
+                            ax_anim.text(0.5, -0.1, xlabel, transform=ax_anim.transAxes, ha='center', va='top', fontsize=10)
+                            ax_anim.text(-0.15, 0.5, ylabel, transform=ax_anim.transAxes, ha='right', va='center', rotation='vertical', fontsize=10)
+                        
+                            # 🕒 Use decoded, formatted time string from time_labels
+                            try:
+                                time_str = pd.to_datetime(time_labels[frame]).strftime("%Y-%m-%d")
+                            except:
+                                time_str = str(time_labels[frame])[:15]
+                        
+                            title = f"{plot_title}"# | Time: {time_str}"
+                            # if depth_var and selected_depth is not None:
+                            #     title += f" | Depth: {selected_depth} m"
+                        
+                            ax_anim.set_title(title, fontsize=12)
+                            return [im]
+    
+                        # fig.tight_layout()
+                        # fig_anim.subplots_adjust(left=0.05, right=0.95, bottom=0.1, top=0.95)
+                        fig_anim.subplots_adjust(left=0.01, right=1)
+    
+    
+                        ani = animation.FuncAnimation(
+                            fig_anim, update_anim, frames=da_anim.sizes[time_var], blit=False
+                        )
+                        
+                        import tempfile
+                        import os
+                        
+                        with tempfile.NamedTemporaryFile(delete=False, suffix=".gif") as tmpfile:
+                            temp_gif_path = tmpfile.name
+                        
+                        ani.save(temp_gif_path, writer="pillow", fps=2, savefig_kwargs={'bbox_inches': 'tight'})
+                        
+                        # Display the animation in Streamlit
+                        with open(temp_gif_path, "rb") as f:
+                            gif_bytes = f.read()
+                        
+                        st.image(gif_bytes, caption="Time-animated plot", use_container_width=True)
+                        
+                        st.download_button(
+                            label="📥 Download GIF",
+                            data=gif_bytes,  # ✅ Use directly, no .getvalue()
+                            file_name=f"{var}_animation.gif",
+                            mime="image/gif"
+                        )
+                        
+                        # Optional cleanup
+                        os.remove(temp_gif_path)
+                
+                    except Exception as e:
+                        st.error(f"⚠️ Failed to create animation: {e}")
+                else:
+                    st.info("⏳ Animation unavailable: Time dimension not found in selected variable.")
 
                 
         # except Exception as e:
