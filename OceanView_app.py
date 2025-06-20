@@ -269,28 +269,46 @@ if uploaded_file:
         
             # === Subsetting ===
             try:
-                if time_var and raw_time_value is not None:
-                    # ds_sel = ds[var].sel({time_var: raw_time_value}, method="nearest")
-                    ds_sel = ds[var]
+                # 🛠 Filter only plot-compatible variables
+                def is_plot_compatible(da):
+                    dims = set(da.dims)
+                    return any("lat" in d.lower() for d in dims) and any("lon" in d.lower() for d in dims)
+            
+                plot_vars = {v: ds[v] for v in ds.data_vars if is_plot_compatible(ds[v])}
+                if not plot_vars:
+                    st.error("❌ No valid spatial variables (lat/lon) found.")
+                    st.stop()
+            
+                var = st.selectbox("🔎 Variable", list(plot_vars.keys()))
+                ds_sel = ds[var]
+            
+                # ✅ Ensure all dims are also coords (for .sel to work)
+                for d in ds_sel.dims:
+                    if d not in ds_sel.coords and d in ds.coords:
+                        ds_sel = ds_sel.assign_coords({d: ds[d]})
+            
+                # ✅ Subset only if the dimension exists
+                if time_var and time_var in ds_sel.dims and raw_time_value is not None:
+                    ds_sel = ds_sel.sel({time_var: raw_time_value}, method="nearest")
+            
+                if depth_var and depth_var in ds_sel.dims and selected_depth is not None:
+                    ds_sel = ds_sel.sel({depth_var: selected_depth}, method="nearest")
+            
+                subset_kwargs = {}
+                if lat_var and lat_var in ds_sel.dims:
+                    subset_kwargs[lat_var] = slice(*lat_range)
+                if lon_var and lon_var in ds_sel.dims:
+                    subset_kwargs[lon_var] = slice(*lon_range)
+            
+                if subset_kwargs:
+                    data = ds_sel.sel(subset_kwargs)
+                else:
+                    data = ds_sel
+            
+            except Exception as e:
+                st.error(f"⚠️ Failed to subset or plot data: {e}")
+                st.stop()
 
-                    # Only apply selection if dimension exists
-                    if time_var and time_var in ds_sel.dims and raw_time_value is not None:
-                        ds_sel = ds_sel.sel({time_var: raw_time_value}, method="nearest")
-                    
-                    if depth_var and depth_var in ds_sel.dims and selected_depth is not None:
-                        ds_sel = ds_sel.sel({depth_var: selected_depth}, method="nearest")
-                    
-                    # Always subset lat/lon if present
-                    subset_kwargs = {}
-                    if lat_var in ds_sel.dims:
-                        subset_kwargs[lat_var] = slice(*lat_range)
-                    if lon_var in ds_sel.dims:
-                        subset_kwargs[lon_var] = slice(*lon_range)
-                    
-                    if subset_kwargs:
-                        data = ds_sel.sel(subset_kwargs)
-                    else:
-                        data = ds_sel  # fallback
 
         
                 # if depth_var and selected_depth is not None:
