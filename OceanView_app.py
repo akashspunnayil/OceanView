@@ -142,7 +142,7 @@ if uploaded_file:
                 show_interactive_spatial_map = st.checkbox("Spatial Interactive Map")
                 show_time_animation = st.checkbox("Spatial Map - Time Animation")
                 show_vertical_profile = st.checkbox("Vertical Profile (Single Location)")
-                show_interactive_vertical_profile =  st.checkbox("Vertical Profile (Single Location)")
+                show_interactive_vertical_profile =  st.checkbox("Vertical Interactive Profile (Single Location)")
 
             if show_vertical_profile:
                 st.markdown("### 📍 Vertical Profile Location")
