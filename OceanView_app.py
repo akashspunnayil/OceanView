@@ -242,7 +242,8 @@ if uploaded_file:
             data = ds_sel.sel(subset_kwargs)
 
             st.subheader("🗺️ Map View")
-            plt.rcParams['font.family'] = font_family
+            plt.rcParams['font.family'] = st.session_state.get("font_family", "DejaVu Sans")
+
 
             fig, ax = plt.subplots(figsize=(10, 6), subplot_kw={"projection": ccrs.PlateCarree()})
             plot_kwargs = {"ax": ax, "transform": ccrs.PlateCarree(), "cmap": cmap_choice, "add_colorbar": True}
