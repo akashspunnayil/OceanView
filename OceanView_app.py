@@ -293,8 +293,8 @@ if uploaded_file:
                         data = ds_sel  # fallback
 
         
-                if depth_var and selected_depth is not None:
-                    ds_sel = ds_sel.sel({depth_var: selected_depth}, method="nearest")
+                # if depth_var and selected_depth is not None:
+                #     ds_sel = ds_sel.sel({depth_var: selected_depth}, method="nearest")
         
                 subset_kwargs = {
                     lat_var: slice(*lat_range),
