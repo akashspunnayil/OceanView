@@ -562,52 +562,53 @@ if uploaded_file:
             
 
             if show_vertical_profile and trigger_profile_plot:
-                st.markdown("### 📍 Vertical Profile Location")
-                # input_lat = st.number_input("Latitude", value=0.0, format="%.2f")
-                # input_lon = st.number_input("Longitude", value=60.0, format="%.2f")
-                input_lat = st.number_input("Latitude", value=0.0, format="%.2f", key="profile_lat")
-                input_lon = st.number_input("Longitude", value=60.0, format="%.2f", key="profile_lon")
-
+                st.markdown("### 📉 Vertical Profile")
             
-                selected_time = None
-                if "time" in ds_sel.dims or "TIME" in ds_sel.coords:
+                # Reuse coord map for robustness
+                coord_map = detect_coord_names(ds_sel)
+            
+                lat_key = coord_map["latitude"]
+                lon_key = coord_map["longitude"]
+                depth_key = coord_map["depth"]
+                time_key = coord_map["time"]
+            
+                if not all([lat_key, lon_key, depth_key]):
+                    st.error("❌ Could not detect necessary coordinate names (lat/lon/depth).")
+                else:
+                    # Build selection dictionary
+                    sel_dict = {
+                        lat_key: input_lat,
+                        lon_key: input_lon
+                    }
+            
+                    if time_key and time_sel is not None:
+                        sel_dict[time_key] = time_sel
+            
                     try:
-                        selected_time = st.selectbox("Select Time", ds_sel[coord_map['time']].values)
-                    except:
-                        pass  # Optional
+                        profile = ds[var].sel(sel_dict, method="nearest")
             
-                if st.button("Plot Vertical Profile"):
-                    coord_map = detect_coord_names(ds_sel)
-                
-                    lat_key = coord_map["latitude"]
-                    lon_key = coord_map["longitude"]
-                    depth_key = coord_map["depth"]
-                    time_key = coord_map["time"]
-                
-                    if not all([lat_key, lon_key, depth_key]):
-                        st.error("Could not detect necessary coordinate names (lat/lon/depth).")
-                    else:
-                        # Select by lat/lon/time
-                        sel_dict = {
-                            lat_key: input_lat,
-                            lon_key: input_lon
-                        }
-                
-                        if time_key and time_sel is not None:
-                            sel_dict[time_key] = time_sel
-                
-                        profile = ds_sel.sel(sel_dict, method="nearest")
-                
-                        # Get depth and values
-                        depth_vals = ds_sel[depth_key].values
+                        # Handle depth as coordinate or dimension
+                        if depth_key in profile.coords:
+                            depth_vals = profile[depth_key].values
+                        elif depth_key in ds.coords:
+                            depth_vals = ds[depth_key].values
+                        else:
+                            st.error("❌ Could not find depth values in dataset.")
+                            st.stop()
+            
                         var_vals = profile.values
-                
+            
+                        # Safety check for matching shapes
+                        if depth_vals.shape[0] != var_vals.shape[0]:
+                            st.warning("⚠️ Profile and depth shapes may not match. Check dimensions.")
+            
+                        # Plot
                         fig = go.Figure()
                         fig.add_trace(go.Scatter(
                             y=depth_vals,
                             x=var_vals,
                             mode='lines+markers',
-                            name=f"{var}"
+                            name=var
                         ))
                         fig.update_layout(
                             title=f"{var} Profile at ({input_lat:.2f}, {input_lon:.2f})",
@@ -618,6 +619,9 @@ if uploaded_file:
                             width=500
                         )
                         st.plotly_chart(fig)
+            
+                    except Exception as e:
+                        st.error(f"❌ Failed to extract profile: {e}")
 
 
 
