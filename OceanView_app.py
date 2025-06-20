@@ -419,8 +419,8 @@ if uploaded_file:
                     st.info("⏳ Animation unavailable: Time dimension not found in selected variable.")
 
                     
-            except Exception as e:
-                st.error(f"⚠️ Failed to subset or plot data: {e}")
+            # except Exception as e:
+            #     st.error(f"⚠️ Failed to subset or plot data: {e}")
 
 
         
