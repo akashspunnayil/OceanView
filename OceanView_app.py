@@ -76,7 +76,8 @@ if uploaded_file:
         for d in ds_sel.dims:
             if d not in ds_sel.coords and d in ds.coords:
                 ds_sel = ds_sel.assign_coords({d: ds[d]})
-
+                
+        #------------------------LEFT SIDE - INPUTS-------------------------------------#
         left_col, right_col = st.columns([1, 2])
 
         with left_col:
@@ -250,13 +251,12 @@ if uploaded_file:
                 st.button("Reset Font to Default", on_click=reset_font, key="reset_font_btn")
 
 
-
-
             with st.expander("💾 Save Plot Options"):
                 save_format = st.selectbox("Select file format", ["png", "jpg", "pdf", "svg", "tiff"], index=0)
                 dpi_value = st.number_input("DPI (dots per inch)", min_value=50, max_value=600, value=150, step=10)
                 save_btn = st.button("💾 Save & Download Plot")
-
+                
+        #------------------------RIGHT SIDE - OUTPUTS-------------------------------------#
         with right_col:
             st.subheader("📄 Dataset Structure")
             st.code(ds.__repr__(), language="python")
@@ -277,37 +277,81 @@ if uploaded_file:
             # Apply the selected font family first
             plt.rcParams['font.family'] = st.session_state.get("font_family", "DejaVu Sans")                
 
-            fig, ax = plt.subplots(figsize=(10, 6), subplot_kw={"projection": ccrs.PlateCarree()})
-            plot_kwargs = {"ax": ax, "transform": ccrs.PlateCarree(), "cmap": cmap_choice, "add_colorbar": True}
-            if set_clim:
-                plot_kwargs["vmin"] = vmin
-                plot_kwargs["vmax"] = vmax
+            # fig, ax = plt.subplots(figsize=(10, 6), subplot_kw={"projection": ccrs.PlateCarree()})
+            # plot_kwargs = {"ax": ax, "transform": ccrs.PlateCarree(), "cmap": cmap_choice, "add_colorbar": True}
+            # if set_clim:
+            #     plot_kwargs["vmin"] = vmin
+            #     plot_kwargs["vmax"] = vmax
 
-            im = data.squeeze().plot.pcolormesh(**plot_kwargs)
-            ax.coastlines()
-            gl = ax.gridlines(draw_labels=True, linewidth=0.5, color='gray', alpha=0.5, linestyle='--')
-            gl.top_labels = gl.right_labels = False
-            gl.xlabel_style = gl.ylabel_style = {'size': 12}
+            # im = data.squeeze().plot.pcolormesh(**plot_kwargs)
+            # ax.coastlines()
+            # gl = ax.gridlines(draw_labels=True, linewidth=0.5, color='gray', alpha=0.5, linestyle='--')
+            # gl.top_labels = gl.right_labels = False
+            # gl.xlabel_style = gl.ylabel_style = {'size': 12}
 
-            if st.session_state.get("manual_ticks", False):
-                xtick_step = st.session_state.get("xtick_step")
-                ytick_step = st.session_state.get("ytick_step")
-                if xtick_step and ytick_step:
-                    gl.xlocator = mticker.FixedLocator(np.arange(lon_range[0], lon_range[1] + xtick_step, xtick_step))
-                    gl.ylocator = mticker.FixedLocator(np.arange(lat_range[0], lat_range[1] + ytick_step, ytick_step))
+            # if st.session_state.get("manual_ticks", False):
+            #     xtick_step = st.session_state.get("xtick_step")
+            #     ytick_step = st.session_state.get("ytick_step")
+            #     if xtick_step and ytick_step:
+            #         gl.xlocator = mticker.FixedLocator(np.arange(lon_range[0], lon_range[1] + xtick_step, xtick_step))
+            #         gl.ylocator = mticker.FixedLocator(np.arange(lat_range[0], lat_range[1] + ytick_step, ytick_step))
 
 
-            if mask_land:
-                ax.add_feature(cfeature.LAND, facecolor=mask_color, zorder=3)
-            if mask_sea:
-                ax.add_feature(cfeature.OCEAN, facecolor=mask_color, zorder=3)
+            # if mask_land:
+            #     ax.add_feature(cfeature.LAND, facecolor=mask_color, zorder=3)
+            # if mask_sea:
+            #     ax.add_feature(cfeature.OCEAN, facecolor=mask_color, zorder=3)
 
-            ax.set_title(plot_title, fontsize=14)
-            if hasattr(im, 'colorbar') and im.colorbar:
-                im.colorbar.set_label(cbar_label, fontsize=12)
-            ax.text(0.5, -0.1, xlabel, transform=ax.transAxes, ha='center', va='top', fontsize=12)
-            ax.text(-0.15, 0.5, ylabel, transform=ax.transAxes, ha='right', va='center', rotation='vertical', fontsize=12)
-            st.pyplot(fig)
+            # ax.set_title(plot_title, fontsize=14)
+            # if hasattr(im, 'colorbar') and im.colorbar:
+            #     im.colorbar.set_label(cbar_label, fontsize=12)
+            # ax.text(0.5, -0.1, xlabel, transform=ax.transAxes, ha='center', va='top', fontsize=12)
+            # ax.text(-0.15, 0.5, ylabel, transform=ax.transAxes, ha='right', va='center', rotation='vertical', fontsize=12)
+            # st.pyplot(fig)
+
+            import streamlit as st
+            import xarray as xr
+            import plotly.express as px
+            import numpy as np
+            
+            # Assume 'data' is your 2D DataArray (lat x lon)
+            # Example: data = xr.open_dataset(...).your_variable
+            
+            data_2d = data.squeeze()
+            
+            # Convert to DataFrame for Plotly (ensures labeled coords)
+            df = data_2d.to_dataframe(name="value").reset_index()
+            
+            # Generate hover-friendly plot
+            fig = px.density_heatmap(
+                df,
+                x='lon',
+                y='lat',
+                z='value',
+                color_continuous_scale=cmap_choice,
+                zmin=vmin if set_clim else None,
+                zmax=vmax if set_clim else None,
+                labels={'lon': xlabel, 'lat': ylabel, 'value': cbar_label},
+                nbinsx=200,  # adjust based on resolution
+                nbinsy=200
+            )
+            
+            fig.update_layout(
+                title=plot_title,
+                xaxis_title=xlabel,
+                yaxis_title=ylabel,
+                coloraxis_colorbar=dict(title=cbar_label),
+                height=600
+            )
+            
+            fig.update_traces(
+                hovertemplate="Lon: %{x:.2f}<br>Lat: %{y:.2f}<br>Value: %{z:.2f}<extra></extra>"
+            )
+            
+            # Display the interactive plot
+            st.plotly_chart(fig, use_container_width=True)
+
+
 
             if save_btn:
                 buf = io.BytesIO()
