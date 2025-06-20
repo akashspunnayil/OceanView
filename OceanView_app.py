@@ -369,7 +369,7 @@ if uploaded_file:
             z = data_2d.values
 
             width, height = figsize_to_plotly(10, 6)
-            fig.update_layout(width=width, height=height)
+            # fig.update_layout(width=width, height=height)
 
             fig = go.Figure(
                 data=go.Heatmap(
