@@ -169,7 +169,6 @@ if uploaded_file:
                 st.session_state["ylabel"] = "Latitude"
                 st.session_state["cbar_label"] = var
 
-
             with st.expander("🖊️ Plot Custom Labels"):
                 label_cols = st.columns([2, 1])
                 with label_cols[0]:
