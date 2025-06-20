@@ -251,7 +251,19 @@ if uploaded_file:
             st.subheader("🗺️ Map View")
             # Apply the selected font family first
             plt.rcParams['font.family'] = st.session_state.get("font_family", "DejaVu Sans")
+
+            import matplotlib.font_manager as fm
+
+            font_check = st.session_state["font_family"]
+            matches = fm.findSystemFonts(fontpaths=None, fontext='ttf')
+            found_fonts = [f for f in matches if font_check.lower() in f.lower()]
             
+            if not found_fonts:
+                st.warning(f"⚠️ Font '{font_check}' not found on system. Falling back to default.")
+            else:
+                st.info(f"✅ Font '{font_check}' found and will be used.")
+            
+                
             # Now check the effective font
             import matplotlib.font_manager as fm
             current_font = plt.rcParams["font.family"]
