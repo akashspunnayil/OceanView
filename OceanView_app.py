@@ -312,20 +312,42 @@ if uploaded_file:
             import streamlit as st
             import xarray as xr
             import plotly.graph_objects as go
+
+            def standardize_coords(dataarray):
+                coord_map = {
+                    'latitude': None,
+                    'longitude': None,
+                    'time': None,
+                    'depth': None
+                }
             
+                coord_candidates = {k.lower(): k for k in dataarray.coords}
+            
+                # Match based on known naming variants
+                for standard, options in {
+                    'latitude': ['lat', 'latitude'],
+                    'longitude': ['lon', 'longitude'],
+                    'time': ['time'],
+                    'depth': ['depth', 'depth1_1', 'z']
+                }.items():
+                    for opt in options:
+                        if opt in coord_candidates:
+                            coord_map[standard] = coord_candidates[opt]
+                            break
+            
+                return coord_map
+            
+
             # Assuming `data` is your 2D DataArray (lat x lon)
             data_2d = data.squeeze()
             st.write("Data coordinates:", data_2d.coords)
-            # Adjust these based on actual coordinate names
-            lon = data_2d.coords['longitude'].values
-            lat = data_2d.coords['latitude'].values
-            z = data_2d.values
-
-            # lon = data_2d['lon'].values
-            # lat = data_2d['lat'].values
-            # z = data_2d.values
             
-            # Create Heatmap with hover
+            coord_map = standardize_coords(data_2d)
+
+            lat = data_2d[coord_map['latitude']].values
+            lon = data_2d[coord_map['longitude']].values
+            z = data_2d.values
+            
             fig = go.Figure(
                 data=go.Heatmap(
                     z=z,
@@ -338,6 +360,7 @@ if uploaded_file:
                     hovertemplate="Lon: %{x:.2f}<br>Lat: %{y:.2f}<br>Value: %{z:.2f}<extra></extra>"
                 )
             )
+
             
             fig.update_layout(
                 title=plot_title,
