@@ -273,6 +273,7 @@ if uploaded_file:
                 subset_kwargs[lon_var] = slice(*lon_range)
             data = ds_sel.sel(subset_kwargs)
 
+            #---------------------------------Normal Map View----------------------------------------------------------#
             st.subheader("🗺️ Map View")
             # Apply the selected font family first
             plt.rcParams['font.family'] = st.session_state.get("font_family", "DejaVu Sans")                
@@ -324,6 +325,10 @@ if uploaded_file:
             #---------------------------------Intercative Map View----------------------------------------------------------#
 
             st.subheader("🎞️ Intercative Map View")
+
+            def figsize_to_plotly(width_in, height_in, dpi=100):
+                return int(width_in * dpi), int(height_in * dpi)
+
             import streamlit as st
             import xarray as xr
             import plotly.graph_objects as go
@@ -362,7 +367,10 @@ if uploaded_file:
             lat = data_2d[coord_map['latitude']].values
             lon = data_2d[coord_map['longitude']].values
             z = data_2d.values
-            
+
+            width, height = figsize_to_plotly(10, 6)
+            fig.update_layout(width=width, height=height)
+
             fig = go.Figure(
                 data=go.Heatmap(
                     z=z,
