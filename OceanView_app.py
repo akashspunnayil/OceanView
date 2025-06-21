@@ -13,7 +13,7 @@ import io
 import os
     
 st.set_page_config(layout="wide")
-st.title("🌊 Ocean Viewer")
+st.title("🌊 Ocean Viewer (NetCDF)")
 
 
 # --- Safe NetCDF loader with fallback for time decoding errors ---
@@ -80,8 +80,6 @@ def try_decode_time(ds, time_var):
 
 # --- File uploader ---
 # uploaded_file = st.file_uploader("📂 Upload a NetCDF file", type=["nc"])
-
-st.title("🌊 OceanView - NetCDF Viewer")
 
 # Mode selection
 mode = st.radio("Select mode", ["Use local file (desktop only)", "Upload file (web app)"])
