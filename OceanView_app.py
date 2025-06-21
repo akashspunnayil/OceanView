@@ -93,7 +93,7 @@ if mode == "Use local file (desktop only)":
             try:
                 ds = xr.open_dataset(file_path)
                 st.success("✅ File loaded from local path.")
-                st.write(ds)
+                # st.write(ds)
             except Exception as e:
                 st.error(f"❌ Failed to open NetCDF: {e}")
         else:
