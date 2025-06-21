@@ -41,26 +41,6 @@ def load_netcdf_safe_from_path(path):
         else:
             raise
 
-# @st.cache_data
-# def load_netcdf_safe_from_path(path):
-#     import os
-#     import xarray as xr
-
-#     if not os.path.exists(path):
-#         raise FileNotFoundError(f"File does not exist: {path}")
-#     if not path.endswith(".nc"):
-#         raise ValueError("Not a NetCDF file")
-
-#     try:
-#         return xr.open_dataset(path, engine="netcdf4")
-#     except ValueError as e:
-#         if "unable to decode time units" in str(e) and "calendar 'NOLEAP'" in str(e):
-#             st.warning("⚠️ Time decoding failed. Retrying with decode_times=False...")
-#             return xr.open_dataset(path, decode_times=False, engine="netcdf4")
-#         else:
-#             raise
-
-
 def find_coord_from_dims(da, keyword):
     for dim in da.dims:
         if keyword.lower() in dim.lower():
@@ -81,7 +61,29 @@ def try_decode_time(ds, time_var):
             return time_vals, time_vals
 
 # --- File uploader ---
-uploaded_file = st.file_uploader("📂 Upload a NetCDF file", type=["nc"])
+# uploaded_file = st.file_uploader("📂 Upload a NetCDF file", type=["nc"])
+
+import platform
+
+if platform.system() == "Windows" or platform.system() == "Linux":
+    # Local desktop version
+    file_path = st.text_input("Enter full path to NetCDF file", "")
+    if file_path and os.path.exists(file_path):
+        ds = xr.open_dataset(file_path)
+        st.success("✅ Loaded from local path.")
+    else:
+        if file_path:
+            st.error("❌ File not found.")
+else:
+    # Web demo
+    uploaded_file = st.file_uploader("📂 Upload a NetCDF file", type=["nc"])
+    if uploaded_file:
+        import tempfile
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".nc") as tmp:
+            tmp.write(uploaded_file.read())
+            ds = xr.open_dataset(tmp.name)
+            st.success("✅ Loaded from uploaded file.")
+
 
 if uploaded_file:
     ds = load_netcdf_safe(uploaded_file)
