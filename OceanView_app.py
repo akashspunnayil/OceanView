@@ -108,7 +108,7 @@ else:
             ds = load_netcdf_safe(uploaded_file)
 
             st.success("✅ File loaded from uploaded file.")
-            st.write(ds)
+            # st.write(ds)
 
             if ds is not None:
                 st.success("✅ File loaded successfully.")
