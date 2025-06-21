@@ -82,7 +82,7 @@ def try_decode_time(ds, time_var):
 # uploaded_file = st.file_uploader("📂 Upload a NetCDF file", type=["nc"])
 
 # Mode selection
-mode = st.radio("Select mode", ["Use local file (desktop only)", "Upload file (web app)"])
+mode = st.radio("Select mode", ["Upload file (Web App)", "Use local file (Download Desktop App)"])
 
 if mode == "Use local file (desktop only)":
     file_path = st.text_input("Enter full path to NetCDF file")
