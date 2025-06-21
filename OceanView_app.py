@@ -18,18 +18,18 @@ st.title("🌊 Ocean Viewer")
 
 # --- Safe NetCDF loader with fallback for time decoding errors ---
 @st.cache_data
-def load_netcdf_safe(file_obj):
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".nc") as tmp_file:
-        tmp_file.write(file_obj.read())
-        tmp_path = tmp_file.name
-    try:
-        return xr.open_dataset(tmp_path, engine="netcdf4")
-    except ValueError as e:
-        if "unable to decode time units" in str(e) and "calendar 'NOLEAP'" in str(e):
-            st.warning("⚠️ Time decoding failed. Retrying with decode_times=False...")
-            return xr.open_dataset(tmp_path, decode_times=False, engine="netcdf4")
-        else:
-            raise
+# def load_netcdf_safe(file_obj):
+#     with tempfile.NamedTemporaryFile(delete=False, suffix=".nc") as tmp_file:
+#         tmp_file.write(file_obj.read())
+#         tmp_path = tmp_file.name
+#     try:
+#         return xr.open_dataset(tmp_path, engine="netcdf4")
+#     except ValueError as e:
+#         if "unable to decode time units" in str(e) and "calendar 'NOLEAP'" in str(e):
+#             st.warning("⚠️ Time decoding failed. Retrying with decode_times=False...")
+#             return xr.open_dataset(tmp_path, decode_times=False, engine="netcdf4")
+#         else:
+#             raise
 
 def load_netcdf_safe_from_path(path):
     try:
