@@ -31,6 +31,16 @@ def load_netcdf_safe(file_obj):
         else:
             raise
 
+def load_netcdf_safe_from_path(path):
+    try:
+        return xr.open_dataset(path, engine="netcdf4")
+    except ValueError as e:
+        if "unable to decode time units" in str(e) and "calendar 'NOLEAP'" in str(e):
+            st.warning("⚠️ Time decoding failed. Retrying with decode_times=False...")
+            return xr.open_dataset(path, decode_times=False, engine="netcdf4")
+        else:
+            raise
+
 def find_coord_from_dims(da, keyword):
     for dim in da.dims:
         if keyword.lower() in dim.lower():
@@ -51,10 +61,15 @@ def try_decode_time(ds, time_var):
             return time_vals, time_vals
 
 # --- File uploader ---
-uploaded_file = st.file_uploader("📂 Upload a NetCDF file", type=["nc"])
+# uploaded_file = st.file_uploader("📂 Upload a NetCDF file", type=["nc"])
+
+# Text Input for File Path
+st.title("📂 Load NetCDF from Local Path")
+uploaded_file = st.text_input("Enter the full path to your NetCDF file", "")
 
 if uploaded_file:
-    ds = load_netcdf_safe(uploaded_file)
+    # ds = load_netcdf_safe(uploaded_file)
+    ds = load_netcdf_safe_from_path(uploaded_file)
 
     if ds is not None:
         st.success("✅ File loaded successfully.")
