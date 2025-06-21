@@ -84,8 +84,22 @@ def try_decode_time(ds, time_var):
 # uploaded_file = st.file_uploader("📂 Upload a NetCDF file", type=["nc"])
 
 # Text Input for File Path
-st.title("📂 Load NetCDF from Local Path")
-uploaded_file = st.text_input("Enter the full path to your NetCDF file", "")
+base_path = st.text_input("Enter base folder path", "/media/akashs/...")
+filename = st.text_input("Enter file name", "nioa.nc")
+
+full_path = os.path.join(base_path, filename)
+
+if os.path.exists(full_path):
+    ds = xr.open_dataset(full_path)
+    st.success("✅ File loaded successfully")
+else:
+    st.error("❌ File does not exist.")
+
+
+filename = uploaded_file
+
+# st.title("📂 Load NetCDF from Local Path")
+# uploaded_file = st.text_input("Enter the full path to your NetCDF file", "")
 
 st.write(f"Input path: {uploaded_file}")
 st.write(f"Exists? {os.path.exists(uploaded_file)}")
