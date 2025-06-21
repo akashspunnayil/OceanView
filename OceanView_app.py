@@ -10,7 +10,7 @@ import cartopy.feature as cfeature
 import matplotlib.ticker as mticker
 import tempfile
 import io
-
+import os
     
 st.set_page_config(layout="wide")
 st.title("🌊 Ocean Viewer")
@@ -86,6 +86,11 @@ def try_decode_time(ds, time_var):
 # Text Input for File Path
 st.title("📂 Load NetCDF from Local Path")
 uploaded_file = st.text_input("Enter the full path to your NetCDF file", "")
+
+st.write(f"Input path: {uploaded_file}")
+st.write(f"Exists? {os.path.exists(uploaded_file)}")
+st.write(f"Current working directory: {os.getcwd()}")
+
 
 if uploaded_file:
     # ds = load_netcdf_safe(uploaded_file)
