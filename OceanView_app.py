@@ -17,40 +17,21 @@ st.title("🌊 Ocean Viewer")
 
 
 # --- Safe NetCDF loader with fallback for time decoding errors ---
-# @st.cache_data
-# def load_netcdf_safe(file_obj):
-#     with tempfile.NamedTemporaryFile(delete=False, suffix=".nc") as tmp_file:
-#         tmp_file.write(file_obj.read())
-#         tmp_path = tmp_file.name
-#     try:
-#         return xr.open_dataset(tmp_path, engine="netcdf4")
-#     except ValueError as e:
-#         if "unable to decode time units" in str(e) and "calendar 'NOLEAP'" in str(e):
-#             st.warning("⚠️ Time decoding failed. Retrying with decode_times=False...")
-#             return xr.open_dataset(tmp_path, decode_times=False, engine="netcdf4")
-#         else:
-#             raise
-
-# def load_netcdf_safe_from_path(path):
-#     try:
-#         return xr.open_dataset(path, engine="netcdf4")
-#     except ValueError as e:
-#         if "unable to decode time units" in str(e) and "calendar 'NOLEAP'" in str(e):
-#             st.warning("⚠️ Time decoding failed. Retrying with decode_times=False...")
-#             return xr.open_dataset(path, decode_times=False, engine="netcdf4")
-#         else:
-#             raise
-
 @st.cache_data
+def load_netcdf_safe(file_obj):
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".nc") as tmp_file:
+        tmp_file.write(file_obj.read())
+        tmp_path = tmp_file.name
+    try:
+        return xr.open_dataset(tmp_path, engine="netcdf4")
+    except ValueError as e:
+        if "unable to decode time units" in str(e) and "calendar 'NOLEAP'" in str(e):
+            st.warning("⚠️ Time decoding failed. Retrying with decode_times=False...")
+            return xr.open_dataset(tmp_path, decode_times=False, engine="netcdf4")
+        else:
+            raise
+
 def load_netcdf_safe_from_path(path):
-    import os
-    import xarray as xr
-
-    if not os.path.exists(path):
-        raise FileNotFoundError(f"File does not exist: {path}")
-    if not path.endswith(".nc"):
-        raise ValueError("Not a NetCDF file")
-
     try:
         return xr.open_dataset(path, engine="netcdf4")
     except ValueError as e:
@@ -59,6 +40,25 @@ def load_netcdf_safe_from_path(path):
             return xr.open_dataset(path, decode_times=False, engine="netcdf4")
         else:
             raise
+
+# @st.cache_data
+# def load_netcdf_safe_from_path(path):
+#     import os
+#     import xarray as xr
+
+#     if not os.path.exists(path):
+#         raise FileNotFoundError(f"File does not exist: {path}")
+#     if not path.endswith(".nc"):
+#         raise ValueError("Not a NetCDF file")
+
+#     try:
+#         return xr.open_dataset(path, engine="netcdf4")
+#     except ValueError as e:
+#         if "unable to decode time units" in str(e) and "calendar 'NOLEAP'" in str(e):
+#             st.warning("⚠️ Time decoding failed. Retrying with decode_times=False...")
+#             return xr.open_dataset(path, decode_times=False, engine="netcdf4")
+#         else:
+#             raise
 
 
 def find_coord_from_dims(da, keyword):
