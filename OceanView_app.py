@@ -81,30 +81,10 @@ def try_decode_time(ds, time_var):
             return time_vals, time_vals
 
 # --- File uploader ---
-# uploaded_file = st.file_uploader("📂 Upload a NetCDF file", type=["nc"])
+uploaded_file = st.file_uploader("📂 Upload a NetCDF file", type=["nc"])
 
-# Build full path from inputs
-base_path = st.text_input("Enter base folder path")
-filename = st.text_input("Enter file name")
-
-full_path = os.path.join(base_path, filename)
-
-# Use full_path instead of filename
-if os.path.exists(full_path):
-    st.success("✅ File found.")
-else:
-    st.error("❌ File does not exist.")
-
-# Debugging outputs
-st.write(f"Input path: {full_path}")
-st.write(f"Exists? {os.path.exists(full_path)}")
-st.write(f"Current working directory: {os.getcwd()}")
-
-# Only load if file exists
-if os.path.exists(full_path):
-    ds = load_netcdf_safe_from_path(full_path)
-    st.write(ds)
-
+if uploaded_file:
+    ds = load_netcdf_safe(uploaded_file)
 
     if ds is not None:
         st.success("✅ File loaded successfully.")
