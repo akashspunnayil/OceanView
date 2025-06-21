@@ -17,7 +17,7 @@ st.title("🌊 Ocean Viewer")
 
 
 # --- Safe NetCDF loader with fallback for time decoding errors ---
-@st.cache_data
+# @st.cache_data
 # def load_netcdf_safe(file_obj):
 #     with tempfile.NamedTemporaryFile(delete=False, suffix=".nc") as tmp_file:
 #         tmp_file.write(file_obj.read())
