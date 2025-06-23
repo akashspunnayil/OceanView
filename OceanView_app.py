@@ -12,9 +12,9 @@ import tempfile
 import io
 import os
 import plotly.graph_objects as go
-    
+
 st.set_page_config(layout="wide")
-st.title("🌊 Ocean Viewer (NetCDF)")
+st.title("🌊 Ocean Viewer")
 
 
 # --- Safe NetCDF loader with fallback for time decoding errors ---
@@ -319,6 +319,7 @@ else:
                         show_vertical_profile = st.checkbox("Vertical Profile")
                         show_interactive_vertical_profile =  st.checkbox("Vertical Interactive Profile ")
                         show_hovmoller = st.checkbox("Hovmöller Diagram")
+                        station_plot = st..checkbox("Station Contour (Using excel/csv)")
         
                             
                     if show_spatial_map or show_vertical_section or show_time_animation or show_interactive_spatial_map:
@@ -1644,6 +1645,39 @@ else:
                     
                         except Exception as e:
                             st.error(f"❌ Failed to plot Hovmöller diagram: {e}")
+
+
+                    #---------------------------------------- Station Contour (Excel) ----------------------------------------------------#
+
+                    if  station_plot:
+                        st.subheader("📂 Upload Station Excel File")
+                        uploaded_file = st.file_uploader("Upload your Excel file", type=["xlsx", "xls"])
+                        
+                        if uploaded_file:
+                            df = pd.read_excel(uploaded_file)
+                            st.write("Preview of uploaded data:")
+                            st.dataframe(df)
+                        
+                            try:
+                                depths = df.iloc[:, 0].values  # First column: Depths
+                                station_names = df.columns[1:]  # Skip depth column
+                                data_matrix = df.iloc[:, 1:].values  # Only station data
+                        
+                                # Plot
+                                fig, ax = plt.subplots(figsize=(10, 6))
+                                cs = ax.contourf(station_names, depths, data_matrix, levels=15, cmap='viridis')
+                                ax.invert_yaxis()  # Optional: invert y-axis to show surface on top
+                                cbar = plt.colorbar(cs, ax=ax)
+                                cbar.set_label("Scalar Value")
+                        
+                                ax.set_xlabel("Station")
+                                ax.set_ylabel("Depth (m)")
+                                ax.set_title("Contour Plot: Scalar vs. Depth and Station")
+                        
+                                st.pyplot(fig)
+                        
+                            except Exception as e:
+                                st.error(f"❌ Error plotting contour: {e}")
 
 
         except Exception as e:
