@@ -1754,55 +1754,59 @@ else:
                
                 import re
 
-                st.subheader("📊 Section Plot from Excel: Depth vs Latitude")
-                
+                st.subheader("📊 Section Plot (Depth vs Latitude) from Excel")
+
                 uploaded_file = st.file_uploader("📂 Upload Excel File", type=["xlsx", "xls"])
                 if uploaded_file:
                     try:
-                        # Try to read with default header guess
+                        # STEP 1: Read full file without header
                         raw_df = pd.read_excel(uploaded_file, header=None)
                 
-                        # Identify data start row (assume depth starts after metadata — usually where first int appears)
-                        data_start_row = raw_df.applymap(lambda x: isinstance(x, (int, float))).any(axis=1).idxmax()
+                        # STEP 2: Detect header row (where 'Depth' or first column becomes numeric)
+                        data_start_idx = raw_df.applymap(lambda x: str(x).strip().lower() == 'depth').any(axis=1)
+                        header_row = data_start_idx.idxmax() if data_start_idx.any() else 0
                 
-                        # Use the previous row as header
-                        df = pd.read_excel(uploaded_file, header=data_start_row - 1, skiprows=range(data_start_row))
-                
-                        # Handle missing values (blank cells to NaN)
+                        # STEP 3: Load clean dataframe from header row
+                        df = pd.read_excel(uploaded_file, header=header_row)
                         df.replace(r'^\s*$', np.nan, regex=True, inplace=True)
                 
-                        st.success("✅ Excel file loaded and cleaned.")
-                        st.dataframe(df)
-                
-                        # --- Parse x-axis: Latitudes from column names ---
-                        station_labels = df.columns[1:]  # Skip depth column
+                        # STEP 4: Parse latitudes from column headers (except Depth column)
+                        station_labels = df.columns[1:]
                         latitudes = []
-                
                         for label in station_labels:
-                            match = re.search(r"\(?([0-9.]+)", str(label))
+                            match = re.search(r"([0-9.]+)", str(label))
                             if match:
                                 latitudes.append(float(match.group(1)))
                             else:
-                                latitudes.append(np.nan)
+                                latitudes.append(np.nan)  # If lat not found, set as NaN
                 
                         latitudes = np.array(latitudes)
                 
-                        # --- Prepare depth and data matrix ---
-                        depths = df.iloc[:, 0].astype(float).values
-                        data_matrix = df.iloc[:, 1:].astype(float).values.T  # Transpose: (stations x depth)
+                        # Remove stations with invalid/missing latitudes
+                        valid_indices = ~np.isnan(latitudes)
+                        valid_lats = latitudes[valid_indices]
+                        valid_cols = df.columns[1:][valid_indices]
                 
-                        # --- Plot using pcolormesh ---
+                        # STEP 5: Prepare depth and matrix
+                        depths = pd.to_numeric(df.iloc[:, 0], errors='coerce')
+                        scalar_data = df[valid_cols].apply(pd.to_numeric, errors='coerce').T.values  # shape: (stations, depth)
+                
+                        # Remove rows with all NaNs
+                        mask_valid_rows = ~np.isnan(depths)
+                        depths = depths[mask_valid_rows]
+                        scalar_data = scalar_data[:, mask_valid_rows]
+                
+                        # STEP 6: Plotting
                         fig, ax = plt.subplots(figsize=(10, 6))
                         pcm = ax.pcolormesh(
-                            latitudes,
+                            valid_lats,
                             depths,
-                            data_matrix,
+                            scalar_data,
                             shading='auto',
                             cmap='viridis'
                         )
                         ax.invert_yaxis()
-                        cbar = fig.colorbar(pcm, ax=ax)
-                        cbar.set_label("Scalar Value")
+                        fig.colorbar(pcm, ax=ax, label="Scalar Value")
                 
                         ax.set_xlabel("Latitude (°N)")
                         ax.set_ylabel("Depth (m)")
@@ -1811,7 +1815,7 @@ else:
                         st.pyplot(fig)
                 
                     except Exception as e:
-                        st.error(f"❌ Failed to process file: {e}")
+                        st.error(f"❌ Plotting failed: {e}")
 
 
 
