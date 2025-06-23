@@ -768,8 +768,19 @@ else:
                                             gl.xlocator = mticker.FixedLocator(np.arange(lon_range[0], lon_range[1] + xtick_step, xtick_step))
                                             gl.ylocator = mticker.FixedLocator(np.arange(lat_range[0], lat_range[1] + ytick_step, ytick_step))
                                 
-                                    ax_anim.text(0.5, -0.1, xlabel, transform=ax_anim.transAxes, ha='center', va='top', fontsize=10)
-                                    ax_anim.text(-0.15, 0.5, ylabel, transform=ax_anim.transAxes, ha='right', va='center', rotation='vertical', fontsize=10)
+                                    # ax_anim.text(0.5, -0.1, xlabel, transform=ax_anim.transAxes, ha='center', va='top', fontsize=10)
+                                    # ax_anim.text(-0.15, 0.5, ylabel, transform=ax_anim.transAxes, ha='right', va='center', rotation='vertical', fontsize=10)
+                                    # Get axis position in figure coordinates (left, bottom, width, height)
+                                    bbox = ax.get_position()
+                                    
+                                    # Adjust offsets based on axis size
+                                    x_offset = -0.05 * (10 / fig.get_size_inches()[0])  # proportionally shrink offset
+                                    y_offset = -0.1 * (6 / fig.get_size_inches()[1])
+                                    
+                                    # Place labels relative to axis
+                                    ax.text(0.5, y_offset, xlabel, transform=ax.transAxes, ha='center', va='top', fontsize=12)
+                                    ax.text(x_offset-0.1, 0.5, ylabel, transform=ax.transAxes, ha='right', va='center',
+                                            rotation='vertical', fontsize=12)
                                 
                                     # 🕒 Use decoded, formatted time string from time_labels
                                     try:
