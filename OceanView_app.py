@@ -138,7 +138,7 @@ def scale_dataarray(dataarray, op, val):
 
 
 # # ------------------------------------------------ File uploader ---------------------------------------------- #
-uploaded_file = st.file_uploader("📂 Upload a NetCDF file", type=["nc"])
+#uploaded_file = st.file_uploader("📂 Upload a NetCDF file", type=["nc"])
 
 # Mode selection
 mode = st.radio("Select mode", ["Upload file (Web App)", "Use local file (Download Desktop App)"])
