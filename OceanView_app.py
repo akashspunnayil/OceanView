@@ -533,7 +533,7 @@ else:
                             im.colorbar.remove()
                         
                         # Manually create colorbar with controlled size
-                        cbar = fig.colorbar(im, ax=ax, orientation='vertical', shrink=0.5, pad=0.05)
+                        cbar = fig.colorbar(im, ax=ax, orientation='vertical', shrink=0.6, pad=0.05)
                         cbar.set_label(cbar_label, fontsize=12)
 
                         
