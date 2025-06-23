@@ -1754,15 +1754,16 @@ else:
                
                 import re
 
-                st.subheader("📊 Section Plot (Depth vs Latitude) from Excel")
 
+                st.subheader("📊 Section Plot (Depth vs Latitude) from Excel")
+                
                 uploaded_file = st.file_uploader("📂 Upload Excel File", type=["xlsx", "xls"])
                 if uploaded_file:
                     try:
                         # STEP 1: Read full file without header
                         raw_df = pd.read_excel(uploaded_file, header=None)
                 
-                        # STEP 2: Detect header row (where 'Depth' or first column becomes numeric)
+                        # STEP 2: Detect header row (where 'Depth' is found)
                         data_start_idx = raw_df.applymap(lambda x: str(x).strip().lower() == 'depth').any(axis=1)
                         header_row = data_start_idx.idxmax() if data_start_idx.any() else 0
                 
@@ -1782,7 +1783,7 @@ else:
                 
                         latitudes = np.array(latitudes)
                 
-                        # Remove stations with invalid/missing latitudes
+                        # Filter out stations with invalid/missing latitudes
                         valid_indices = ~np.isnan(latitudes)
                         valid_lats = latitudes[valid_indices]
                         valid_cols = df.columns[1:][valid_indices]
@@ -1791,10 +1792,10 @@ else:
                         depths = pd.to_numeric(df.iloc[:, 0], errors='coerce')
                         scalar_data = df[valid_cols].apply(pd.to_numeric, errors='coerce').T.values  # shape: (stations, depth)
                 
-                        # Remove rows with all NaNs
-                        mask_valid_rows = ~np.isnan(depths)
-                        depths = depths[mask_valid_rows]
-                        scalar_data = scalar_data[:, mask_valid_rows]
+                        # Remove rows with all NaNs in depth
+                        valid_depth_mask = ~np.isnan(depths)
+                        depths = depths[valid_depth_mask]
+                        scalar_data = scalar_data[:, valid_depth_mask]
                 
                         # STEP 6: Plotting
                         fig, ax = plt.subplots(figsize=(10, 6))
@@ -1806,7 +1807,9 @@ else:
                             cmap='viridis'
                         )
                         ax.invert_yaxis()
-                        fig.colorbar(pcm, ax=ax, label="Scalar Value")
+                
+                        cbar = fig.colorbar(pcm, ax=ax)
+                        cbar.set_label("Scalar Value")
                 
                         ax.set_xlabel("Latitude (°N)")
                         ax.set_ylabel("Depth (m)")
@@ -1816,6 +1819,7 @@ else:
                 
                     except Exception as e:
                         st.error(f"❌ Plotting failed: {e}")
+
 
 
 
