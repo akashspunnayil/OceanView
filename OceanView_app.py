@@ -407,11 +407,11 @@ else:
         
                     def reset_plot_labels(time_sel_value=None, depth_value=None):
                         title = var
-                        if time_sel_value:
-                            title += f" | {time_sel_value}"
-                        if depth_value is not None:
-                            title += f" | {depth_value} m"
-                        st.session_state["plot_title"] = title
+                        # if time_sel_value:
+                        #     title += f" | {time_sel_value}"
+                        # if depth_value is not None:
+                        #     title += f" | {depth_value} m"
+                        # st.session_state["plot_title"] = title
                         st.session_state["xlabel"] = "Longitude"
                         st.session_state["ylabel"] = "Latitude"
                         st.session_state["cbar_label"] = var
