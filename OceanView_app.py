@@ -1696,26 +1696,43 @@ else:
                                 hov_y = da_sel[time_var]
                                 hov_z = da_sel.transpose(time_var, lon_var)
                     
+                            # elif hov_mode.startswith("Latitude"):
+                            #     fixed_lon = st.number_input("Longitude (°E)", float(ds[lon_var].min()), float(ds[lon_var].max()), value=60.0, key="hov_depth")
+                            #     lat_min = st.number_input("Min Latitude", float(ds[lat_var].min()), float(ds[lat_var].max()), value=float(ds[lat_var].min()))
+                            #     lat_max = st.number_input("Max Latitude", float(ds[lat_var].min()), float(ds[lat_var].max()), value=float(ds[lat_var].max()))
+                    
+                            #     if "Depth-avg" in hov_mode:
+                            #         d1 = st.number_input("Min Depth", float(ds[depth_var].min()), float(ds[depth_var].max()), value=0.0)
+                            #         d2 = st.number_input("Max Depth", float(ds[depth_var].min()), float(ds[depth_var].max()), value=200.0)
+                            #         da_sel = da.sel({lat_var: slice(lat_min, lat_max), depth_var: slice(d1, d2)})
+                            #         da_sel = da_sel.sel({lon_var: fixed_lon}, method="nearest").mean(dim=depth_var, skipna=True)
+                            #     else:
+                            #         fixed_depth = st.number_input("Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=10.0, key="hov_depth")
+                            #         da_sel = da.sel({lat_var: slice(lat_min, lat_max), depth_var: fixed_depth})
+                            #         da_sel = da_sel.sel({lon_var: fixed_lon}, method="nearest")
+
                             elif hov_mode.startswith("Latitude"):
-                                fixed_lon = st.number_input("Longitude (°E)", float(ds[lon_var].min()), float(ds[lon_var].max()), value=60.0, key="hov_depth")
+                                fixed_lon = st.number_input("Longitude (°E)", float(ds[lon_var].min()), float(ds[lon_var].max()), value=60.0, key="hov_fixed_lon")
                                 lat_min = st.number_input("Min Latitude", float(ds[lat_var].min()), float(ds[lat_var].max()), value=float(ds[lat_var].min()))
                                 lat_max = st.number_input("Max Latitude", float(ds[lat_var].min()), float(ds[lat_var].max()), value=float(ds[lat_var].max()))
-                    
+                            
                                 if "Depth-avg" in hov_mode:
-                                    d1 = st.number_input("Min Depth", float(ds[depth_var].min()), float(ds[depth_var].max()), value=0.0)
-                                    d2 = st.number_input("Max Depth", float(ds[depth_var].min()), float(ds[depth_var].max()), value=200.0)
+                                    d1 = st.number_input("Min Depth", float(ds[depth_var].min()), float(ds[depth_var].max()), value=0.0, key="hov_d1_lat")
+                                    d2 = st.number_input("Max Depth", float(ds[depth_var].min()), float(ds[depth_var].max()), value=200.0, key="hov_d2_lat")
                                     da_sel = da.sel({lat_var: slice(lat_min, lat_max), depth_var: slice(d1, d2)})
                                     da_sel = da_sel.sel({lon_var: fixed_lon}, method="nearest").mean(dim=depth_var, skipna=True)
                                 else:
-                                    fixed_depth = st.number_input("Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=10.0, key="hov_depth")
+                                    fixed_depth = st.number_input("Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=10.0, key="hov_depth_lat")
                                     da_sel = da.sel({lat_var: slice(lat_min, lat_max), depth_var: fixed_depth})
                                     da_sel = da_sel.sel({lon_var: fixed_lon}, method="nearest")
-                    
+                            
+
                                 da_sel = da_sel.sel({time_var: slice(t1, t2)})
                                 hov_x = da_sel[lat_var]
                                 hov_y = da_sel[time_var]
                                 hov_z = da_sel.transpose(time_var, lat_var)
-                    
+
+                            
                             elif hov_mode == "Depth vs Time • Fixed Lat & Lon":
                                 lat_pt = st.number_input("Latitude (°N)", float(ds[lat_var].min()), float(ds[lat_var].max()), value=15.0)
                                 lon_pt = st.number_input("Longitude (°E)", float(ds[lon_var].min()), float(ds[lon_var].max()), value=60.0)
@@ -1761,6 +1778,8 @@ else:
                             
                             else:
                                 spatial_info = ""
+
+
                             
                             time_range_str = f"{str(t1)[:10]} to {str(t2)[:10]}"
                             
