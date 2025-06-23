@@ -277,23 +277,24 @@ else:
                     lat_min, lat_max = float(lat_vals.min()), float(lat_vals.max())
                     lon_min, lon_max = float(lon_vals.min()), float(lon_vals.max())
                     
-                    # --- Reset trigger
+                    # --- Initialize reset flag
                     if "reset_coords" not in st.session_state:
                         st.session_state.reset_coords = False
                     
-                    # --- Trigger reset on button click
+                    # --- Reset button
                     if st.button("🔄 Reset to Full Extent"):
                         st.session_state.reset_coords = True
-                        st.experimental_rerun()
+                        st.rerun()  # use this instead of experimental_rerun
                     
-                    # --- Apply reset before widget instantiation
+                    # --- Perform reset BEFORE widgets render
                     if st.session_state.reset_coords:
                         st.session_state["north_lat"] = lat_max
                         st.session_state["south_lat"] = lat_min
                         st.session_state["west_lon"] = lon_min
                         st.session_state["east_lon"] = lon_max
                         st.session_state.reset_coords = False
-                        st.experimental_rerun()
+                        st.rerun()
+
 
 
                     
