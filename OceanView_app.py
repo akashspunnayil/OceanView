@@ -731,80 +731,6 @@ else:
                     
                         st.plotly_chart(fig, use_container_width=True)
 
-
-
-                    # if show_interactive_spatial_map:
-                    #     st.subheader("🎞️ Interactive Map View")
-            
-                    #     def figsize_to_plotly(width_in, height_in, dpi=100):
-                    #         return int(width_in * dpi), int(height_in * dpi)
-            
-                    #     import streamlit as st
-                    #     import xarray as xr
-                    #     import plotly.graph_objects as go
-            
-                    #     def standardize_coords(dataarray):
-                    #         coord_map = {
-                    #             'latitude': None,
-                    #             'longitude': None,
-                    #             'time': None,
-                    #             'depth': None
-                    #         }
-                            
-                        
-                    #         coord_candidates = {k.lower(): k for k in dataarray.coords}
-                        
-                    #         # Match based on known naming variants
-                    #         for standard, options in {
-                    #             'latitude': ['lat', 'latitude'],
-                    #             'longitude': ['lon', 'longitude'],
-                    #             'time': ['time'],
-                    #             'depth': ['depth', 'depth1_1', 'z']
-                    #         }.items():
-                    #             for opt in options:
-                    #                 if opt in coord_candidates:
-                    #                     coord_map[standard] = coord_candidates[opt]
-                    #                     break
-                        
-                    #         return coord_map
-                        
-            
-                    #     # Assuming `data` is your 2D DataArray (lat x lon)
-                    #     data_2d = data.squeeze()
-                    #     # st.write("Data coordinates:", data_2d.coords)
-                        
-                    #     coord_map = standardize_coords(data_2d)
-            
-                    #     lat = data_2d[coord_map['latitude']].values
-                    #     lon = data_2d[coord_map['longitude']].values
-                    #     z = data_2d.values
-            
-            
-                    #     fig = go.Figure(
-                    #         data=go.Heatmap(
-                    #             z=z,
-                    #             x=lon,
-                    #             y=lat,
-                    #             colorscale=cmap_choice,
-                    #             zmin=vmin if set_clim else None,
-                    #             zmax=vmax if set_clim else None,
-                    #             colorbar=dict(title=cbar_label),
-                    #             hovertemplate="Lon: %{x:.2f}<br>Lat: %{y:.2f}<br>Value: %{z:.2f}<extra></extra>"
-                    #         )
-                    #     )
-            
-                    #     width, height = figsize_to_plotly(10, 6)
-                    #     fig.update_layout(
-                    #         title=plot_title,
-                    #         xaxis_title=xlabel,
-                    #         yaxis_title=ylabel,
-                    #         # height=600,
-                    #         width=width,
-                    #         height=height
-                    #     )
-                        
-                    #     st.plotly_chart(fig, use_container_width=True)
-
                     #---------------------------------------------Spatial Map Animation--------------------------------------------------#
 
                     if show_time_animation:
@@ -986,6 +912,18 @@ else:
                             "Z vs Longitude (averaged over Latitude band)",
                             "Z vs Latitude (averaged over Longitude band)"
                         ])
+
+                        # -- Time Input
+                        time_vals, time_labels = try_decode_time(ds, time_var)
+                        if "Time Range Avg" in plot_mode:
+                            t1 = st.date_input("🕒 Start Date", value=pd.to_datetime(time_labels[0]), key="map_start")
+                            t2 = st.date_input("🕒 End Date", value=pd.to_datetime(time_labels[-1]), key="map_end")
+                            t1 = np.datetime64(t1)
+                            t2 = np.datetime64(t2)
+                        else:
+                            time_sel = st.selectbox("🕒 Select Time", time_labels, key="map_single_time")
+                            time_index = list(time_labels).index(time_sel)
+                            raw_time_value = time_vals[time_index]
                     
                         try:
                             section = ds[var]
