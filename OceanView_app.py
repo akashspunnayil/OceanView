@@ -146,7 +146,7 @@ else:
             #     ds = xr.open_dataset(tmp.name)
             ds = load_netcdf_safe(uploaded_file)
 
-            st.success("✅ File loaded from uploaded file.")
+            # st.success("✅ File loaded from uploaded file.")
             # st.write(ds)
 
             if ds is not None:
@@ -225,75 +225,7 @@ else:
         
                     lat_vals = ds[lat_var].values
                     lon_vals = ds[lon_var].values
-        
 
-                    # st.markdown("#### 🌐 Region & Depth Selection")
-
-                    # # -- Top Row: North Latitude (centered using column span)
-                    # cols_north = st.columns([1, 1, 1])
-                    # with cols_north[1]:
-                    #     north_lat = st.number_input(
-                    #         "⬆️ Lat Max",
-                    #         min_value=float(lat_vals.min()),
-                    #         max_value=float(lat_vals.max()),
-                    #         value=float(lat_vals.max()),
-                    #         key="north_lat"
-                    #     )
-                    
-                    # # -- Middle Row: West and East Longitude
-                    # cols_mid = st.columns([1, 1])
-                    # with cols_mid[0]:
-                    #     west_lon = st.number_input(
-                    #         "⬅️ Lon Min",
-                    #         min_value=float(lon_vals.min()),
-                    #         max_value=float(lon_vals.max()),
-                    #         value=float(lon_vals.min()),
-                    #         key="west_lon"
-                    #     )
-                    # with cols_mid[1]:
-                    #     east_lon = st.number_input(
-                    #         "➡️ Lon Min",
-                    #         min_value=float(lon_vals.min()),
-                    #         max_value=float(lon_vals.max()),
-                    #         value=float(lon_vals.max()),
-                    #         key="east_lon"
-                    #     )
-                    
-                    # # -- Bottom Row: South Latitude (centered)
-                    # cols_south = st.columns([1, 1, 1])
-                    # with cols_south[1]:
-                    #     south_lat = st.number_input(
-                    #         "⬇️ Lat Min",
-                    #         min_value=float(lat_vals.min()),
-                    #         max_value=float(lat_vals.max()),
-                    #         value=float(lat_vals.min()),
-                    #         key="south_lat"
-                    #     )
-                        
-                    # lat_range = (south_lat, north_lat)
-                    # lon_range = (west_lon, east_lon)
-
-                    # # --- Define bounds
-                    # lat_min, lat_max = float(lat_vals.min()), float(lat_vals.max())
-                    # lon_min, lon_max = float(lon_vals.min()), float(lon_vals.max())
-                    
-                    # # --- Initialize reset flag
-                    # if "reset_coords" not in st.session_state:
-                    #     st.session_state.reset_coords = False
-                    
-                    # # --- Reset button
-                    # if st.button("🔄 Reset to Full Extent"):
-                    #     st.session_state.reset_coords = True
-                    #     st.rerun()  # use this instead of experimental_rerun
-                    
-                    # # --- Perform reset BEFORE widgets render
-                    # if st.session_state.reset_coords:
-                    #     st.session_state["north_lat"] = lat_max
-                    #     st.session_state["south_lat"] = lat_min
-                    #     st.session_state["west_lon"] = lon_min
-                    #     st.session_state["east_lon"] = lon_max
-                    #     st.session_state.reset_coords = False
-                    #     st.rerun()
 
                     # --- Define bounds
                     lat_min, lat_max = float(lat_vals.min()), float(lat_vals.max())
@@ -374,10 +306,6 @@ else:
                     lat_range = (south_lat, north_lat)
                     lon_range = (west_lon, east_lon)
 
-
-
-
-                    
                         
                     # -- Optional Depth Input
                     if depth_var:
