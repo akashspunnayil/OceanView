@@ -1770,7 +1770,7 @@ else:
                     try:
                         # STEP 1: Read raw file (no header)
                         raw_df = pd.read_excel(uploaded_file, header=None)
-                        st.write("🔍 Raw Preview:")
+                        st.write("Raw Preview:")
                         st.dataframe(raw_df)
                 
                         # STEP 2: Detect header row (look for 'Depth')
@@ -1780,7 +1780,7 @@ else:
                         # STEP 3: Load cleaned DataFrame
                         df = pd.read_excel(uploaded_file, header=header_row)
                         df.replace(r'^\s*$', np.nan, regex=True, inplace=True)
-                        st.write("✅ Cleaned Data:")
+                        st.write("Cleaned Data:")
                         st.dataframe(df)
                 
                         # STEP 4: Extract latitudes from column headers
@@ -1821,9 +1821,9 @@ else:
                         pcm = ax.pcolormesh(X, Y, masked_data, cmap=cmap, shading='auto')
                 
                         ax.invert_yaxis()
-                        ax.set_xlabel("Latitude (°N)")
-                        ax.set_ylabel("Depth (m)")
-                        ax.set_title("Section Plot (Depth vs Latitude)")
+                        # ax.set_xlabel("Latitude (°N)")
+                        # ax.set_ylabel("Depth (m)")
+                        # ax.set_title("Section Plot (Depth vs Latitude)")
                 
                         cbar = fig.colorbar(pcm, ax=ax)
                         cbar.set_label("Scalar Value")
