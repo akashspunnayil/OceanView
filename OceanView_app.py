@@ -1769,7 +1769,7 @@ else:
                     # === STEP 1: Load raw data ===
                     raw_df = pd.read_excel(uploaded_file, header=None)
                     st.write("🔍 Raw Preview:")
-                    st.dataframe(raw_df)
+                    # st.dataframe(raw_df)
         
                     # === STEP 2: Detect header row ===
                     data_start_idx = raw_df.applymap(lambda x: str(x).strip().lower() == 'depth').any(axis=1)
