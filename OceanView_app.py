@@ -1411,21 +1411,40 @@ else:
                     
                                 if time_key and time_key in profile.dims:
                                     time_vals, time_labels = try_decode_time(ds, time_key)
-                    
+
                                     if time_profile_mode == "Use selected time only":
-                                        time_sel = st.selectbox("Select Time", time_labels, key="vprof_single_time")
-                                        raw_time_value = time_vals[list(time_labels).index(time_sel)]
-                                        profile = profile.sel({time_key: raw_time_value}, method="nearest")
-                    
+                                        time_vals, time_labels = try_decode_time(ds, time_key)
+                                        time_sel_label = st.selectbox("Select Time", time_labels, key="vprof_single_time")
+                                        time_index = list(time_labels).index(time_sel_label)
+                                        time_sel = time_vals[time_index]
+                                        profile = profile.sel({time_key: time_sel}, method="nearest")
+                                    
                                     elif time_profile_mode == "Average over selected time range":
-                                        t1 = st.date_input("Start Date", value=pd.to_datetime(time_labels[0]), key="vprof_start")
-                                        t2 = st.date_input("End Date", value=pd.to_datetime(time_labels[-1]), key="vprof_end")
+                                        time_vals, time_labels = try_decode_time(ds, time_key)
+                                        t1 = st.date_input("Start Date", value=pd.to_datetime(time_labels[0]), key="vprof_t1")
+                                        t2 = st.date_input("End Date", value=pd.to_datetime(time_labels[-1]), key="vprof_t2")
                                         t1 = np.datetime64(t1)
                                         t2 = np.datetime64(t2)
                                         profile = profile.sel({time_key: slice(t1, t2)}).mean(dim=time_key, skipna=True)
-                    
+                                    
                                     elif time_profile_mode == "Plot all times":
-                                        pass
+                                        pass  # keep time dimension
+                                    
+
+                                    # if time_profile_mode == "Use selected time only":
+                                    #     time_sel = st.selectbox("Select Time", time_labels, key="vprof_single_time")
+                                    #     raw_time_value = time_vals[list(time_labels).index(time_sel)]
+                                    #     profile = profile.sel({time_key: raw_time_value}, method="nearest")
+                    
+                                    # elif time_profile_mode == "Average over selected time range":
+                                    #     t1 = st.date_input("Start Date", value=pd.to_datetime(time_labels[0]), key="vprof_start")
+                                    #     t2 = st.date_input("End Date", value=pd.to_datetime(time_labels[-1]), key="vprof_end")
+                                    #     t1 = np.datetime64(t1)
+                                    #     t2 = np.datetime64(t2)
+                                    #     profile = profile.sel({time_key: slice(t1, t2)}).mean(dim=time_key, skipna=True)
+                    
+                                    # elif time_profile_mode == "Plot all times":
+                                    #     pass
                     
                                 profile = profile.sel({depth_key: slice(depth_min, depth_max)})
                     
