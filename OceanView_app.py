@@ -307,32 +307,65 @@ else:
                     lon_range = (west_lon, east_lon)
 
                         
-                    # -- Optional Depth Input
+                    # # -- Optional Depth Input
+                    # if depth_var:
+                    #     st.markdown("#### Depth Level")
+                    #     depth_vals = ds[depth_var].values
+                    #     selected_depth = st.number_input(
+                    #         "Depth (m)",
+                    #         min_value=float(depth_vals.min()),
+                    #         max_value=float(depth_vals.max()),
+                    #         value=float(depth_vals.min()),
+                    #         step=10.0,
+                    #         key="depth_input"
+                    #     )
+                    # else:
+                    #     selected_depth = None
+
+
+                    # if time_var:
+                    #     raw_time_vals, time_labels = try_decode_time(ds, time_var)
+                    #     time_sel = st.selectbox("🕒 Select Time", time_labels)
+                    #     try:
+                    #         time_index = list(time_labels).index(time_sel)
+                    #         raw_time_value = raw_time_vals[time_index]
+                    #     except Exception:
+                    #         raw_time_value = raw_time_vals[0]
+                    # else:
+                    #     raw_time_value = None
+
+                    # -- Plot Mode Selection
+                    plot_mode = st.radio("🧭 Select Plot Mode", [
+                        "Single Time + Single Depth",
+                        "Time Range Avg + Single Depth",
+                        "Single Time + Depth Range Avg",
+                        "Time Range Avg + Depth Range Avg"
+                    ])
+                    
+                    # -- Depth
+                    depth_vals = ds[depth_var].values if depth_var else None
                     if depth_var:
-                        st.markdown("#### Depth Level")
-                        depth_vals = ds[depth_var].values
-                        selected_depth = st.number_input(
-                            "Depth (m)",
-                            min_value=float(depth_vals.min()),
-                            max_value=float(depth_vals.max()),
-                            value=float(depth_vals.min()),
-                            step=10.0,
-                            key="depth_input"
-                        )
+                        if "Depth Range Avg" in plot_mode:
+                            col1, col2 = st.columns(2)
+                            with col1:
+                                dmin = st.number_input("Min Depth", float(depth_vals.min()), float(depth_vals.max()), value=0.0, key="depth_min")
+                            with col2:
+                                dmax = st.number_input("Max Depth", float(depth_vals.min()), float(depth_vals.max()), value=200.0, key="depth_max")
+                        else:
+                            selected_depth = st.number_input("Depth (m)", float(depth_vals.min()), float(depth_vals.max()), value=float(depth_vals.min()), step=10.0, key="depth_single")
+                    
+                    # -- Time
+                    time_vals, time_labels = try_decode_time(ds, time_var)
+                    if "Time Range Avg" in plot_mode:
+                        t1 = st.date_input("🕒 Start Date", value=pd.to_datetime(time_labels[0]), key="map_start")
+                        t2 = st.date_input("🕒 End Date", value=pd.to_datetime(time_labels[-1]), key="map_end")
+                        t1 = np.datetime64(t1)
+                        t2 = np.datetime64(t2)
                     else:
-                        selected_depth = None
-
-
-                    if time_var:
-                        raw_time_vals, time_labels = try_decode_time(ds, time_var)
-                        time_sel = st.selectbox("🕒 Select Time", time_labels)
-                        try:
-                            time_index = list(time_labels).index(time_sel)
-                            raw_time_value = raw_time_vals[time_index]
-                        except Exception:
-                            raw_time_value = raw_time_vals[0]
-                    else:
-                        raw_time_value = None
+                        time_sel = st.selectbox("🕒 Select Time", time_labels, key="map_single_time")
+                        time_index = list(time_labels).index(time_sel)
+                        raw_time_value = time_vals[time_index]
+                    
                         
                     # Use left_col for plot selection checkboxes
                     with st.expander("🗺️ Select Plot Options", expanded=True):
@@ -490,8 +523,33 @@ else:
                         subset_kwargs[lat_var] = slice(*lat_range)
                     if lon_var in ds_sel.dims:
                         subset_kwargs[lon_var] = slice(*lon_range)
+                    
                     data = ds_sel.sel(subset_kwargs)
-        
+
+                    
+                    # =============================
+                    # --- Advanced Slicing for Plot Mode ---
+                    # =============================
+                    data = ds[var]
+                    data = data.sel({lat_var: slice(*lat_range), lon_var: slice(*lon_range)})
+                
+                    if "Depth Range Avg" in plot_mode:
+                        data = data.sel({depth_var: slice(dmin, dmax)})
+                        data = data.mean(dim=depth_var, skipna=True)
+                        depth_str = f"{dmin:.0f}–{dmax:.0f} m"
+                    else:
+                        data = data.sel({depth_var: selected_depth}, method="nearest")
+                        depth_str = f"{selected_depth:.0f} m"
+                
+                    if "Time Range Avg" in plot_mode:
+                        data = data.sel({time_var: slice(t1, t2)})
+                        data = data.mean(dim=time_var, skipna=True)
+                        time_str = f"{pd.to_datetime(t1).strftime('%Y-%m-%d')} to {pd.to_datetime(t2).strftime('%Y-%m-%d')}"
+                    else:
+                        data = data.sel({time_var: raw_time_value})
+                        time_str = pd.to_datetime(raw_time_value).strftime('%Y-%m-%d')
+                #++++++++++++++++++++++++++++                    
+                        
                     #---------------------------------Normal Spatial Map View----------------------------------------------------------#
                     
                     if show_spatial_map:
