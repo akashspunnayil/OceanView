@@ -1499,7 +1499,7 @@ else:
                             ax.set_xlabel(hov_x.name)
                             ax.set_ylabel("Time")
                             plt.xticks(rotation=45)
-                            fig.colorbar(c, ax=ax, label=var, shrink=0.5)
+                            fig.colorbar(c, ax=ax, label=var, shrink=0.65)
                             st.pyplot(fig)
                     
                             if save_btn:
