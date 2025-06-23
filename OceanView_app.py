@@ -1752,73 +1752,87 @@ else:
     
             if  station_plot:
                
+
+                import streamlit as st
+                import pandas as pd
+                import numpy as np
+                import matplotlib.pyplot as plt
                 import re
-
-
-                st.subheader("📊 Section Plot (Depth vs Latitude) from Excel")
+                from matplotlib.colors import Normalize
+                from matplotlib.cm import get_cmap
+                
+                # st.set_page_config(layout="wide")
+                st.subheader("📊 Section Plot (Depth vs Latitude) from Excel with NaN Handling")
                 
                 uploaded_file = st.file_uploader("📂 Upload Excel File", type=["xlsx", "xls"])
+                
                 if uploaded_file:
                     try:
-                        # STEP 1: Read full file without header
+                        # STEP 1: Read raw file (no header)
                         raw_df = pd.read_excel(uploaded_file, header=None)
+                        st.write("🔍 Raw Preview:")
+                        st.dataframe(raw_df)
                 
-                        # STEP 2: Detect header row (where 'Depth' is found)
+                        # STEP 2: Detect header row (look for 'Depth')
                         data_start_idx = raw_df.applymap(lambda x: str(x).strip().lower() == 'depth').any(axis=1)
                         header_row = data_start_idx.idxmax() if data_start_idx.any() else 0
                 
-                        # STEP 3: Load clean dataframe from header row
+                        # STEP 3: Load cleaned DataFrame
                         df = pd.read_excel(uploaded_file, header=header_row)
                         df.replace(r'^\s*$', np.nan, regex=True, inplace=True)
+                        st.write("✅ Cleaned Data:")
+                        st.dataframe(df)
                 
-                        # STEP 4: Parse latitudes from column headers (except Depth column)
-                        station_labels = df.columns[1:]
+                        # STEP 4: Extract latitudes from column headers
+                        station_labels = df.columns[1:]  # Skip 'Depth' column
                         latitudes = []
                         for label in station_labels:
                             match = re.search(r"([0-9.]+)", str(label))
                             if match:
                                 latitudes.append(float(match.group(1)))
                             else:
-                                latitudes.append(np.nan)  # If lat not found, set as NaN
+                                latitudes.append(np.nan)
                 
                         latitudes = np.array(latitudes)
                 
-                        # Filter out stations with invalid/missing latitudes
+                        # STEP 5: Filter valid columns
                         valid_indices = ~np.isnan(latitudes)
                         valid_lats = latitudes[valid_indices]
                         valid_cols = df.columns[1:][valid_indices]
                 
-                        # STEP 5: Prepare depth and matrix
+                        # STEP 6: Extract depth and scalar values
                         depths = pd.to_numeric(df.iloc[:, 0], errors='coerce')
-                        scalar_data = df[valid_cols].apply(pd.to_numeric, errors='coerce').T.values  # shape: (stations, depth)
+                        scalar_data = df[valid_cols].apply(pd.to_numeric, errors='coerce').T.values
                 
-                        # Remove rows with all NaNs in depth
+                        # Filter valid depth rows
                         valid_depth_mask = ~np.isnan(depths)
                         depths = depths[valid_depth_mask]
                         scalar_data = scalar_data[:, valid_depth_mask]
                 
-                        # STEP 6: Plotting
+                        # Meshgrid for pcolormesh
+                        X, Y = np.meshgrid(valid_lats, depths)
+                
+                        # STEP 7: Plot with NaNs masked as white
                         fig, ax = plt.subplots(figsize=(10, 6))
-                        pcm = ax.pcolormesh(
-                            valid_lats,
-                            depths,
-                            scalar_data,
-                            shading='auto',
-                            cmap='viridis'
-                        )
+                        cmap = plt.cm.viridis.copy()
+                        cmap.set_bad(color='white')
+                
+                        masked_data = np.ma.masked_invalid(scalar_data.T)  # shape: (depth, lat)
+                        pcm = ax.pcolormesh(X, Y, masked_data, cmap=cmap, shading='auto')
+                
                         ax.invert_yaxis()
-                
-                        cbar = fig.colorbar(pcm, ax=ax)
-                        cbar.set_label("Scalar Value")
-                
                         ax.set_xlabel("Latitude (°N)")
                         ax.set_ylabel("Depth (m)")
                         ax.set_title("Section Plot (Depth vs Latitude)")
                 
+                        cbar = fig.colorbar(pcm, ax=ax)
+                        cbar.set_label("Scalar Value")
+                
                         st.pyplot(fig)
                 
                     except Exception as e:
-                        st.error(f"❌ Plotting failed: {e}")
+                        st.error(f"❌ Error processing or plotting file: {e}")
+
 
 
 
