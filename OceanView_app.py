@@ -675,7 +675,7 @@ else:
             
                                 # fig.tight_layout()
                                 # fig_anim.subplots_adjust(left=0.05, right=0.95, bottom=0.1, top=0.95)
-                                fig_anim.subplots_adjust(left=0.09, right=1)
+                                fig_anim.subplots_adjust(left=0.1, right=1)
                                 # fig_anim.tight_layout(pad=1.5)
 
             
