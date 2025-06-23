@@ -1434,7 +1434,21 @@ else:
                     
                         time_vals, time_labels = try_decode_time(ds, time_var)
                         da.coords[time_var] = time_labels
-                    
+
+                        # --- Time Range Selection ---
+                        time_start_default = pd.to_datetime(time_labels[0])
+                        time_end_default = pd.to_datetime(time_labels[-1])
+                        
+                        col1, col2 = st.columns(2)
+                        with col1:
+                            t1 = st.date_input("🕒 Start Date", value=time_start_default)
+                        with col2:
+                            t2 = st.date_input("🕒 End Date", value=time_end_default)
+                            
+                        # Convert to string or numpy datetime for slicing
+                        t1 = np.datetime64(t1)
+                        t2 = np.datetime64(t2)
+
                         try:
                             if hov_mode.startswith("Longitude"):
                                 fixed_lat = st.number_input("Latitude (°N)", float(ds[lat_var].min()), float(ds[lat_var].max()), value=15.0)
@@ -1443,12 +1457,20 @@ else:
                                 if "Depth-avg" in hov_mode:
                                     d1 = st.number_input("Min Depth", float(ds[depth_var].min()), float(ds[depth_var].max()), value=0.0)
                                     d2 = st.number_input("Max Depth", float(ds[depth_var].min()), float(ds[depth_var].max()), value=200.0)
+                                    # da_sel = da.sel({lon_var: slice(lon_min, lon_max), depth_var: slice(d1, d2)})
+                                    # da_sel = da_sel.sel({lat_var: fixed_lat}, method="nearest").mean(dim=depth_var, skipna=True)
+                                    # # existing slicing logic
                                     da_sel = da.sel({lon_var: slice(lon_min, lon_max), depth_var: slice(d1, d2)})
                                     da_sel = da_sel.sel({lat_var: fixed_lat}, method="nearest").mean(dim=depth_var, skipna=True)
+                                    
+                                    # ✅ new time slicing
+                                    da_sel = da_sel.sel({time_var: slice(t1, t2)})
+
                                 else:
                                     fixed_depth = st.number_input("Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=10.0)
                                     da_sel = da.sel({lon_var: slice(lon_min, lon_max), depth_var: fixed_depth})
                                     da_sel = da_sel.sel({lat_var: fixed_lat}, method="nearest")
+                                    da_sel = da_sel.sel({time_var: slice(t1, t2)})
                                 hov_x = da_sel[lon_var]
                                 hov_y = da_sel[time_var]
                                 hov_z = da_sel.transpose(time_var, lon_var)
@@ -1460,12 +1482,21 @@ else:
                                 if "Depth-avg" in hov_mode:
                                     d1 = st.number_input("Min Depth", float(ds[depth_var].min()), float(ds[depth_var].max()), value=0.0)
                                     d2 = st.number_input("Max Depth", float(ds[depth_var].min()), float(ds[depth_var].max()), value=200.0)
-                                    da_sel = da.sel({lat_var: slice(lat_min, lat_max), depth_var: slice(d1, d2)})
-                                    da_sel = da_sel.sel({lon_var: fixed_lon}, method="nearest").mean(dim=depth_var, skipna=True)
+                                    # da_sel = da.sel({lat_var: slice(lat_min, lat_max), depth_var: slice(d1, d2)})
+                                    # da_sel = da_sel.sel({lon_var: fixed_lon}, method="nearest").mean(dim=depth_var, skipna=True)
+
+                                    # # existing slicing logic
+                                    da_sel = da.sel({lon_var: slice(lon_min, lon_max), depth_var: slice(d1, d2)})
+                                    da_sel = da_sel.sel({lat_var: fixed_lat}, method="nearest").mean(dim=depth_var, skipna=True)
+                                    
+                                    # ✅ new time slicing
+                                    da_sel = da_sel.sel({time_var: slice(t1, t2)})
+
                                 else:
                                     fixed_depth = st.number_input("Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=10.0)
                                     da_sel = da.sel({lat_var: slice(lat_min, lat_max), depth_var: fixed_depth})
                                     da_sel = da_sel.sel({lon_var: fixed_lon}, method="nearest")
+                                    da_sel = da_sel.sel({time_var: slice(t1, t2)})
                                 hov_x = da_sel[lat_var]
                                 hov_y = da_sel[time_var]
                                 hov_z = da_sel.transpose(time_var, lat_var)
@@ -1474,6 +1505,8 @@ else:
                                 lat_pt = st.number_input("Latitude (°N)", float(ds[lat_var].min()), float(ds[lat_var].max()), value=15.0)
                                 lon_pt = st.number_input("Longitude (°E)", float(ds[lon_var].min()), float(ds[lon_var].max()), value=60.0)
                                 da_sel = da.sel({lat_var: lat_pt, lon_var: lon_pt}, method="nearest")
+                                da_sel = da_sel.sel({time_var: slice(t1, t2)})
+                                
                                 hov_x = da_sel[depth_var]
                                 hov_y = da_sel[time_var]
                                 hov_z = da_sel.transpose(time_var, depth_var)
@@ -1488,6 +1521,8 @@ else:
                                     lon_max = st.number_input("Max Longitude", float(ds[lon_var].min()), float(ds[lon_var].max()), value=70.0)
                                 da_sel = da.sel({lat_var: slice(lat_min, lat_max), lon_var: slice(lon_min, lon_max)})
                                 da_sel = da_sel.mean(dim=[lat_var, lon_var], skipna=True)
+                                da_sel = da_sel.sel({time_var: slice(t1, t2)})
+                                
                                 hov_x = da_sel[depth_var]
                                 hov_y = da_sel[time_var]
                                 hov_z = da_sel.transpose(time_var, depth_var)
