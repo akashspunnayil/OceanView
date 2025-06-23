@@ -620,7 +620,8 @@ else:
                                 mime=f"image/{'jpeg' if save_format == 'jpg' else save_format}"
                             )
                     #---------------------------------Intercative Spatial Map View----------------------------------------------------------#
-                    
+
+                    import plotly.graph_objects as go
                     if show_interactive_spatial_map:
                         # -- Plot Mode Selection
                         plot_mode = st.radio("🧭 Select Plot Mode", [
