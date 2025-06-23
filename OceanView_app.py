@@ -620,80 +620,43 @@ else:
                                 mime=f"image/{'jpeg' if save_format == 'jpg' else save_format}"
                             )
                     #---------------------------------Intercative Spatial Map View----------------------------------------------------------#
+                    
                     if show_interactive_spatial_map:
-                        
                         # -- Plot Mode Selection
                         plot_mode = st.radio("🧭 Select Plot Mode", [
                             "Single Time + Single Depth",
                             "Time Range Avg + Single Depth",
                             "Single Time + Depth Range Avg",
                             "Time Range Avg + Depth Range Avg"
-                        ])
-
-                        
+                        ], key="map_plot_mode")  # 🔑 Unique key is safer
+                    
                         # -- Depth Input
                         depth_vals = ds[depth_var].values if depth_var else None
                         if depth_var:
                             if "Depth Range Avg" in plot_mode:
                                 col1, col2 = st.columns(2)
                                 with col1:
-                                    dmin = st.number_input("Min Depth", float(depth_vals.min()), float(depth_vals.max()), value=0.0, key="depth_min")
+                                    dmin = st.number_input("Min Depth", float(depth_vals.min()), float(depth_vals.max()), value=0.0, key="imap_depth_min")
                                 with col2:
-                                    dmax = st.number_input("Max Depth", float(depth_vals.min()), float(depth_vals.max()), value=200.0, key="depth_max")
+                                    dmax = st.number_input("Max Depth", float(depth_vals.min()), float(depth_vals.max()), value=200.0, key="imap_depth_max")
                             else:
                                 selected_depth = st.number_input(
                                     "Depth (m)", float(depth_vals.min()), float(depth_vals.max()),
-                                    value=float(depth_vals.min()), step=10.0, key="depth_single"
+                                    value=float(depth_vals.min()), step=10.0, key="imap_depth_single"
                                 )
                     
                         # -- Time Input
                         time_vals, time_labels = try_decode_time(ds, time_var)
                         if "Time Range Avg" in plot_mode:
-                            t1 = st.date_input("🕒 Start Date", value=pd.to_datetime(time_labels[0]), key="map_start")
-                            t2 = st.date_input("🕒 End Date", value=pd.to_datetime(time_labels[-1]), key="map_end")
+                            t1 = st.date_input("🕒 Start Date", value=pd.to_datetime(time_labels[0]), key="imap_start")
+                            t2 = st.date_input("🕒 End Date", value=pd.to_datetime(time_labels[-1]), key="imap_end")
                             t1 = np.datetime64(t1)
                             t2 = np.datetime64(t2)
                         else:
-                            time_sel = st.selectbox("🕒 Select Time", time_labels, key="map_single_time")
+                            time_sel = st.selectbox("🕒 Select Time", time_labels, key="imap_single_time")
                             time_index = list(time_labels).index(time_sel)
                             raw_time_value = time_vals[time_index]
-
-                        # ------------------ Compute time_str and depth_str ------------------ #
-                        depth_str = ""
-                        time_str = ""
-                        
-                        # Depth string
-                        if "Depth Range Avg" in plot_mode:
-                            depth_str = f"{dmin:.0f}–{dmax:.0f} m"
-                        else:
-                            depth_str = f"{selected_depth:.0f} m"
-                        
-                        # Time string
-                        if "Time Range Avg" in plot_mode:
-                            time_str = f"{pd.to_datetime(t1).strftime('%Y-%m-%d')} to {pd.to_datetime(t2).strftime('%Y-%m-%d')}"
-                        else:
-                            time_str = pd.to_datetime(raw_time_value).strftime('%Y-%m-%d')
-
-                        st.subheader("🎞️ Interactive Map View")
-                        
-                        def figsize_to_plotly(width_in, height_in, dpi=100):
-                            return int(width_in * dpi), int(height_in * dpi)
                     
-                        def standardize_coords(dataarray):
-                            coord_map = {'latitude': None, 'longitude': None, 'time': None, 'depth': None}
-                            coord_candidates = {k.lower(): k for k in dataarray.coords}
-                            for standard, options in {
-                                'latitude': ['lat', 'latitude'],
-                                'longitude': ['lon', 'longitude'],
-                                'time': ['time'],
-                                'depth': ['depth', 'depth1_1', 'z']
-                            }.items():
-                                for opt in options:
-                                    if opt in coord_candidates:
-                                        coord_map[standard] = coord_candidates[opt]
-                                        break
-                            return coord_map
-
                         # ------------------ Data Extraction ------------------ #
                         data = ds[var]
                         data = data.sel({lat_var: slice(*lat_range), lon_var: slice(*lon_range)})
@@ -715,6 +678,25 @@ else:
                             time_str = pd.to_datetime(raw_time_value).strftime('%Y-%m-%d')
                     
                         # ------------------ Plotting ------------------ #
+                        st.subheader("🎞️ Interactive Map View")
+                    
+                        def figsize_to_plotly(width_in, height_in, dpi=100):
+                            return int(width_in * dpi), int(height_in * dpi)
+                    
+                        def standardize_coords(dataarray):
+                            coord_map = {'latitude': None, 'longitude': None, 'time': None, 'depth': None}
+                            coord_candidates = {k.lower(): k for k in dataarray.coords}
+                            for standard, options in {
+                                'latitude': ['lat', 'latitude'],
+                                'longitude': ['lon', 'longitude'],
+                                'time': ['time'],
+                                'depth': ['depth', 'depth1_1', 'z']
+                            }.items():
+                                for opt in options:
+                                    if opt in coord_candidates:
+                                        coord_map[standard] = coord_candidates[opt]
+                                        break
+                            return coord_map
                     
                         data_2d = data.squeeze()
                         coord_map = standardize_coords(data_2d)
@@ -747,6 +729,7 @@ else:
                         )
                     
                         st.plotly_chart(fig, use_container_width=True)
+
 
 
                     # if show_interactive_spatial_map:
