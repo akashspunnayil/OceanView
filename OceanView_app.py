@@ -609,12 +609,7 @@ else:
                             return int(width_in * dpi), int(height_in * dpi)
                     
                         def standardize_coords(dataarray):
-                            coord_map = {
-                                'latitude': None,
-                                'longitude': None,
-                                'time': None,
-                                'depth': None
-                            }
+                            coord_map = {'latitude': None, 'longitude': None, 'time': None, 'depth': None}
                             coord_candidates = {k.lower(): k for k in dataarray.coords}
                             for standard, options in {
                                 'latitude': ['lat', 'latitude'],
@@ -628,7 +623,6 @@ else:
                                         break
                             return coord_map
                     
-                        # Assume `data` is already subset and averaged appropriately
                         data_2d = data.squeeze()
                         coord_map = standardize_coords(data_2d)
                     
@@ -660,6 +654,7 @@ else:
                         )
                     
                         st.plotly_chart(fig, use_container_width=True)
+
 
                     # if show_interactive_spatial_map:
                     #     st.subheader("🎞️ Interactive Map View")
