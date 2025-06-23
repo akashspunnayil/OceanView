@@ -1470,7 +1470,18 @@ else:
                                 ax.set_xlabel(var)
                                 ax.set_ylabel("Depth (m)")
                                 ax.invert_yaxis()
-                                ax.set_title(f"{var} Profile at {label}")
+                                # ax.set_title(f"{var} Profile at {label}")
+                                # Format time label
+                                if time_profile_mode == "Use selected time only":
+                                    time_title = f"\n {pd.to_datetime(time_sel).strftime('%Y-%m-%d')}"
+                                elif time_profile_mode == "Average over selected time range":
+                                    time_title = f"\n {pd.to_datetime(t1).strftime('%Y-%m-%d')} to {pd.to_datetime(t2).strftime('%Y-%m-%d')}"
+                                elif time_profile_mode == "Plot all times":
+                                    time_title = "\n All Available Times"
+                                
+                                # Final title
+                                ax.set_title(f"{var} Vertical Profile\n{label}{time_title}")
+
                                 st.pyplot(fig)
                     
                             except Exception as e:
