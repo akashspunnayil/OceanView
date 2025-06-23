@@ -1819,7 +1819,17 @@ else:
                 
                         masked_data = np.ma.masked_invalid(scalar_data.T)  # shape: (depth, lat)
                         pcm = ax.pcolormesh(X, Y, masked_data, cmap=cmap, shading='auto')
-                
+
+                        try:
+                            ax.set_title(title_value)
+                        except Exception as e:
+                            st.error(f"Title error: {e}")
+                        
+                        try:
+                            cbar.set_label(colorbar_label)
+                        except Exception as e:
+                            st.error(f"Colorbar label error: {e}")
+
                         ax.invert_yaxis()
                         # ax.set_xlabel("Latitude (°N)")
                         # ax.set_ylabel("Depth (m)")
