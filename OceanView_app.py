@@ -406,7 +406,7 @@ else:
                                 st.button("🔄 Reset", on_click=reset_colorbar_settings, key="reset_colorbar_btn")
         
                     def reset_plot_labels(time_sel_value=None, depth_value=None):
-                        title = var
+                        # title = var
                         # if time_sel_value:
                         #     title += f" | {time_sel_value}"
                         # if depth_value is not None:
