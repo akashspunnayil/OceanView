@@ -721,7 +721,7 @@ else:
                     
                         width, height = figsize_to_plotly(10, 6)
                         fig.update_layout(
-                            title=f"{plot_title}<br><sub>🕒 {time_str} | Depth: {depth_str}</sub>",
+                            title=f"{plot_title}<br><sub> {time_str} | Depth: {depth_str}</sub>",
                             xaxis_title=xlabel,
                             yaxis_title=ylabel,
                             width=width,
