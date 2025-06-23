@@ -552,67 +552,126 @@ else:
                         
                     #---------------------------------Normal Spatial Map View----------------------------------------------------------#
                     
+                    # if show_spatial_map:
+                    #     st.subheader("🗺️ Map View")
+                    #     # Apply the selected font family first
+                    #     plt.rcParams['font.family'] = st.session_state.get("font_family", "DejaVu Sans")                
+            
+                    #     fig, ax = plt.subplots(figsize=(10, 6), subplot_kw={"projection": ccrs.PlateCarree()})
+                    #     plot_kwargs = {"ax": ax, "transform": ccrs.PlateCarree(), "cmap": cmap_choice, "add_colorbar": True}
+                    #     if set_clim:
+                    #         plot_kwargs["vmin"] = vmin
+                    #         plot_kwargs["vmax"] = vmax
+            
+                    #     im = data.squeeze().plot.pcolormesh(**plot_kwargs)
+                    #     ax.coastlines()
+                    #     gl = ax.gridlines(draw_labels=True, linewidth=0.5, color='gray', alpha=0.5, linestyle='--')
+                    #     gl.top_labels = gl.right_labels = False
+                    #     gl.xlabel_style = gl.ylabel_style = {'size': 12}
+            
+                    #     if st.session_state.get("manual_ticks", False):
+                    #         xtick_step = st.session_state.get("xtick_step")
+                    #         ytick_step = st.session_state.get("ytick_step")
+                    #         if xtick_step and ytick_step:
+                    #             gl.xlocator = mticker.FixedLocator(np.arange(lon_range[0], lon_range[1] + xtick_step, xtick_step))
+                    #             gl.ylocator = mticker.FixedLocator(np.arange(lat_range[0], lat_range[1] + ytick_step, ytick_step))
+            
+            
+                    #     if mask_land:
+                    #         ax.add_feature(cfeature.LAND, facecolor=mask_color, zorder=3)
+                    #     if mask_sea:
+                    #         ax.add_feature(cfeature.OCEAN, facecolor=mask_color, zorder=3)
+            
+                    #     ax.set_title(plot_title, fontsize=14)
+                    #     # if hasattr(im, 'colorbar') and im.colorbar:
+                    #     #     im.colorbar.set_label(cbar_label, fontsize=12)
+
+                    #     if hasattr(im, 'colorbar') and im.colorbar:
+                    #         # Remove default colorbar
+                    #         im.colorbar.remove()
+                        
+                    #     # Manually create colorbar with controlled size
+                    #     cbar = fig.colorbar(im, ax=ax, orientation='vertical', shrink=0.6, pad=0.05)
+                    #     cbar.set_label(cbar_label, fontsize=12)
+
+                        
+                    #     # ax.text(0.5, -0.2, xlabel, transform=ax.transAxes, ha='center', va='top', fontsize=12)
+                    #     # ax.text(-0.3, 0.5, ylabel, transform=ax.transAxes, ha='right', va='center', rotation='vertical', fontsize=12)
+
+                    #     # Get axis position in figure coordinates (left, bottom, width, height)
+                    #     bbox = ax.get_position()
+                        
+                    #     # Adjust offsets based on axis size
+                    #     x_offset = -0.05 * (10 / fig.get_size_inches()[0])  # proportionally shrink offset
+                    #     y_offset = -0.1 * (6 / fig.get_size_inches()[1])
+                        
+                    #     # Place labels relative to axis
+                    #     ax.text(0.5, y_offset, xlabel, transform=ax.transAxes, ha='center', va='top', fontsize=12)
+                    #     ax.text(x_offset-0.1, 0.5, ylabel, transform=ax.transAxes, ha='right', va='center',
+                    #             rotation='vertical', fontsize=12)
+
+                    #     st.pyplot(fig)
+            
+            
+                    #     if save_btn:
+                    #         buf = io.BytesIO()
+                    #         fig.savefig(buf, format=save_format, dpi=dpi_value, bbox_inches="tight")
+                    #         st.success(f"✅ Plot saved as {save_format.upper()} ({dpi_value} DPI)")
+                    #         st.download_button(
+                    #             label=f"📥 Download {save_format.upper()} file",
+                    #             data=buf.getvalue(),
+                    #             file_name=f"ocean_plot.{save_format}",
+                    #             mime=f"image/{'jpeg' if save_format == 'jpg' else save_format}"
+                    #         )
+
                     if show_spatial_map:
                         st.subheader("🗺️ Map View")
-                        # Apply the selected font family first
                         plt.rcParams['font.family'] = st.session_state.get("font_family", "DejaVu Sans")                
-            
+                
                         fig, ax = plt.subplots(figsize=(10, 6), subplot_kw={"projection": ccrs.PlateCarree()})
                         plot_kwargs = {"ax": ax, "transform": ccrs.PlateCarree(), "cmap": cmap_choice, "add_colorbar": True}
                         if set_clim:
                             plot_kwargs["vmin"] = vmin
                             plot_kwargs["vmax"] = vmax
-            
+                
                         im = data.squeeze().plot.pcolormesh(**plot_kwargs)
                         ax.coastlines()
+                
                         gl = ax.gridlines(draw_labels=True, linewidth=0.5, color='gray', alpha=0.5, linestyle='--')
                         gl.top_labels = gl.right_labels = False
                         gl.xlabel_style = gl.ylabel_style = {'size': 12}
-            
+                
                         if st.session_state.get("manual_ticks", False):
                             xtick_step = st.session_state.get("xtick_step")
                             ytick_step = st.session_state.get("ytick_step")
                             if xtick_step and ytick_step:
                                 gl.xlocator = mticker.FixedLocator(np.arange(lon_range[0], lon_range[1] + xtick_step, xtick_step))
                                 gl.ylocator = mticker.FixedLocator(np.arange(lat_range[0], lat_range[1] + ytick_step, ytick_step))
-            
-            
+                
                         if mask_land:
                             ax.add_feature(cfeature.LAND, facecolor=mask_color, zorder=3)
                         if mask_sea:
                             ax.add_feature(cfeature.OCEAN, facecolor=mask_color, zorder=3)
-            
-                        ax.set_title(plot_title, fontsize=14)
-                        # if hasattr(im, 'colorbar') and im.colorbar:
-                        #     im.colorbar.set_label(cbar_label, fontsize=12)
-
+                
+                        # 🟡 Title with time & depth info
+                        ax.set_title(f"{plot_title}\n🕒 {time_str} | Depth: {depth_str}", fontsize=14)
+                
+                        # Replace colorbar
                         if hasattr(im, 'colorbar') and im.colorbar:
-                            # Remove default colorbar
                             im.colorbar.remove()
-                        
-                        # Manually create colorbar with controlled size
                         cbar = fig.colorbar(im, ax=ax, orientation='vertical', shrink=0.6, pad=0.05)
                         cbar.set_label(cbar_label, fontsize=12)
-
-                        
-                        # ax.text(0.5, -0.2, xlabel, transform=ax.transAxes, ha='center', va='top', fontsize=12)
-                        # ax.text(-0.3, 0.5, ylabel, transform=ax.transAxes, ha='right', va='center', rotation='vertical', fontsize=12)
-
-                        # Get axis position in figure coordinates (left, bottom, width, height)
-                        bbox = ax.get_position()
-                        
-                        # Adjust offsets based on axis size
-                        x_offset = -0.05 * (10 / fig.get_size_inches()[0])  # proportionally shrink offset
-                        y_offset = -0.1 * (6 / fig.get_size_inches()[1])
-                        
-                        # Place labels relative to axis
+                
+                        # Adaptive label positioning
+                        fig_w, fig_h = fig.get_size_inches()
+                        x_offset = -0.05 * (10 / fig_w)
+                        y_offset = -0.1 * (6 / fig_h)
                         ax.text(0.5, y_offset, xlabel, transform=ax.transAxes, ha='center', va='top', fontsize=12)
-                        ax.text(x_offset-0.1, 0.5, ylabel, transform=ax.transAxes, ha='right', va='center',
-                                rotation='vertical', fontsize=12)
-
+                        ax.text(x_offset - 0.1, 0.5, ylabel, transform=ax.transAxes, ha='right', va='center', rotation='vertical', fontsize=12)
+                
                         st.pyplot(fig)
-            
-            
+                
+                        # Download
                         if save_btn:
                             buf = io.BytesIO()
                             fig.savefig(buf, format=save_format, dpi=dpi_value, bbox_inches="tight")
@@ -623,7 +682,6 @@ else:
                                 file_name=f"ocean_plot.{save_format}",
                                 mime=f"image/{'jpeg' if save_format == 'jpg' else save_format}"
                             )
-
                     #---------------------------------Intercative Spatial Map View----------------------------------------------------------#
                     
                     if show_interactive_spatial_map:
