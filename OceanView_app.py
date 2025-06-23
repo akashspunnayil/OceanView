@@ -642,27 +642,192 @@ else:
 
                     #---------------------------------------------Spatial Map Animation--------------------------------------------------#
 
+                    # if show_time_animation:
+                    #     # === Create Animated Plot over Time ===
+                    #     import matplotlib.animation as animation
+                    #     import io
+                        
+                    #     st.subheader("🎞️ Time-Loop Animation (GIF)")
+                    #     plt.rcParams['font.family'] = st.session_state.get("font_family", "DejaVu Sans")
+                        
+                    #     if time_var and time_var in ds[var].dims:
+                    #         try:
+                    #             da_anim = ds[var]
+                        
+                    #             if depth_var and selected_depth is not None and depth_var in da_anim.dims:
+                    #                 da_anim = da_anim.sel({depth_var: selected_depth}, method="nearest")
+                        
+                    #             da_anim = da_anim.sel({lat_var: slice(*lat_range), lon_var: slice(*lon_range)})
+                        
+                    #             fig_anim, ax_anim = plt.subplots(figsize=(8, 5), subplot_kw={"projection": ccrs.PlateCarree()})
+                                
+                    #             # --- Draw colorbar once outside animation loop ---
+                    #             first_frame = da_anim.isel({time_var: 0})
+                    #             im_cbar = first_frame.plot.pcolormesh(
+                    #                 ax=ax_anim,
+                    #                 transform=ccrs.PlateCarree(),
+                    #                 cmap=cmap_choice,
+                    #                 vmin=vmin if set_clim else None,
+                    #                 vmax=vmax if set_clim else None,
+                    #                 add_colorbar=False
+                    #             )
+                    #             cbar = fig_anim.colorbar(im_cbar, ax=ax_anim, orientation="vertical", shrink=0.4, pad=0.05, extend='both')
+                    #             cbar.set_label(cbar_label, fontsize=10)
+            
+                    #             def update_anim(frame):
+                    #                 ax_anim.clear()
+                    #                 frame_data = da_anim.isel({time_var: frame})
+                                
+                    #                 im = frame_data.plot.pcolormesh(
+                    #                     ax=ax_anim,
+                    #                     transform=ccrs.PlateCarree(),
+                    #                     cmap=cmap_choice,
+                    #                     vmin=vmin if set_clim else None,
+                    #                     vmax=vmax if set_clim else None,
+                    #                     add_colorbar=False
+                    #                 )
+                                
+                    #                 ax_anim.coastlines()
+                    #                 if mask_land:
+                    #                     ax_anim.add_feature(cfeature.LAND, facecolor=mask_color, zorder=3)
+                    #                 if mask_sea:
+                    #                     ax_anim.add_feature(cfeature.OCEAN, facecolor=mask_color, zorder=3)
+                                
+                    #                 gl = ax_anim.gridlines(draw_labels=True, linewidth=0.5, color='gray', alpha=0.5, linestyle='--')
+                    #                 gl.top_labels = False
+                    #                 gl.right_labels = False
+                    #                 gl.xlabel_style = {'size': 10}
+                    #                 gl.ylabel_style = {'size': 10}
+                                
+                    #                 if st.session_state.get("manual_ticks", False):
+                    #                     xtick_step = st.session_state.get("xtick_step")
+                    #                     ytick_step = st.session_state.get("ytick_step")
+                    #                     if xtick_step and ytick_step:
+                    #                         gl.xlocator = mticker.FixedLocator(np.arange(lon_range[0], lon_range[1] + xtick_step, xtick_step))
+                    #                         gl.ylocator = mticker.FixedLocator(np.arange(lat_range[0], lat_range[1] + ytick_step, ytick_step))
+                                
+                    #                 # ax_anim.text(0.5, -0.1, xlabel, transform=ax_anim.transAxes, ha='center', va='top', fontsize=10)
+                    #                 # ax_anim.text(-0.15, 0.5, ylabel, transform=ax_anim.transAxes, ha='right', va='center', rotation='vertical', fontsize=10)
+                    #                 # -- Get dynamic offsets based on current figure size
+                    #                 fig_w, fig_h = fig_anim.get_size_inches()
+                    #                 x_offset = -0.05 * (8 / fig_w)
+                    #                 y_offset = -0.08 * (5 / fig_h)
+                                    
+                    #                 # -- Adaptive font size based on plot span
+                    #                 lon_span = lon_range[1] - lon_range[0]
+                    #                 lat_span = lat_range[1] - lat_range[0]
+                    #                 label_fontsize = 8 if lon_span < 2 or lat_span < 2 else 10
+                                    
+                    #                 # -- Add labels with dynamic position
+                    #                 ax_anim.text(0.5, y_offset-0.1, xlabel, transform=ax_anim.transAxes,
+                    #                              ha='center', va='top', fontsize=label_fontsize)
+                    #                 ax_anim.text(x_offset-0.15, 0.5, ylabel, transform=ax_anim.transAxes,
+                    #                              ha='right', va='center', rotation='vertical', fontsize=label_fontsize)
+
+                                
+                    #                 # 🕒 Use decoded, formatted time string from time_labels
+                    #                 try:
+                    #                     time_str = pd.to_datetime(time_labels[frame]).strftime("%Y-%m-%d")
+                    #                 except:
+                    #                     time_str = str(time_labels[frame])[:15]
+                                
+                    #                 title = f"{plot_title}"# | Time: {time_str}"
+                    #                 # if depth_var and selected_depth is not None:
+                    #                 #     title += f" | Depth: {selected_depth} m"
+                                
+                    #                 ax_anim.set_title(title, fontsize=12)
+                    #                 return [im]
+            
+                    #             # fig.tight_layout()
+                    #             # fig_anim.subplots_adjust(left=0.05, right=0.95, bottom=0.1, top=0.95)
+                    #             fig_anim.subplots_adjust(left=0.2, right=1)
+                    #             # fig_anim.tight_layout(pad=1.5)
+
+            
+                    #             ani = animation.FuncAnimation(
+                    #                 fig_anim, update_anim, frames=da_anim.sizes[time_var], blit=False
+                    #             )
+                                
+                    #             import tempfile
+                    #             import os
+                                
+                    #             with tempfile.NamedTemporaryFile(delete=False, suffix=".gif") as tmpfile:
+                    #                 temp_gif_path = tmpfile.name
+                                
+                    #             ani.save(temp_gif_path, writer="pillow", fps=2, savefig_kwargs={'bbox_inches': 'tight'})
+                                
+                    #             # Display the animation in Streamlit
+                    #             with open(temp_gif_path, "rb") as f:
+                    #                 gif_bytes = f.read()
+                                
+                    #             st.image(gif_bytes, caption="Time-animated plot", use_container_width=True)
+                                
+                    #             st.download_button(
+                    #                 label="📥 Download GIF",
+                    #                 data=gif_bytes,  # ✅ Use directly, no .getvalue()
+                    #                 file_name=f"{var}_animation.gif",
+                    #                 mime="image/gif"
+                    #             )
+                                
+                    #             # Optional cleanup
+                    #             os.remove(temp_gif_path)
+                        
+                    #         except Exception as e:
+                    #             st.error(f"⚠️ Failed to create animation: {e}")
+                    #     else:
+                    #         st.info("⏳ Animation unavailable: Time dimension not found in selected variable.")
+
                     if show_time_animation:
-                        # === Create Animated Plot over Time ===
                         import matplotlib.animation as animation
                         import io
-                        
+                        import tempfile
+                        import os
+                    
                         st.subheader("🎞️ Time-Loop Animation (GIF)")
                         plt.rcParams['font.family'] = st.session_state.get("font_family", "DejaVu Sans")
-                        
+                    
                         if time_var and time_var in ds[var].dims:
                             try:
+                                # Time range selection
+                                time_vals, time_labels = try_decode_time(ds, time_var)
+                                time_start_default = pd.to_datetime(time_labels[0])
+                                time_end_default = pd.to_datetime(time_labels[-1])
+                    
+                                col1, col2 = st.columns(2)
+                                with col1:
+                                    t1 = st.date_input("🕒 Start Date", value=time_start_default)
+                                with col2:
+                                    t2 = st.date_input("🕒 End Date", value=time_end_default)
+                    
+                                t1 = np.datetime64(t1)
+                                t2 = np.datetime64(t2)
+                    
+                                # Plot mode: Fixed depth vs Depth-avg
+                                plot_mode = st.radio("🌀 Select Animation Mode", [
+                                    "Constant Depth",
+                                    "Depth-averaged (Range)"
+                                ])
+                    
+                                if plot_mode == "Constant Depth":
+                                    selected_depth = st.number_input("Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=10.0)
+                                else:
+                                    dmin = st.number_input("Min Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=0.0)
+                                    dmax = st.number_input("Max Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=200.0)
+                    
+                                # Select and slice data
                                 da_anim = ds[var]
-                        
-                                if depth_var and selected_depth is not None and depth_var in da_anim.dims:
-                                    da_anim = da_anim.sel({depth_var: selected_depth}, method="nearest")
-                        
                                 da_anim = da_anim.sel({lat_var: slice(*lat_range), lon_var: slice(*lon_range)})
-                        
+                                da_anim = da_anim.sel({time_var: slice(t1, t2)})
+                    
+                                if plot_mode == "Constant Depth":
+                                    da_anim = da_anim.sel({depth_var: selected_depth}, method="nearest")
+                                else:
+                                    da_anim = da_anim.sel({depth_var: slice(dmin, dmax)})
+                                    da_anim = da_anim.mean(dim=depth_var, skipna=True)
+                    
                                 fig_anim, ax_anim = plt.subplots(figsize=(8, 5), subplot_kw={"projection": ccrs.PlateCarree()})
-                                
-                                # --- Draw colorbar once outside animation loop ---
                                 first_frame = da_anim.isel({time_var: 0})
+                    
                                 im_cbar = first_frame.plot.pcolormesh(
                                     ax=ax_anim,
                                     transform=ccrs.PlateCarree(),
@@ -673,11 +838,11 @@ else:
                                 )
                                 cbar = fig_anim.colorbar(im_cbar, ax=ax_anim, orientation="vertical", shrink=0.4, pad=0.05, extend='both')
                                 cbar.set_label(cbar_label, fontsize=10)
-            
+                    
                                 def update_anim(frame):
                                     ax_anim.clear()
                                     frame_data = da_anim.isel({time_var: frame})
-                                
+                    
                                     im = frame_data.plot.pcolormesh(
                                         ax=ax_anim,
                                         transform=ccrs.PlateCarree(),
@@ -686,92 +851,77 @@ else:
                                         vmax=vmax if set_clim else None,
                                         add_colorbar=False
                                     )
-                                
+                    
                                     ax_anim.coastlines()
                                     if mask_land:
                                         ax_anim.add_feature(cfeature.LAND, facecolor=mask_color, zorder=3)
                                     if mask_sea:
                                         ax_anim.add_feature(cfeature.OCEAN, facecolor=mask_color, zorder=3)
-                                
+                    
                                     gl = ax_anim.gridlines(draw_labels=True, linewidth=0.5, color='gray', alpha=0.5, linestyle='--')
-                                    gl.top_labels = False
-                                    gl.right_labels = False
+                                    gl.top_labels = gl.right_labels = False
                                     gl.xlabel_style = {'size': 10}
                                     gl.ylabel_style = {'size': 10}
-                                
+                    
                                     if st.session_state.get("manual_ticks", False):
                                         xtick_step = st.session_state.get("xtick_step")
                                         ytick_step = st.session_state.get("ytick_step")
                                         if xtick_step and ytick_step:
                                             gl.xlocator = mticker.FixedLocator(np.arange(lon_range[0], lon_range[1] + xtick_step, xtick_step))
                                             gl.ylocator = mticker.FixedLocator(np.arange(lat_range[0], lat_range[1] + ytick_step, ytick_step))
-                                
-                                    # ax_anim.text(0.5, -0.1, xlabel, transform=ax_anim.transAxes, ha='center', va='top', fontsize=10)
-                                    # ax_anim.text(-0.15, 0.5, ylabel, transform=ax_anim.transAxes, ha='right', va='center', rotation='vertical', fontsize=10)
-                                    # -- Get dynamic offsets based on current figure size
+                    
                                     fig_w, fig_h = fig_anim.get_size_inches()
                                     x_offset = -0.05 * (8 / fig_w)
                                     y_offset = -0.08 * (5 / fig_h)
-                                    
-                                    # -- Adaptive font size based on plot span
+                    
                                     lon_span = lon_range[1] - lon_range[0]
                                     lat_span = lat_range[1] - lat_range[0]
                                     label_fontsize = 8 if lon_span < 2 or lat_span < 2 else 10
-                                    
-                                    # -- Add labels with dynamic position
-                                    ax_anim.text(0.5, y_offset-0.1, xlabel, transform=ax_anim.transAxes,
+                    
+                                    ax_anim.text(0.5, y_offset - 0.1, xlabel, transform=ax_anim.transAxes,
                                                  ha='center', va='top', fontsize=label_fontsize)
-                                    ax_anim.text(x_offset-0.15, 0.5, ylabel, transform=ax_anim.transAxes,
+                                    ax_anim.text(x_offset - 0.15, 0.5, ylabel, transform=ax_anim.transAxes,
                                                  ha='right', va='center', rotation='vertical', fontsize=label_fontsize)
-
-                                
-                                    # 🕒 Use decoded, formatted time string from time_labels
+                    
                                     try:
                                         time_str = pd.to_datetime(time_labels[frame]).strftime("%Y-%m-%d")
                                     except:
                                         time_str = str(time_labels[frame])[:15]
-                                
-                                    title = f"{plot_title}"# | Time: {time_str}"
-                                    # if depth_var and selected_depth is not None:
-                                    #     title += f" | Depth: {selected_depth} m"
-                                
+                    
+                                    title = f"{plot_title} | Time: {time_str}"
+                                    if plot_mode == "Constant Depth":
+                                        title += f" | Depth: {selected_depth} m"
+                                    else:
+                                        title += f" | Depth Avg: {dmin}–{dmax} m"
+                    
                                     ax_anim.set_title(title, fontsize=12)
                                     return [im]
-            
-                                # fig.tight_layout()
-                                # fig_anim.subplots_adjust(left=0.05, right=0.95, bottom=0.1, top=0.95)
+                    
                                 fig_anim.subplots_adjust(left=0.2, right=1)
-                                # fig_anim.tight_layout(pad=1.5)
-
-            
+                    
                                 ani = animation.FuncAnimation(
                                     fig_anim, update_anim, frames=da_anim.sizes[time_var], blit=False
                                 )
-                                
-                                import tempfile
-                                import os
-                                
+                    
                                 with tempfile.NamedTemporaryFile(delete=False, suffix=".gif") as tmpfile:
                                     temp_gif_path = tmpfile.name
-                                
+                    
                                 ani.save(temp_gif_path, writer="pillow", fps=2, savefig_kwargs={'bbox_inches': 'tight'})
-                                
-                                # Display the animation in Streamlit
+                    
                                 with open(temp_gif_path, "rb") as f:
                                     gif_bytes = f.read()
-                                
+                    
                                 st.image(gif_bytes, caption="Time-animated plot", use_container_width=True)
-                                
+                    
                                 st.download_button(
                                     label="📥 Download GIF",
-                                    data=gif_bytes,  # ✅ Use directly, no .getvalue()
+                                    data=gif_bytes,
                                     file_name=f"{var}_animation.gif",
                                     mime="image/gif"
                                 )
-                                
-                                # Optional cleanup
+                    
                                 os.remove(temp_gif_path)
-                        
+                    
                             except Exception as e:
                                 st.error(f"⚠️ Failed to create animation: {e}")
                         else:
@@ -1301,120 +1451,6 @@ else:
                     
                             except Exception as e:
                                 st.error(f"❌ Failed to extract profile: {e}")
-                    #     st.markdown("### 📉 Interactive Vertical Profile")
-                    
-                    #     coord_map = detect_coord_names(ds_sel)
-                    #     lat_key = coord_map["latitude"]
-                    #     lon_key = coord_map["longitude"]
-                    #     depth_key = coord_map["depth"]
-                    #     time_key = coord_map["time"]
-                    
-                    #     profile_mode = st.selectbox("Profile Mode", [
-                    #         "Single Point (lat, lon)",
-                    #         "Lat-Lon Box Averaged",
-                    #         "Latitudinal Transect (fixed lon)",
-                    #         "Longitudinal Transect (fixed lat)"
-                    #     ])
-                    
-                    #     time_profile_mode = st.radio("Time Aggregation Mode", [
-                    #         "Use selected time only",
-                    #         "Average over selected time range",
-                    #         "Plot all times"
-                    #     ])
-                    
-                    #     if not all([lat_key, lon_key, depth_key]):
-                    #         st.error("❌ Could not detect necessary coordinate names (lat/lon/depth).")
-                    #     else:
-                    #         try:
-                    #             depth_min = st.number_input("Min Depth (m)", float(ds[depth_key].min()), float(ds[depth_key].max()), value=0.0)
-                    #             depth_max = st.number_input("Max Depth (m)", float(ds[depth_key].min()), float(ds[depth_key].max()), value=500.0)
-                    
-                    #             if profile_mode == "Single Point (lat, lon)":
-                    #                 input_lat = st.number_input("Latitude (°N)", float(ds[lat_key].min()), float(ds[lat_key].max()), value=15.0)
-                    #                 input_lon = st.number_input("Longitude (°E)", float(ds[lon_key].min()), float(ds[lon_key].max()), value=60.0)
-                    #                 profile = ds[var].sel({lat_key: input_lat, lon_key: input_lon}, method="nearest")
-                    #                 label = f"({input_lat:.2f}°N, {input_lon:.2f}°E)"
-                    
-                    #             elif profile_mode == "Lat-Lon Box Averaged":
-                    #                 lat_min = st.number_input("Min Latitude", float(ds[lat_key].min()), float(ds[lat_key].max()), value=10.0)
-                    #                 lat_max = st.number_input("Max Latitude", float(ds[lat_key].min()), float(ds[lat_key].max()), value=20.0)
-                    #                 lon_min = st.number_input("Min Longitude", float(ds[lon_key].min()), float(ds[lon_key].max()), value=50.0)
-                    #                 lon_max = st.number_input("Max Longitude", float(ds[lon_key].min()), float(ds[lon_key].max()), value=70.0)
-                    #                 profile = ds[var].sel({lat_key: slice(lat_min, lat_max), lon_key: slice(lon_min, lon_max)})
-                    #                 profile = profile.mean(dim=[lat_key, lon_key], skipna=True)
-                    #                 label = f"Grid Avg ({lat_min}-{lat_max}°N, {lon_min}-{lon_max}°E)"
-                    
-                    #             elif profile_mode == "Latitudinal Transect (fixed lon)":
-                    #                 lon_fixed = st.number_input("Fixed Longitude (°E)", float(ds[lon_key].min()), float(ds[lon_key].max()), value=60.0)
-                    #                 lat_min = st.number_input("Min Latitude", float(ds[lat_key].min()), float(ds[lat_key].max()), value=10.0)
-                    #                 lat_max = st.number_input("Max Latitude", float(ds[lat_key].min()), float(ds[lat_key].max()), value=20.0)
-                    #                 profile = ds[var].sel({lon_key: lon_fixed}, method="nearest")
-                    #                 profile = profile.sel({lat_key: slice(lat_min, lat_max)})
-                    #                 profile = profile.mean(dim=lat_key, skipna=True)
-                    #                 label = f"Lat Avg ({lat_min}-{lat_max}°N) at {lon_fixed}°E"
-                    
-                    #             elif profile_mode == "Longitudinal Transect (fixed lat)":
-                    #                 lat_fixed = st.number_input("Fixed Latitude (°N)", float(ds[lat_key].min()), float(ds[lat_key].max()), value=15.0)
-                    #                 lon_min = st.number_input("Min Longitude", float(ds[lon_key].min()), float(ds[lon_key].max()), value=50.0)
-                    #                 lon_max = st.number_input("Max Longitude", float(ds[lon_key].min()), float(ds[lon_key].max()), value=70.0)
-                    #                 profile = ds[var].sel({lat_key: lat_fixed}, method="nearest")
-                    #                 profile = profile.sel({lon_key: slice(lon_min, lon_max)})
-                    #                 profile = profile.mean(dim=lon_key, skipna=True)
-                    #                 label = f"Lon Avg ({lon_min}-{lon_max}°E) at {lat_fixed}°N"
-                    
-                    #             if time_key and time_key in profile.dims:
-                    #                 if time_profile_mode == "Use selected time only":
-                    #                     profile = profile.sel({time_key: time_sel}, method="nearest")
-                    #                 elif time_profile_mode == "Average over selected time range":
-                    #                     time_min = st.number_input("Min Time Index", 0, int(ds.dims[time_key]) - 1, value=0)
-                    #                     time_max = st.number_input("Max Time Index", time_min, int(ds.dims[time_key]) - 1, value=5)
-                    #                     profile = profile.isel({time_key: slice(time_min, time_max + 1)}).mean(dim=time_key, skipna=True)
-                    #                 elif time_profile_mode == "Plot all times":
-                    #                     pass
-                    
-                    #             profile = profile.sel({depth_key: slice(depth_min, depth_max)})
-                    
-                    #             if depth_key in profile.coords:
-                    #                 depth_vals = profile[depth_key].values
-                    #             elif depth_key in ds.coords:
-                    #                 depth_vals = ds[depth_key].values
-                    #             else:
-                    #                 st.error("❌ Could not find depth values in dataset.")
-                    #                 st.stop()
-                    
-                    #             import plotly.graph_objects as go
-                    #             fig = go.Figure()
-                    
-                    #             if time_profile_mode == "Plot all times" and time_key in profile.dims:
-                    #                 for t in range(profile.sizes[time_key]):
-                    #                     time_val = profile[time_key][t].values
-                    #                     fig.add_trace(go.Scatter(
-                    #                         y=depth_vals,
-                    #                         x=profile.isel({time_key: t}).values,
-                    #                         mode='lines+markers',
-                    #                         name=f"t={time_val}"
-                    #                     ))
-                    #             else:
-                    #                 fig.add_trace(go.Scatter(
-                    #                     y=depth_vals,
-                    #                     x=profile.values,
-                    #                     mode='lines+markers',
-                    #                     name=var
-                    #                 ))
-                    
-                    #             fig.update_layout(
-                    #                 title=f"{var} Profile at {label}",
-                    #                 xaxis_title=var,
-                    #                 yaxis_title="Depth (m)",
-                    #                 yaxis_autorange="reversed",
-                    #                 height=500,
-                    #                 width=500
-                    #             )
-                    #             st.plotly_chart(fig)
-                    
-                    #         except Exception as e:
-                    #             st.error(f"❌ Failed to extract profile: {e}")
-
                         
                     #---------------------------------------- Hovmoller ----------------------------------------------------#
                     if show_hovmoller:
