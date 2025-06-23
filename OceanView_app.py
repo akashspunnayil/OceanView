@@ -1750,102 +1750,94 @@ else:
     
             #---------------------------------------- Station Contour (Excel) ----------------------------------------------------#
     
-            if  station_plot:
-               
+            if station_plot:
 
                 import streamlit as st
                 import pandas as pd
                 import numpy as np
                 import matplotlib.pyplot as plt
                 import re
-                from matplotlib.colors import Normalize
+            
                 from matplotlib.cm import get_cmap
-                
-                # st.set_page_config(layout="wide")
+            
                 st.subheader("📊 Section Plot (Depth vs Latitude) from Excel with NaN Handling")
-                
+            
                 uploaded_file = st.file_uploader("📂 Upload Excel File", type=["xlsx", "xls"])
-                
+            
                 if uploaded_file:
                     try:
-                        # STEP 1: Read raw file (no header)
+                        # === STEP 1: Load raw data ===
                         raw_df = pd.read_excel(uploaded_file, header=None)
-                        st.write("Raw Preview:")
+                        st.write("🔍 Raw Preview:")
                         st.dataframe(raw_df)
-                
-                        # STEP 2: Detect header row (look for 'Depth')
+            
+                        # === STEP 2: Detect header row ===
                         data_start_idx = raw_df.applymap(lambda x: str(x).strip().lower() == 'depth').any(axis=1)
                         header_row = data_start_idx.idxmax() if data_start_idx.any() else 0
-                
-                        # STEP 3: Load cleaned DataFrame
+            
+                        # === STEP 3: Clean DataFrame ===
                         df = pd.read_excel(uploaded_file, header=header_row)
                         df.replace(r'^\s*$', np.nan, regex=True, inplace=True)
-                        st.write("Cleaned Data:")
+                        st.write("✅ Cleaned Data:")
                         st.dataframe(df)
-                
-                        # STEP 4: Extract latitudes from column headers
-                        station_labels = df.columns[1:]  # Skip 'Depth' column
+            
+                        # === STEP 4: Parse latitudes from column headers ===
+                        station_labels = df.columns[1:]  # Skip 'Depth'
                         latitudes = []
                         for label in station_labels:
                             match = re.search(r"([0-9.]+)", str(label))
-                            if match:
-                                latitudes.append(float(match.group(1)))
-                            else:
-                                latitudes.append(np.nan)
-                
+                            latitudes.append(float(match.group(1)) if match else np.nan)
+            
                         latitudes = np.array(latitudes)
-                
-                        # STEP 5: Filter valid columns
+            
+                        # === STEP 5: Filter valid columns ===
                         valid_indices = ~np.isnan(latitudes)
                         valid_lats = latitudes[valid_indices]
                         valid_cols = df.columns[1:][valid_indices]
-                
-                        # STEP 6: Extract depth and scalar values
+            
+                        # === STEP 6: Prepare depth and data ===
                         depths = pd.to_numeric(df.iloc[:, 0], errors='coerce')
                         scalar_data = df[valid_cols].apply(pd.to_numeric, errors='coerce').T.values
-                
-                        # Filter valid depth rows
+            
                         valid_depth_mask = ~np.isnan(depths)
                         depths = depths[valid_depth_mask]
                         scalar_data = scalar_data[:, valid_depth_mask]
-                
-                        # Meshgrid for pcolormesh
+            
                         X, Y = np.meshgrid(valid_lats, depths)
-
+            
+                        # === STEP 7: User plot inputs ===
                         st.markdown("### 🖋️ Customize Plot Labels")
-
+            
                         plot_title = st.text_input("Plot Title", value="Section Plot (Depth vs Latitude)")
                         xlabel = st.text_input("X-axis Label", value="Latitude (°N)")
                         ylabel = st.text_input("Y-axis Label", value="Depth (m)")
                         colorbar_label = st.text_input("Colorbar Label", value="Scalar Value")
                         xtick_rotation = st.slider("X-Tick Label Rotation (°)", 0, 90, 45)
-
-                        # STEP 7: Plot with NaNs masked as white
+            
+                        # === STEP 8: Plotting ===
                         fig, ax = plt.subplots(figsize=(10, 6))
-
                         cmap = plt.cm.viridis.copy()
-                        cmap.set_bad(color='white')
+                        cmap.set_bad(color='white')  # Show NaNs as white
+            
                         masked_data = np.ma.masked_invalid(scalar_data.T)
-                        
                         pcm = ax.pcolormesh(X, Y, masked_data, cmap=cmap, shading='auto')
-                        
+            
                         ax.invert_yaxis()
                         ax.set_xlabel(xlabel)
                         ax.set_ylabel(ylabel)
                         ax.set_title(plot_title)
-                        
-                        plt.setp(ax.get_xticklabels(), rotation=xtick_rotation)  # 👈 Rotate ticks
-                        
+                        plt.setp(ax.get_xticklabels(), rotation=xtick_rotation)
+            
                         cbar = fig.colorbar(pcm, ax=ax)
                         cbar.set_label(colorbar_label)
-                        
+            
                         st.pyplot(fig)
+            
+                    except Exception as e:
+                        st.error(f"❌ Plotting failed: {e}")
+
 
                 
-                    except Exception as e:
-                        st.error(f"❌ Error processing or plotting file: {e}")
-
-
 
 
 
