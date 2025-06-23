@@ -1470,139 +1470,6 @@ else:
                                 st.error(f"❌ Failed to extract profile: {e}")
                         
                     #---------------------------------------- Hovmoller ----------------------------------------------------#
-                                        
-                    # if show_hovmoller:
-                    #     hov_mode = st.selectbox("📌 Select Hovmöller Mode", [
-                    #         "Longitude vs Time • Fixed Lat & Depth",
-                    #         "Longitude vs Time • Fixed Lat & Depth-avg",
-                    #         "Latitude vs Time • Fixed Lon & Depth",
-                    #         "Latitude vs Time • Fixed Lon & Depth-avg",
-                    #         "Depth vs Time • Fixed Lat & Lon",
-                    #         "Depth vs Time • Grid Avg (Lat-Lon box)"
-                    #     ])
-                    
-                    #     da = ds[var]
-                    
-                    #     coord_map = detect_coord_names(ds)
-                    #     lat_var, lon_var, depth_var, time_var = coord_map['latitude'], coord_map['longitude'], coord_map['depth'], coord_map['time']
-                    
-                    #     time_vals, time_labels = try_decode_time(ds, time_var)
-                    #     da.coords[time_var] = time_labels
-
-                    #     # --- Time Range Selection ---
-                    #     time_start_default = pd.to_datetime(time_labels[0])
-                    #     time_end_default = pd.to_datetime(time_labels[-1])
-                        
-                    #     col1, col2 = st.columns(2)
-                    #     with col1:
-                    #         t1 = st.date_input("🕒 Start Date", value=time_start_default)
-                    #     with col2:
-                    #         t2 = st.date_input("🕒 End Date", value=time_end_default)
-                            
-                    #     # Convert to string or numpy datetime for slicing
-                    #     t1 = np.datetime64(t1)
-                    #     t2 = np.datetime64(t2)
-
-                    #     try:
-                    #         if hov_mode.startswith("Longitude"):
-                    #             fixed_lat = st.number_input("Latitude (°N)", float(ds[lat_var].min()), float(ds[lat_var].max()), value=15.0)
-                    #             lon_min = st.number_input("Min Longitude", float(ds[lon_var].min()), float(ds[lon_var].max()), value=float(ds[lon_var].min()))
-                    #             lon_max = st.number_input("Max Longitude", float(ds[lon_var].min()), float(ds[lon_var].max()), value=float(ds[lon_var].max()))
-                    #             if "Depth-avg" in hov_mode:
-                    #                 d1 = st.number_input("Min Depth", float(ds[depth_var].min()), float(ds[depth_var].max()), value=0.0)
-                    #                 d2 = st.number_input("Max Depth", float(ds[depth_var].min()), float(ds[depth_var].max()), value=200.0)
-                    #                 # da_sel = da.sel({lon_var: slice(lon_min, lon_max), depth_var: slice(d1, d2)})
-                    #                 # da_sel = da_sel.sel({lat_var: fixed_lat}, method="nearest").mean(dim=depth_var, skipna=True)
-                    #                 # # existing slicing logic
-                    #                 da_sel = da.sel({lon_var: slice(lon_min, lon_max), depth_var: slice(d1, d2)})
-                    #                 da_sel = da_sel.sel({lat_var: fixed_lat}, method="nearest").mean(dim=depth_var, skipna=True)
-                                    
-                    #                 # ✅ new time slicing
-                    #                 da_sel = da_sel.sel({time_var: slice(t1, t2)})
-
-                    #             else:
-                    #                 fixed_depth = st.number_input("Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=10.0)
-                    #                 da_sel = da.sel({lon_var: slice(lon_min, lon_max), depth_var: fixed_depth})
-                    #                 da_sel = da_sel.sel({lat_var: fixed_lat}, method="nearest")
-                    #                 da_sel = da_sel.sel({time_var: slice(t1, t2)})
-                    #             hov_x = da_sel[lon_var]
-                    #             hov_y = da_sel[time_var]
-                    #             hov_z = da_sel.transpose(time_var, lon_var)
-                    
-                    #         elif hov_mode.startswith("Latitude"):
-                    #             fixed_lon = st.number_input("Longitude (°E)", float(ds[lon_var].min()), float(ds[lon_var].max()), value=60.0)
-                    #             lat_min = st.number_input("Min Latitude", float(ds[lat_var].min()), float(ds[lat_var].max()), value=float(ds[lat_var].min()))
-                    #             lat_max = st.number_input("Max Latitude", float(ds[lat_var].min()), float(ds[lat_var].max()), value=float(ds[lat_var].max()))
-                    #             if "Depth-avg" in hov_mode:
-                    #                 d1 = st.number_input("Min Depth", float(ds[depth_var].min()), float(ds[depth_var].max()), value=0.0)
-                    #                 d2 = st.number_input("Max Depth", float(ds[depth_var].min()), float(ds[depth_var].max()), value=200.0)
-                    #                 # da_sel = da.sel({lat_var: slice(lat_min, lat_max), depth_var: slice(d1, d2)})
-                    #                 # da_sel = da_sel.sel({lon_var: fixed_lon}, method="nearest").mean(dim=depth_var, skipna=True)
-
-                    #                 # # existing slicing logic
-                    #                 da_sel = da.sel({lon_var: slice(lon_min, lon_max), depth_var: slice(d1, d2)})
-                    #                 da_sel = da_sel.sel({lat_var: fixed_lat}, method="nearest").mean(dim=depth_var, skipna=True)
-                                    
-                    #                 # ✅ new time slicing
-                    #                 da_sel = da_sel.sel({time_var: slice(t1, t2)})
-
-                    #             else:
-                    #                 fixed_depth = st.number_input("Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=10.0)
-                    #                 da_sel = da.sel({lat_var: slice(lat_min, lat_max), depth_var: fixed_depth})
-                    #                 da_sel = da_sel.sel({lon_var: fixed_lon}, method="nearest")
-                    #                 da_sel = da_sel.sel({time_var: slice(t1, t2)})
-                    #             hov_x = da_sel[lat_var]
-                    #             hov_y = da_sel[time_var]
-                    #             hov_z = da_sel.transpose(time_var, lat_var)
-                    
-                    #         elif hov_mode == "Depth vs Time • Fixed Lat & Lon":
-                    #             lat_pt = st.number_input("Latitude (°N)", float(ds[lat_var].min()), float(ds[lat_var].max()), value=15.0)
-                    #             lon_pt = st.number_input("Longitude (°E)", float(ds[lon_var].min()), float(ds[lon_var].max()), value=60.0)
-                    #             da_sel = da.sel({lat_var: lat_pt, lon_var: lon_pt}, method="nearest")
-                    #             da_sel = da_sel.sel({time_var: slice(t1, t2)})
-                                
-                    #             hov_x = da_sel[depth_var]
-                    #             hov_y = da_sel[time_var]
-                    #             hov_z = da_sel.transpose(time_var, depth_var)
-                    
-                    #         elif hov_mode == "Depth vs Time • Grid Avg (Lat-Lon box)":
-                    #             col1, col2 = st.columns(2)
-                    #             with col1:
-                    #                 lat_min = st.number_input("Min Latitude", float(ds[lat_var].min()), float(ds[lat_var].max()), value=10.0)
-                    #                 lat_max = st.number_input("Max Latitude", float(ds[lat_var].min()), float(ds[lat_var].max()), value=20.0)
-                    #             with col2:
-                    #                 lon_min = st.number_input("Min Longitude", float(ds[lon_var].min()), float(ds[lon_var].max()), value=50.0)
-                    #                 lon_max = st.number_input("Max Longitude", float(ds[lon_var].min()), float(ds[lon_var].max()), value=70.0)
-                    #             da_sel = da.sel({lat_var: slice(lat_min, lat_max), lon_var: slice(lon_min, lon_max)})
-                    #             da_sel = da_sel.mean(dim=[lat_var, lon_var], skipna=True)
-                    #             da_sel = da_sel.sel({time_var: slice(t1, t2)})
-                                
-                    #             hov_x = da_sel[depth_var]
-                    #             hov_y = da_sel[time_var]
-                    #             hov_z = da_sel.transpose(time_var, depth_var)
-                    
-                    #         # === Plotting ===
-                    #         fig, ax = plt.subplots(figsize=(10, 5))
-                    #         c = ax.contourf(hov_x, hov_y, hov_z, levels=50, cmap=cmap_choice)
-                    #         ax.set_title(f"{var} Hovmöller Diagram ({hov_mode})", fontsize=14)
-                    #         ax.set_xlabel(hov_x.name)
-                    #         ax.set_ylabel("Time")
-                    #         plt.xticks(rotation=45)
-                    #         fig.colorbar(c, ax=ax, label=var, shrink=0.65)
-                    #         st.pyplot(fig)
-                    
-                    #         if save_btn:
-                    #             buf = io.BytesIO()
-                    #             fig.savefig(buf, format=save_format, dpi=dpi_value, bbox_inches="tight")
-                    #             st.download_button(
-                    #                 label=f"📥 Download {save_format.upper()}",
-                    #                 data=buf.getvalue(),
-                    #                 file_name=f"{var}_hovmoller_{hov_mode.replace(' ', '_')}.{save_format}",
-                    #                 mime=f"image/{'jpeg' if save_format == 'jpg' else save_format}"
-                    #             )
-                    
-                    #     except Exception as e:
-                    #         st.error(f"❌ Failed to plot Hovmöller diagram: {e}")
                     
                     if show_hovmoller:
                         hov_mode = st.selectbox("📌 Select Hovmöller Mode", [
@@ -1706,7 +1573,7 @@ else:
                             # === Plotting ===
                             fig, ax = plt.subplots(figsize=(10, 5))
                             c = ax.contourf(hov_x, hov_y, hov_z, levels=50, cmap=cmap_choice)
-                            ax.set_title(f"{var} Hovmöller Diagram ({hov_mode})", fontsize=14)
+                            ax.set_title(f"{var} Hovmöller Diagram ({hov_mode}\n | Time: {time_str})", fontsize=14)
                             ax.set_xlabel(hov_x.name)
                             ax.set_ylabel("Time")
                             plt.xticks(rotation=45)
