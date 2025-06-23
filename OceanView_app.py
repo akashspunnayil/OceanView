@@ -32,6 +32,7 @@ st.title("🌊 Ocean Viewer")
 #         else:
 #             raise
 
+
 @st.cache_data
 def load_netcdf_safe(file_obj):
     import tempfile
@@ -173,7 +174,7 @@ else:
                 st.success("✅ File loaded successfully.")
 
 
-        
+		        
                 # Detect plot-compatible variables
                 def is_plot_compatible(da):
                     dims = set(da.dims)
@@ -345,7 +346,7 @@ else:
         
 # #====+++++++ New excel handling block- END +++++++++++++===========#
         
-        # Detect plot-compatible variables
+		# Detect plot-compatible variables
                 def is_plot_compatible(da):
                     dims = set(da.dims)
                     return any("lat" in d.lower() for d in dims) and any("lon" in d.lower() for d in dims)
