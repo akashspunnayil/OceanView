@@ -818,6 +818,8 @@ else:
                                 da_anim = ds[var]
                                 da_anim = da_anim.sel({lat_var: slice(*lat_range), lon_var: slice(*lon_range)})
                                 da_anim = da_anim.sel({time_var: slice(t1, t2)})
+                                time_labels = pd.to_datetime(da_anim[time_var].values)
+
                     
                                 if plot_mode == "Constant Depth":
                                     da_anim = da_anim.sel({depth_var: selected_depth}, method="nearest")
@@ -836,7 +838,7 @@ else:
                                     vmax=vmax if set_clim else None,
                                     add_colorbar=False
                                 )
-                                cbar = fig_anim.colorbar(im_cbar, ax=ax_anim, orientation="vertical", shrink=0.4, pad=0.05, extend='both')
+                                cbar = fig_anim.colorbar(im_cbar, ax=ax_anim, orientation="vertical", shrink=0.6, pad=0.05, extend='both')
                                 cbar.set_label(cbar_label, fontsize=10)
                     
                                 def update_anim(frame):
@@ -883,12 +885,21 @@ else:
                                     ax_anim.text(x_offset - 0.15, 0.5, ylabel, transform=ax_anim.transAxes,
                                                  ha='right', va='center', rotation='vertical', fontsize=label_fontsize)
                     
+                                    # try:
+                                    #     time_str = pd.to_datetime(time_labels[frame]).strftime("%Y-%m-%d")
+                                    # except:
+                                    #     time_str = str(time_labels[frame])[:15]
+                    
+                                    # title = f"{plot_title} | Time: {time_str}"
+
                                     try:
                                         time_str = pd.to_datetime(time_labels[frame]).strftime("%Y-%m-%d")
                                     except:
                                         time_str = str(time_labels[frame])[:15]
-                    
+                                    
                                     title = f"{plot_title} | Time: {time_str}"
+                                    
+
                                     if plot_mode == "Constant Depth":
                                         title += f" | Depth: {selected_depth} m"
                                     else:
