@@ -654,7 +654,7 @@ else:
                             ax.add_feature(cfeature.OCEAN, facecolor=mask_color, zorder=3)
                 
                         # 🟡 Title with time & depth info
-                        ax.set_title(f"{plot_title}\n🕒 {time_str} | Depth: {depth_str}", fontsize=14)
+                        ax.set_title(f"{plot_title}\n {time_str} | Depth: {depth_str}", fontsize=14)
                 
                         # Replace colorbar
                         if hasattr(im, 'colorbar') and im.colorbar:
