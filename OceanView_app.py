@@ -916,8 +916,6 @@ else:
                     
                         except Exception as e:
                             st.error(f"❌ Failed to plot time series: {e}")
-
-
                     
                     #---------------------------Normal Vertical Profile ----------------------------------#
                     if show_vertical_profile:
