@@ -599,8 +599,21 @@ else:
                         ax.set_title(plot_title, fontsize=14)
                         if hasattr(im, 'colorbar') and im.colorbar:
                             im.colorbar.set_label(cbar_label, fontsize=12)
-                        ax.text(0.5, -0.2, xlabel, transform=ax.transAxes, ha='center', va='top', fontsize=12)
-                        ax.text(-0.3, 0.5, ylabel, transform=ax.transAxes, ha='right', va='center', rotation='vertical', fontsize=12)
+                        # ax.text(0.5, -0.2, xlabel, transform=ax.transAxes, ha='center', va='top', fontsize=12)
+                        # ax.text(-0.3, 0.5, ylabel, transform=ax.transAxes, ha='right', va='center', rotation='vertical', fontsize=12)
+
+                        # Get axis position in figure coordinates (left, bottom, width, height)
+                        bbox = ax.get_position()
+                        
+                        # Adjust offsets based on axis size
+                        x_offset = -0.05 * (10 / fig.get_size_inches()[0])  # proportionally shrink offset
+                        y_offset = -0.1 * (6 / fig.get_size_inches()[1])
+                        
+                        # Place labels relative to axis
+                        ax.text(0.5, y_offset, xlabel, transform=ax.transAxes, ha='center', va='top', fontsize=12)
+                        ax.text(x_offset, 0.5, ylabel, transform=ax.transAxes, ha='right', va='center',
+                                rotation='vertical', fontsize=12)
+
                         st.pyplot(fig)
             
             
