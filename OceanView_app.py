@@ -1813,7 +1813,7 @@ else:
                         X, Y = np.meshgrid(valid_lats, depths)
                 
                         # STEP 7: Plot with NaNs masked as white
-                        fig, ax = plt.subplots(figsize=(10, 6))
+                        fig, ax = plt.subplots(figsize=(6, 4))
                         cmap = plt.cm.viridis.copy()
                         cmap.set_bad(color='white')
                 
@@ -1831,9 +1831,10 @@ else:
                             st.error(f"Colorbar label error: {e}")
 
                         ax.invert_yaxis()
-                        # ax.set_xlabel("Latitude (°N)")
-                        # ax.set_ylabel("Depth (m)")
-                        # ax.set_title("Section Plot (Depth vs Latitude)")
+                        ax.set_xlabel("Latitude (°N)")
+                        plt.setp(ax.get_xticklabels(), rotation=45)
+                        ax.set_ylabel("Depth (m)")
+                        ax.set_title("Section Plot (Depth vs Latitude)")
                 
                         cbar = fig.colorbar(pcm, ax=ax)
                         cbar.set_label("Scalar Value")
