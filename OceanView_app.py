@@ -272,7 +272,19 @@ else:
                         
                     lat_range = (south_lat, north_lat)
                     lon_range = (west_lon, east_lon)
+
+                    # -- Define lat/lon bounds
+                    lat_min, lat_max = float(lat_vals.min()), float(lat_vals.max())
+                    lon_min, lon_max = float(lon_vals.min()), float(lon_vals.max())
                     
+                    # -- Add Reset Button
+                    if st.button("🔄 Reset to Full Extent"):
+                        st.session_state["north_lat"] = lat_max
+                        st.session_state["south_lat"] = lat_min
+                        st.session_state["west_lon"] = lon_min
+                        st.session_state["east_lon"] = lon_max
+                    
+                        
                     # -- Optional Depth Input
                     if depth_var:
                         st.markdown("#### Depth Level")
@@ -312,14 +324,6 @@ else:
                         show_interactive_vertical_profile =  st.checkbox("Vertical Interactive Profile ")
                         show_hovmoller = st.checkbox("Hovmöller Diagram")
         
-                    # if show_vertical_profile or show_interactive_vertical_profile:
-                    #     st.markdown("### 📍 Vertical Profile Location")
-                    #     input_lat = st.number_input("Latitude", value=0.0, format="%.2f")
-                    #     input_lon = st.number_input("Longitude", value=60.0, format="%.2f")
-                    #     # if st.button("Extract Vertical Profile"):
-                    #     #     trigger_profile_plot = True
-                    #     # else:
-                    #     #     trigger_profile_plot = False
                             
                     if show_spatial_map or show_vertical_section or show_time_animation or show_interactive_spatial_map:
                         with st.expander("🌍 Land/Sea Masking"):
@@ -678,7 +682,6 @@ else:
                                 fig_anim.subplots_adjust(left=0.2, right=1)
                                 # fig_anim.tight_layout(pad=1.5)
 
-            
             
                                 ani = animation.FuncAnimation(
                                     fig_anim, update_anim, frames=da_anim.sizes[time_var], blit=False
