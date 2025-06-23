@@ -658,7 +658,7 @@ else:
                                             gl.ylocator = mticker.FixedLocator(np.arange(lat_range[0], lat_range[1] + ytick_step, ytick_step))
                                 
                                     ax_anim.text(0.5, -0.1, xlabel, transform=ax_anim.transAxes, ha='center', va='top', fontsize=10)
-                                    ax_anim.text(-0.5, 0.5, ylabel, transform=ax_anim.transAxes, ha='right', va='center', rotation='vertical', fontsize=10)
+                                    ax_anim.text(-0.15, 0.5, ylabel, transform=ax_anim.transAxes, ha='right', va='center', rotation='vertical', fontsize=10)
                                 
                                     # 🕒 Use decoded, formatted time string from time_labels
                                     try:
@@ -675,7 +675,9 @@ else:
             
                                 # fig.tight_layout()
                                 # fig_anim.subplots_adjust(left=0.05, right=0.95, bottom=0.1, top=0.95)
-                                fig_anim.subplots_adjust(left=0.01, right=1)
+                                # fig_anim.subplots_adjust(left=0.01, right=1)
+                                fig_anim.tight_layout(pad=1.5)
+
             
             
                                 ani = animation.FuncAnimation(
