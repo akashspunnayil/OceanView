@@ -1763,12 +1763,15 @@ else:
             
             # === STEP 0: User plot label inputs — move this ABOVE file uploader ===
             st.markdown("### 🖋️ Customize Plot Labels")
-            plot_title = st.text_input("Plot Title", value="Section Plot (Depth vs Latitude)")
-            xlabel = st.text_input("X-axis Label", value="Latitude (°N)")
-            ylabel = st.text_input("Y-axis Label", value="Depth (m)")
-            colorbar_label = st.text_input("Colorbar Label", value="Scalar Value")
-            xtick_rotation = st.slider("X-Tick Label Rotation (°)", 0, 90, 45)
+            col1 = st.columns(1)
+            with col1:
             
+                plot_title = st.text_input("Plot Title", value="Section Plot (Depth vs Latitude)")
+                xlabel = st.text_input("X-axis Label", value="Latitude (°N)")
+                ylabel = st.text_input("Y-axis Label", value="Depth (m)")
+                colorbar_label = st.text_input("Colorbar Label", value="Scalar Value")
+                xtick_rotation = st.slider("X-Tick Label Rotation (°)", 0, 90, 45)
+                
             # === STEP 1: File uploader ===
             uploaded_file = st.file_uploader("📂 Upload Excel File", type=["xlsx", "xls"])
             
