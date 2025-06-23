@@ -192,7 +192,9 @@ else:
                             scale_op = st.selectbox("Operation", ["*", "/", "+", "-"], index=0)
                             scale_val = st.number_input("Scale Value", value=1.0, step=0.1)
                             
-                    var = st.selectbox("🔎 Variable", list(plot_vars.keys()))
+                    # var = st.selectbox("🔎 Variable", list(plot_vars.keys()))
+                    var = st.selectbox("### 🔎 Variable", list(plot_vars.keys()))
+
                     # ds_sel = ds[var]
     
                     ds_sel = ds[var]
@@ -240,14 +242,6 @@ else:
                     lat_vals = ds[lat_var].values
                     lon_vals = ds[lon_var].values
         
-                    # lat_range = st.slider("🌐 Latitude Range", float(lat_vals.min()), float(lat_vals.max()), (float(lat_vals.min()), float(lat_vals.max())))
-                    # lon_range = st.slider("🗺️ Longitude Range", float(lon_vals.min()), float(lon_vals.max()), (float(lon_vals.min()), float(lon_vals.max())))
-        
-                    # if depth_var:
-                    #     depth_vals = ds[depth_var].values
-                    #     selected_depth = st.slider("🧭 Select Depth Level", float(depth_vals.min()), float(depth_vals.max()), float(depth_vals.min())) if len(depth_vals) > 1 else depth_vals[0]
-                    # else:
-                    #     selected_depth = None
 
                     st.markdown("#### 🌐 Region & Depth Selection")
 
