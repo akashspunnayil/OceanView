@@ -525,8 +525,18 @@ else:
                             ax.add_feature(cfeature.OCEAN, facecolor=mask_color, zorder=3)
             
                         ax.set_title(plot_title, fontsize=14)
+                        # if hasattr(im, 'colorbar') and im.colorbar:
+                        #     im.colorbar.set_label(cbar_label, fontsize=12)
+
                         if hasattr(im, 'colorbar') and im.colorbar:
-                            im.colorbar.set_label(cbar_label, fontsize=12)
+                            # Remove default colorbar
+                            im.colorbar.remove()
+                        
+                        # Manually create colorbar with controlled size
+                        cbar = fig.colorbar(im, ax=ax, orientation='vertical', shrink=0.6, pad=0.05)
+                        cbar.set_label(cbar_label, fontsize=12)
+
+                        
                         # ax.text(0.5, -0.2, xlabel, transform=ax.transAxes, ha='center', va='top', fontsize=12)
                         # ax.text(-0.3, 0.5, ylabel, transform=ax.transAxes, ha='right', va='center', rotation='vertical', fontsize=12)
 
