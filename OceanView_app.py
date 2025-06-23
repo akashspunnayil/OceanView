@@ -781,9 +781,9 @@ else:
                                     label_fontsize = 8 if lon_span < 2 or lat_span < 2 else 10
                                     
                                     # -- Add labels with dynamic position
-                                    ax_anim.text(0.5, y_offset, xlabel, transform=ax_anim.transAxes,
+                                    ax_anim.text(0.5, y_offset-0.1, xlabel, transform=ax_anim.transAxes,
                                                  ha='center', va='top', fontsize=label_fontsize)
-                                    ax_anim.text(x_offset, 0.5, ylabel, transform=ax_anim.transAxes,
+                                    ax_anim.text(x_offset-0.2, 0.5, ylabel, transform=ax_anim.transAxes,
                                                  ha='right', va='center', rotation='vertical', fontsize=label_fontsize)
 
                                 
