@@ -916,11 +916,6 @@ else:
                         ])
 
                         # -- Time Input
-                        # time_vals, time_labels = try_decode_time(ds, time_var)
-                       
-                        # time_sel = st.selectbox("🕒 Select Time", time_labels, key="map_single_time")
-                        # time_index = list(time_labels).index(time_sel)
-                        # raw_time_value = time_vals[time_index]
                         time_vals, time_labels = try_decode_time(ds, time_var)
 
                         if time_mode == "Single Time":
@@ -933,7 +928,6 @@ else:
                             t1 = np.datetime64(t1)
                             t2 = np.datetime64(t2)
 
-                    
                         try:
                             section = ds[var]
 
@@ -1045,8 +1039,115 @@ else:
 
                     #----------------------------------- Interactive Vertical Section--------------------------------------------------#
                                         
+                    # if show_interactive_vertical_section:
+                    #     st.markdown("### 🧪 Interactive Vertical Section")
+                    
+                    #     section_mode = st.selectbox("Section Mode (Interactive)", [
+                    #         "Z vs Longitude (at fixed Latitude)",
+                    #         "Z vs Latitude (at fixed Longitude)",
+                    #         "Z vs Longitude (averaged over Latitude band)",
+                    #         "Z vs Latitude (averaged over Longitude band)"
+                    #     ])
+                    
+                    #     try:
+                    #         section = ds[var]
+                    
+                    #         if time_var and raw_time_value is not None:
+                    #             section = section.sel({time_var: raw_time_value}, method="nearest")
+                    
+                    #         # --- Depth Range Selection ---
+                    #         depth_min = st.number_input("Min Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=0.0, step=10.0, key="dmin_int")
+                    #         depth_max = st.number_input("Max Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=500.0, step=10.0, key="dmax_int")
+                    
+                    #         if section_mode == "Z vs Longitude (at fixed Latitude)":
+                    #             fixed_lat = st.number_input("Fixed Latitude (°N)", float(lat_vals.min()), float(lat_vals.max()), value=15.0, key="fixed_lat_int")
+                    #             lon_min, lon_max = st.slider("Longitude Range (°E)", float(lon_vals.min()), float(lon_vals.max()), (50.0, 80.0), key="lon_range_int")
+                    #             section = section.sel({lat_var: fixed_lat}, method="nearest")
+                    #             section = section.sel({lon_var: slice(lon_min, lon_max)})
+                    #             section = section.transpose(depth_var, lon_var)
+                    #             section = section.sel({depth_var: slice(depth_min, depth_max)})
+                    #             x_vals = section[lon_var].values
+                    #             xlabel = "Longitude (°E)"
+                    #             section_label = f"{fixed_lat:.2f}°N"
+                    
+                    #         elif section_mode == "Z vs Latitude (at fixed Longitude)":
+                    #             fixed_lon = st.number_input("Fixed Longitude (°E)", float(lon_vals.min()), float(lon_vals.max()), value=60.0, key="fixed_lon_int")
+                    #             lat_min, lat_max = st.slider("Latitude Range (°N)", float(lat_vals.min()), float(lat_vals.max()), (0.0, 25.0), key="lat_range_int")
+                    #             section = section.sel({lon_var: fixed_lon}, method="nearest")
+                    #             section = section.sel({lat_var: slice(lat_min, lat_max)})
+                    #             section = section.transpose(depth_var, lat_var)
+                    #             section = section.sel({depth_var: slice(depth_min, depth_max)})
+                    #             x_vals = section[lat_var].values
+                    #             xlabel = "Latitude (°N)"
+                    #             section_label = f"{fixed_lon:.2f}°E"
+                    
+                    #         elif section_mode == "Z vs Longitude (averaged over Latitude band)":
+                    #             lat_min = st.number_input("Min Latitude", float(lat_vals.min()), float(lat_vals.max()), value=10.0, key="latmin_int")
+                    #             lat_max = st.number_input("Max Latitude", float(lat_vals.min()), float(lat_vals.max()), value=20.0, key="latmax_int")
+                    #             lon_min, lon_max = st.slider("Longitude Range (°E)", float(lon_vals.min()), float(lon_vals.max()), (50.0, 80.0), key="lon_avg_int")
+                    #             section = section.sel({lat_var: slice(lat_min, lat_max), lon_var: slice(lon_min, lon_max)})
+                    #             section = section.mean(dim=lat_var, skipna=True)
+                    #             section = section.transpose(depth_var, lon_var)
+                    #             section = section.sel({depth_var: slice(depth_min, depth_max)})
+                    #             x_vals = section[lon_var].values
+                    #             xlabel = "Longitude (°E)"
+                    #             section_label = f"Lat Avg ({lat_min}-{lat_max}°N)"
+                    
+                    #         elif section_mode == "Z vs Latitude (averaged over Longitude band)":
+                    #             lon_min = st.number_input("Min Longitude", float(lon_vals.min()), float(lon_vals.max()), value=50.0, key="lonmin_int")
+                    #             lon_max = st.number_input("Max Longitude", float(lon_vals.min()), float(lon_vals.max()), value=70.0, key="lonmax_int")
+                    #             lat_min, lat_max = st.slider("Latitude Range (°N)", float(lat_vals.min()), float(lat_vals.max()), (0.0, 25.0), key="lat_avg_int")
+                    #             section = section.sel({lat_var: slice(lat_min, lat_max), lon_var: slice(lon_min, lon_max)})
+                    #             section = section.mean(dim=lon_var, skipna=True)
+                    #             section = section.transpose(depth_var, lat_var)
+                    #             section = section.sel({depth_var: slice(depth_min, depth_max)})
+                    #             x_vals = section[lat_var].values
+                    #             xlabel = "Latitude (°N)"
+                    #             section_label = f"Lon Avg ({lon_min}-{lon_max}°E)"
+                    
+                    #         else:
+                    #             st.warning("🚫 Unknown section mode selected.")
+                    #             st.stop()
+                    
+                    #         z_vals = section[depth_var].values
+                    #         data_vals = section.values
+                    
+                    #         import plotly.graph_objects as go
+                    
+                    #         fig_plotly = go.Figure(data=go.Heatmap(
+                    #             z=data_vals,
+                    #             x=x_vals,
+                    #             y=z_vals,
+                    #             colorscale=cmap_choice,
+                    #             zmin=vmin if set_clim else None,
+                    #             zmax=vmax if set_clim else None,
+                    #             colorbar=dict(title=cbar_label),
+                    #             hovertemplate=(
+                    #                 f"{xlabel}: %{{x:.2f}}<br>"
+                    #                 "Depth: %{y:.1f} m<br>"
+                    #                 f"{var}: %{{z:.2f}}<extra></extra>"
+                    #             )
+                    #         ))
+                    
+                    #         fig_plotly.update_layout(
+                    #             title=f"{var} Vertical Section at {section_label}",
+                    #             xaxis_title=xlabel,
+                    #             yaxis_title="Depth (m)",
+                    #             yaxis_autorange="reversed",
+                    #             width=900,
+                    #             height=600
+                    #         )
+                    
+                    #         st.plotly_chart(fig_plotly, use_container_width=True)
+                    
+                    #     except Exception as e:
+                    #         st.error(f"❌ Failed to plot interactive vertical section: {e}")
+
                     if show_interactive_vertical_section:
                         st.markdown("### 🧪 Interactive Vertical Section")
+                    
+                        # -- Time Mode Selector --
+                        time_mode = st.radio("🕒 Time Mode (Interactive)", ["Single Time", "Time Range Average"], key="vsec_time_mode_inter")
                     
                         section_mode = st.selectbox("Section Mode (Interactive)", [
                             "Z vs Longitude (at fixed Latitude)",
@@ -1055,11 +1156,27 @@ else:
                             "Z vs Latitude (averaged over Longitude band)"
                         ])
                     
+                        # -- Time Input
+                        time_vals, time_labels = try_decode_time(ds, time_var)
+                        if time_mode == "Single Time":
+                            time_sel = st.selectbox("Select Time", time_labels, key="vsec_single_time_inter")
+                            time_index = list(time_labels).index(time_sel)
+                            raw_time_value = time_vals[time_index]
+                        else:
+                            t1 = st.date_input("Start Date", value=pd.to_datetime(time_labels[0]), key="vsec_start_inter")
+                            t2 = st.date_input("End Date", value=pd.to_datetime(time_labels[-1]), key="vsec_end_inter")
+                            t1 = np.datetime64(t1)
+                            t2 = np.datetime64(t2)
+                    
                         try:
                             section = ds[var]
                     
-                            if time_var and raw_time_value is not None:
-                                section = section.sel({time_var: raw_time_value}, method="nearest")
+                            if time_var:
+                                if time_mode == "Single Time":
+                                    section = section.sel({time_var: raw_time_value}, method="nearest")
+                                else:
+                                    section = section.sel({time_var: slice(t1, t2)})
+                                    section = section.mean(dim=time_var, skipna=True)
                     
                             # --- Depth Range Selection ---
                             depth_min = st.number_input("Min Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=0.0, step=10.0, key="dmin_int")
@@ -1120,6 +1237,11 @@ else:
                     
                             import plotly.graph_objects as go
                     
+                            if time_mode == "Single Time":
+                                time_str = pd.to_datetime(raw_time_value).strftime('%Y-%m-%d')
+                            else:
+                                time_str = f"{pd.to_datetime(t1).strftime('%Y-%m-%d')} to {pd.to_datetime(t2).strftime('%Y-%m-%d')}"
+                    
                             fig_plotly = go.Figure(data=go.Heatmap(
                                 z=data_vals,
                                 x=x_vals,
@@ -1136,7 +1258,7 @@ else:
                             ))
                     
                             fig_plotly.update_layout(
-                                title=f"{var} Vertical Section at {section_label}",
+                                title=f"{var} Vertical Section at {section_label}<br><sub>{time_str}</sub>",
                                 xaxis_title=xlabel,
                                 yaxis_title="Depth (m)",
                                 yaxis_autorange="reversed",
