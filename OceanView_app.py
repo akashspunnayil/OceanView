@@ -188,8 +188,11 @@ else:
 
                     # var = st.selectbox("🔎 Variable", list(plot_vars.keys()))
                     # var = st.selectbox("### 🔎 Variable", list(plot_vars.keys()))
+                    # st.markdown("#### 🔎 Variable")
+                    # var = st.selectbox("", list(plot_vars.keys()))
                     st.markdown("#### 🔎 Variable")
-                    var = st.selectbox("", list(plot_vars.keys()))
+                    var = st.selectbox("Variable", list(plot_vars.keys()), label_visibility="collapsed")
+
 
                     with st.expander("🧮 Apply Scaling to Variable Values (Optional)"):
                         apply_scaling = st.checkbox("Apply arithmetic scaling?")
