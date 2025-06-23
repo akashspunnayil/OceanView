@@ -283,7 +283,7 @@ else:
             tmp.write(file_obj.read())
             tmp_path = tmp.name
         try:
-            return xr.open_dataset(tmp_path, engine="netcdf4")
+            return xr.open_dataset(tmp_path, engine="scipy")
         except Exception as e:
             st.error(f"⚠️ NetCDF read error: {e}")
             return None
