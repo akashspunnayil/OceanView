@@ -118,141 +118,42 @@ def scale_dataarray(dataarray, op, val):
 
 
 # ------------------------------------------------ File uploader ---------------------------------------------- #
-# uploaded_file = st.file_uploader("📂 Upload a NetCDF file", type=["nc"])
+uploaded_file = st.file_uploader("📂 Upload a NetCDF file", type=["nc"])
 
 # Mode selection
-# mode = st.radio("Select mode", ["Upload file (Web App)", "Use local file (Download Desktop App)"])
-
-# if mode == "Use local file (desktop only)":
-#     file_path = st.text_input("Enter full path to NetCDF file")
-#     if file_path:
-#         if os.path.exists(file_path):
-#             try:
-#                 ds = xr.open_dataset(file_path)
-#                 st.success("✅ File loaded from local path.")
-#                 # st.write(ds)
-#             except Exception as e:
-#                 st.error(f"❌ Failed to open NetCDF: {e}")
-#         else:
-#             st.error("❌ File does not exist.")
-# else:
-#     # uploaded_file = st.file_uploader("### 📂 Upload a NetCDF file", type=["nc"])
-#     st.markdown("#### 📂 Upload a NetCDF file")
-#     uploaded_file = st.file_uploader("Upload file", type=["nc"], label_visibility="collapsed")
-
-#     if uploaded_file:
-#         try:
-#             # with tempfile.NamedTemporaryFile(delete=False, suffix=".nc") as tmp:
-#             #     tmp.write(uploaded_file.read())
-#             #     ds = xr.open_dataset(tmp.name)
-#             ds = load_netcdf_safe(uploaded_file)
-
-#             # st.success("✅ File loaded from uploaded file.")
-#             # st.write(ds)
-
-#             if ds is not None:
-#                 st.success("✅ File loaded successfully.")
-
-#====+++++++ New excel handling block- END +++++++++++++===========#
-
-st.subheader("🌊 OceanView: NetCDF + Excel Viewer")
-
-# === File type selector ===
-file_type = st.radio("Select file type", ["NetCDF (.nc)", "Excel (.xlsx)"], horizontal=True)
-
-# === Mode selector ===
 mode = st.radio("Select mode", ["Upload file (Web App)", "Use local file (Download Desktop App)"])
 
-df = None
-ds = None
-
-# === Excel Handling ===
-if file_type == "Excel (.xlsx)":
-    if mode == "Use local file (Download Desktop App)":
-        file_path = st.text_input("Enter full path to Excel file")
-        if file_path:
-            if os.path.exists(file_path):
-                try:
-                    df = pd.read_excel(file_path)
-                    st.success("✅ Excel file loaded from local path.")
-                except Exception as e:
-                    st.error(f"❌ Failed to load Excel file: {e}")
-            else:
-                st.error("❌ File does not exist.")
-    else:
-        st.markdown("#### 📂 Upload an Excel file")
-        uploaded_file = st.file_uploader("Upload Excel file", type=["xlsx", "xls"], label_visibility="collapsed")
-        if uploaded_file:
+if mode == "Use local file (desktop only)":
+    file_path = st.text_input("Enter full path to NetCDF file")
+    if file_path:
+        if os.path.exists(file_path):
             try:
-                df = pd.read_excel(uploaded_file)
-                st.success("✅ Excel file uploaded and loaded.")
+                ds = xr.open_dataset(file_path)
+                st.success("✅ File loaded from local path.")
+                # st.write(ds)
             except Exception as e:
-                st.error(f"❌ Failed to load Excel: {e}")
-
-    # --- Plot Excel data ---
-    if df is not None:
-        st.markdown("### 📈 Contour Plot (Excel: Depth vs Station)")
-        st.dataframe(df)
-
-        try:
-            depths = df.iloc[:, 0].values
-            station_names = df.columns[1:]
-            data_matrix = df.iloc[:, 1:].values
-
-            fig, ax = plt.subplots(figsize=(10, 6))
-            cs = ax.contourf(station_names, depths, data_matrix, levels=15, cmap='viridis')
-            ax.invert_yaxis()
-            cbar = plt.colorbar(cs, ax=ax)
-            cbar.set_label("Scalar Value")
-
-            ax.set_xlabel("Station")
-            ax.set_ylabel("Depth (m)")
-            ax.set_title("Contour Plot (Excel)")
-
-            st.pyplot(fig)
-
-        except Exception as e:
-            st.error(f"❌ Plotting failed: {e}")
-
-# === NetCDF Handling ===
+                st.error(f"❌ Failed to open NetCDF: {e}")
+        else:
+            st.error("❌ File does not exist.")
 else:
-    from tempfile import NamedTemporaryFile
+    # uploaded_file = st.file_uploader("### 📂 Upload a NetCDF file", type=["nc"])
+    st.markdown("#### 📂 Upload a NetCDF file")
+    uploaded_file = st.file_uploader("Upload file", type=["nc"], label_visibility="collapsed")
 
-    def load_netcdf_safe(file_obj):
-        with NamedTemporaryFile(delete=False, suffix=".nc") as tmp:
-            tmp.write(file_obj.read())
-            tmp_path = tmp.name
+    if uploaded_file:
         try:
-            return xr.open_dataset(tmp_path, engine="netcdf4")
-        except Exception as e:
-            st.error(f"⚠️ NetCDF read error: {e}")
-            return None
-
-    if mode == "Use local file (Download Desktop App)":
-        file_path = st.text_input("Enter full path to NetCDF file")
-        if file_path:
-            if os.path.exists(file_path):
-                try:
-                    ds = xr.open_dataset(file_path)
-                    st.success("✅ NetCDF loaded from local path.")
-                except Exception as e:
-                    st.error(f"❌ Failed to open NetCDF: {e}")
-            else:
-                st.error("❌ File does not exist.")
-    else:
-        st.markdown("#### 📂 Upload a NetCDF file")
-        uploaded_file = st.file_uploader("Upload NetCDF", type=["nc"], label_visibility="collapsed")
-        if uploaded_file:
+            # with tempfile.NamedTemporaryFile(delete=False, suffix=".nc") as tmp:
+            #     tmp.write(uploaded_file.read())
+            #     ds = xr.open_dataset(tmp.name)
             ds = load_netcdf_safe(uploaded_file)
-            if ds is not None:
-                st.success("✅ NetCDF uploaded and loaded.")
 
-    if ds is not None:
-        st.write("### 📦 Dataset Summary")
-        st.write(ds)
-        # You can add your existing plotting or selection options here.
-        
-#====+++++++ New excel handling block- END +++++++++++++===========#
+            # st.success("✅ File loaded from uploaded file.")
+            # st.write(ds)
+
+            if ds is not None:
+                st.success("✅ File loaded successfully.")
+
+
         
                 # Detect plot-compatible variables
                 def is_plot_compatible(da):

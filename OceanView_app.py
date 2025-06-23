@@ -33,22 +33,40 @@ st.title("🌊 Ocean Viewer")
 #             raise
 
 @st.cache_data
-def load_netcdf_safe(file_obj):
-    import tempfile
-    import xarray as xr
+# def load_netcdf_safe(file_obj):
+#     import tempfile
+#     import xarray as xr
 
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".nc") as tmp:
+#     with tempfile.NamedTemporaryFile(delete=False, suffix=".nc") as tmp:
+#         tmp.write(file_obj.read())
+#         tmp_path = tmp.name
+
+#     try:
+#         return xr.open_dataset(tmp_path)
+#     except ValueError as e:
+#         if "unable to decode time units" in str(e) and "calendar 'NOLEAP'" in str(e):
+#             st.warning("⚠️ Time decoding failed. Retrying with decode_times=False...")
+#             return xr.open_dataset(tmp_path, decode_times=False)
+#         else:
+#             raise
+from tempfile import NamedTemporaryFile
+
+def load_netcdf_safe(file_obj):
+    import xarray as xr
+    from tempfile import NamedTemporaryFile
+
+    with NamedTemporaryFile(delete=False, suffix=".nc") as tmp:
         tmp.write(file_obj.read())
         tmp_path = tmp.name
-
     try:
-        return xr.open_dataset(tmp_path)
+        return xr.open_dataset(tmp_path, engine="netcdf4")
     except ValueError as e:
-        if "unable to decode time units" in str(e) and "calendar 'NOLEAP'" in str(e):
-            st.warning("⚠️ Time decoding failed. Retrying with decode_times=False...")
-            return xr.open_dataset(tmp_path, decode_times=False)
+        if ("unable to decode time units" in str(e)) or ("calendar 'NOLEAP'" in str(e)):
+            st.warning("⚠️ Time decoding failed. Retrying with decode_times=False using engine='scipy'...")
+            return xr.open_dataset(tmp_path, decode_times=False, engine="scipy")
         else:
             raise
+
 
 def load_netcdf_safe_from_path(path):
     try:
