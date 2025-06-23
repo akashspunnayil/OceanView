@@ -600,7 +600,7 @@ else:
                         if hasattr(im, 'colorbar') and im.colorbar:
                             im.colorbar.set_label(cbar_label, fontsize=12)
                         ax.text(0.5, -0.2, xlabel, transform=ax.transAxes, ha='center', va='top', fontsize=12)
-                        ax.text(-0.2, 0.5, ylabel, transform=ax.transAxes, ha='right', va='center', rotation='vertical', fontsize=12)
+                        ax.text(-0.3, 0.5, ylabel, transform=ax.transAxes, ha='right', va='center', rotation='vertical', fontsize=12)
                         st.pyplot(fig)
             
             
