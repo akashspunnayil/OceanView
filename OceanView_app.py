@@ -135,7 +135,10 @@ if mode == "Use local file (desktop only)":
         else:
             st.error("❌ File does not exist.")
 else:
-    uploaded_file = st.file_uploader("### 📂 Upload a NetCDF file", type=["nc"])
+    # uploaded_file = st.file_uploader("### 📂 Upload a NetCDF file", type=["nc"])
+    st.markdown("#### 📂 Upload a NetCDF file")
+    uploaded_file = st.file_uploader("Upload file", type=["nc"], label_visibility="collapsed")
+
     if uploaded_file:
         try:
             # with tempfile.NamedTemporaryFile(delete=False, suffix=".nc") as tmp:
