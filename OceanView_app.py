@@ -1017,6 +1017,11 @@ else:
                             )
                             ax.invert_yaxis()
                             # ax.set_title(f"{var} Vertical Section at {section_label}", fontsize=14)
+                            if time_mode == "Single Time":
+                                time_str = pd.to_datetime(raw_time_value).strftime('%Y-%m-%d')
+                            else:
+                                time_str = f"{pd.to_datetime(t1).strftime('%Y-%m-%d')} to {pd.to_datetime(t2).strftime('%Y-%m-%d')}"
+
                             ax.set_title(f"{var} Vertical Section at {section_label}\n {time_str}", fontsize=14)
                             ax.set_xlabel(xlabel)
                             ax.set_ylabel("Depth (m)")
