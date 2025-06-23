@@ -1767,7 +1767,7 @@ else:
                             # === Plotting ===
                             fig, ax = plt.subplots(figsize=(10, 5))
                             c = ax.contourf(hov_x, hov_y, hov_z, levels=50, cmap=cmap_choice)
-                            ax.set_title(f"{var} Hovmöller Diagram\n{hov_mode}\n🗺️ {spatial_info}\n🕒 {time_range_str}", fontsize=13)
+                            ax.set_title(f"{var} Hovmöller Diagram\n{hov_mode}\n🗺️ {spatial_info}\n {time_range_str}", fontsize=13)
                             ax.set_xlabel(hov_x.name)
                             ax.set_ylabel("Time")
                             plt.xticks(rotation=45)
