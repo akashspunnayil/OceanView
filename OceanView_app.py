@@ -1649,7 +1649,8 @@ else:
                                     da_sel = da.sel({lon_var: slice(lon_min, lon_max), depth_var: slice(d1, d2)})
                                     da_sel = da_sel.sel({lat_var: fixed_lat}, method="nearest").mean(dim=depth_var, skipna=True)
                                 else:
-                                    fixed_depth = st.number_input("Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=10.0)
+                                    fixed_depth = st.number_input("Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=10.0, key="hov_depth")
+
                                     da_sel = da.sel({lon_var: slice(lon_min, lon_max), depth_var: fixed_depth})
                                     da_sel = da_sel.sel({lat_var: fixed_lat}, method="nearest")
                     
@@ -1659,7 +1660,7 @@ else:
                                 hov_z = da_sel.transpose(time_var, lon_var)
                     
                             elif hov_mode.startswith("Latitude"):
-                                fixed_lon = st.number_input("Longitude (°E)", float(ds[lon_var].min()), float(ds[lon_var].max()), value=60.0)
+                                fixed_lon = st.number_input("Longitude (°E)", float(ds[lon_var].min()), float(ds[lon_var].max()), value=60.0, key="hov_depth")
                                 lat_min = st.number_input("Min Latitude", float(ds[lat_var].min()), float(ds[lat_var].max()), value=float(ds[lat_var].min()))
                                 lat_max = st.number_input("Max Latitude", float(ds[lat_var].min()), float(ds[lat_var].max()), value=float(ds[lat_var].max()))
                     
@@ -1669,7 +1670,7 @@ else:
                                     da_sel = da.sel({lat_var: slice(lat_min, lat_max), depth_var: slice(d1, d2)})
                                     da_sel = da_sel.sel({lon_var: fixed_lon}, method="nearest").mean(dim=depth_var, skipna=True)
                                 else:
-                                    fixed_depth = st.number_input("Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=10.0)
+                                    fixed_depth = st.number_input("Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=10.0, key="hov_depth")
                                     da_sel = da.sel({lat_var: slice(lat_min, lat_max), depth_var: fixed_depth})
                                     da_sel = da_sel.sel({lon_var: fixed_lon}, method="nearest")
                     
