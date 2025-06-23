@@ -1,0 +1,8 @@
+.ipynb_checkpoints/
+out/
+code.ipynb
+OceanView_app_backup.py
+OceanView_app_local.py
+build/
+dist/
+OceanView_app_local.spec
