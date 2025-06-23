@@ -1811,35 +1811,36 @@ else:
                 
                         # Meshgrid for pcolormesh
                         X, Y = np.meshgrid(valid_lats, depths)
-                
+
+                        st.markdown("### 🖋️ Customize Plot Labels")
+
+                        plot_title = st.text_input("Plot Title", value="Section Plot (Depth vs Latitude)")
+                        xlabel = st.text_input("X-axis Label", value="Latitude (°N)")
+                        ylabel = st.text_input("Y-axis Label", value="Depth (m)")
+                        colorbar_label = st.text_input("Colorbar Label", value="Scalar Value")
+                        xtick_rotation = st.slider("X-Tick Label Rotation (°)", 0, 90, 45)
+
                         # STEP 7: Plot with NaNs masked as white
-                        fig, ax = plt.subplots(figsize=(6, 4))
+                        fig, ax = plt.subplots(figsize=(10, 6))
+
                         cmap = plt.cm.viridis.copy()
                         cmap.set_bad(color='white')
-                
-                        masked_data = np.ma.masked_invalid(scalar_data.T)  # shape: (depth, lat)
-                        pcm = ax.pcolormesh(X, Y, masked_data, cmap=cmap, shading='auto')
-
-                        try:
-                            ax.set_title(title_value)
-                        except Exception as e:
-                            st.error(f"Title error: {e}")
+                        masked_data = np.ma.masked_invalid(scalar_data.T)
                         
-                        try:
-                            cbar.set_label(colorbar_label)
-                        except Exception as e:
-                            st.error(f"Colorbar label error: {e}")
-
+                        pcm = ax.pcolormesh(X, Y, masked_data, cmap=cmap, shading='auto')
+                        
                         ax.invert_yaxis()
-                        ax.set_xlabel("Latitude (°N)")
-                        plt.setp(ax.get_xticklabels(), rotation=45)
-                        ax.set_ylabel("Depth (m)")
-                        ax.set_title("Section Plot (Depth vs Latitude)")
-                
+                        ax.set_xlabel(xlabel)
+                        ax.set_ylabel(ylabel)
+                        ax.set_title(plot_title)
+                        
+                        plt.setp(ax.get_xticklabels(), rotation=xtick_rotation)  # 👈 Rotate ticks
+                        
                         cbar = fig.colorbar(pcm, ax=ax)
-                        cbar.set_label("Scalar Value")
-                
+                        cbar.set_label(colorbar_label)
+                        
                         st.pyplot(fig)
+
                 
                     except Exception as e:
                         st.error(f"❌ Error processing or plotting file: {e}")
