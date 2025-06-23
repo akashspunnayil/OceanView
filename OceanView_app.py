@@ -191,28 +191,89 @@ if file_type == "Excel (.xlsx)":
 
     # --- Plot Excel data ---
     if df is not None:
+        #---------------------------------------- Station Contour (Excel) ----------------------------------------------------#
+
         st.markdown("### 📈 Contour Plot (Excel: Depth vs Station)")
-        st.dataframe(df)
+        
+        import streamlit as st
+        import pandas as pd
+        import numpy as np
+        import matplotlib.pyplot as plt
+        import re
+        from matplotlib.cm import get_cmap
+        
+        st.subheader("📊 Section Plot (Depth vs Latitude) from Excel with NaN Handling")
+        
+        # === STEP 0: User plot label inputs — move this ABOVE file uploader ===
+        st.markdown("### 🖋️ Customize Plot Labels")
 
-        try:
-            depths = df.iloc[:, 0].values
-            station_names = df.columns[1:]
-            data_matrix = df.iloc[:, 1:].values
-
-            fig, ax = plt.subplots(figsize=(10, 6))
-            cs = ax.contourf(station_names, depths, data_matrix, levels=15, cmap='viridis')
-            ax.invert_yaxis()
-            cbar = plt.colorbar(cs, ax=ax)
-            cbar.set_label("Scalar Value")
-
-            ax.set_xlabel("Station")
-            ax.set_ylabel("Depth (m)")
-            ax.set_title("Contour Plot (Excel)")
-
-            st.pyplot(fig)
-
-        except Exception as e:
-            st.error(f"❌ Plotting failed: {e}")
+        plot_title = st.text_input("Plot Title", value="Section Plot (Depth vs Latitude)")
+        xlabel = st.text_input("X-axis Label", value="Latitude (°N)")
+        ylabel = st.text_input("Y-axis Label", value="Depth (m)")
+        colorbar_label = st.text_input("Colorbar Label", value="Scalar Value")
+        xtick_rotation = st.slider("X-Tick Label Rotation (°)", 0, 90, 45)
+            
+        # === STEP 1: File uploader ===
+        uploaded_file = st.file_uploader("📂 Upload Excel File", type=["xlsx", "xls"])
+        
+        # === STEP 2: Proceed only if file is uploaded ===
+        if uploaded_file:
+            try:
+                # === Load raw file (no header) ===
+                raw_df = pd.read_excel(uploaded_file, header=None)
+        
+                # Detect header row
+                data_start_idx = raw_df.applymap(lambda x: str(x).strip().lower() == 'depth').any(axis=1)
+                header_row = data_start_idx.idxmax() if data_start_idx.any() else 0
+        
+                # Load cleaned DataFrame
+                df = pd.read_excel(uploaded_file, header=header_row)
+                df.replace(r'^\s*$', np.nan, regex=True, inplace=True)
+        
+                # Parse latitudes from column headers
+                station_labels = df.columns[1:]
+                latitudes = []
+                for label in station_labels:
+                    match = re.search(r"([0-9.]+)", str(label))
+                    latitudes.append(float(match.group(1)) if match else np.nan)
+                latitudes = np.array(latitudes)
+        
+                # Filter valid columns
+                valid_indices = ~np.isnan(latitudes)
+                valid_lats = latitudes[valid_indices]
+                valid_cols = df.columns[1:][valid_indices]
+        
+                # Prepare depth and scalar matrix
+                depths = pd.to_numeric(df.iloc[:, 0], errors='coerce')
+                scalar_data = df[valid_cols].apply(pd.to_numeric, errors='coerce').T.values
+        
+                valid_depth_mask = ~np.isnan(depths)
+                depths = depths[valid_depth_mask]
+                scalar_data = scalar_data[:, valid_depth_mask]
+        
+                X, Y = np.meshgrid(valid_lats, depths)
+        
+                # === Plotting ===
+                fig, ax = plt.subplots(figsize=(10, 6))
+                cmap = plt.cm.viridis.copy()
+                cmap.set_bad(color='white')  # Show NaNs as white
+        
+                masked_data = np.ma.masked_invalid(scalar_data.T)
+                pcm = ax.pcolormesh(X, Y, masked_data, cmap=cmap, shading='auto')
+        
+                ax.invert_yaxis()
+                ax.set_xlabel(xlabel)
+                ax.set_ylabel(ylabel)
+                ax.set_title(plot_title)
+                plt.setp(ax.get_xticklabels(), rotation=xtick_rotation)
+        
+                cbar = fig.colorbar(pcm, ax=ax)
+                cbar.set_label(colorbar_label)
+        
+                st.pyplot(fig)
+        
+            except Exception as e:
+                st.error(f"❌ Plotting failed: {e}")
 
 # === NetCDF Handling ===
 else:
@@ -1748,98 +1809,7 @@ else:
                     st.error(f"❌ Failed to plot Hovmöller diagram: {e}")
     
     
-            #---------------------------------------- Station Contour (Excel) ----------------------------------------------------#
-    
-            # if station_plot:
-
-            import streamlit as st
-            import pandas as pd
-            import numpy as np
-            import matplotlib.pyplot as plt
-            import re
-            from matplotlib.cm import get_cmap
             
-            st.subheader("📊 Section Plot (Depth vs Latitude) from Excel with NaN Handling")
-            
-            # === STEP 0: User plot label inputs — move this ABOVE file uploader ===
-            st.markdown("### 🖋️ Customize Plot Labels")
-            col1 = st.columns(1)
-            with col1:
-            
-                plot_title = st.text_input("Plot Title", value="Section Plot (Depth vs Latitude)")
-                xlabel = st.text_input("X-axis Label", value="Latitude (°N)")
-                ylabel = st.text_input("Y-axis Label", value="Depth (m)")
-                colorbar_label = st.text_input("Colorbar Label", value="Scalar Value")
-                xtick_rotation = st.slider("X-Tick Label Rotation (°)", 0, 90, 45)
-                
-            # === STEP 1: File uploader ===
-            uploaded_file = st.file_uploader("📂 Upload Excel File", type=["xlsx", "xls"])
-            
-            # === STEP 2: Proceed only if file is uploaded ===
-            if uploaded_file:
-                try:
-                    # === Load raw file (no header) ===
-                    raw_df = pd.read_excel(uploaded_file, header=None)
-            
-                    # Detect header row
-                    data_start_idx = raw_df.applymap(lambda x: str(x).strip().lower() == 'depth').any(axis=1)
-                    header_row = data_start_idx.idxmax() if data_start_idx.any() else 0
-            
-                    # Load cleaned DataFrame
-                    df = pd.read_excel(uploaded_file, header=header_row)
-                    df.replace(r'^\s*$', np.nan, regex=True, inplace=True)
-            
-                    # Parse latitudes from column headers
-                    station_labels = df.columns[1:]
-                    latitudes = []
-                    for label in station_labels:
-                        match = re.search(r"([0-9.]+)", str(label))
-                        latitudes.append(float(match.group(1)) if match else np.nan)
-                    latitudes = np.array(latitudes)
-            
-                    # Filter valid columns
-                    valid_indices = ~np.isnan(latitudes)
-                    valid_lats = latitudes[valid_indices]
-                    valid_cols = df.columns[1:][valid_indices]
-            
-                    # Prepare depth and scalar matrix
-                    depths = pd.to_numeric(df.iloc[:, 0], errors='coerce')
-                    scalar_data = df[valid_cols].apply(pd.to_numeric, errors='coerce').T.values
-            
-                    valid_depth_mask = ~np.isnan(depths)
-                    depths = depths[valid_depth_mask]
-                    scalar_data = scalar_data[:, valid_depth_mask]
-            
-                    X, Y = np.meshgrid(valid_lats, depths)
-            
-                    # === Plotting ===
-                    fig, ax = plt.subplots(figsize=(10, 6))
-                    cmap = plt.cm.viridis.copy()
-                    cmap.set_bad(color='white')  # Show NaNs as white
-            
-                    masked_data = np.ma.masked_invalid(scalar_data.T)
-                    pcm = ax.pcolormesh(X, Y, masked_data, cmap=cmap, shading='auto')
-            
-                    ax.invert_yaxis()
-                    ax.set_xlabel(xlabel)
-                    ax.set_ylabel(ylabel)
-                    ax.set_title(plot_title)
-                    plt.setp(ax.get_xticklabels(), rotation=xtick_rotation)
-            
-                    cbar = fig.colorbar(pcm, ax=ax)
-                    cbar.set_label(colorbar_label)
-            
-                    st.pyplot(fig)
-            
-                except Exception as e:
-                    st.error(f"❌ Plotting failed: {e}")
-
-
-
-                
-
-
-
         # except Exception as e:
         #     st.error(f"⚠️ Failed to subset or plot data: {e}")
 
