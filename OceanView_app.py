@@ -423,10 +423,10 @@ else:
                             xlabel = st.text_input("🧭 X-axis Label", value="Longitude", key="xlabel")
                             ylabel = st.text_input("🧭 Y-axis Label", value="Latitude", key="ylabel")
                             cbar_label = st.text_input("🎨 Colorbar Label", value=var, key="cbar_label")
-                        with label_cols[1]:
+                        # with label_cols[1]:
                             # st.button("🔄 Reset", on_click=reset_plot_labels)
                             # st.button("🔄 Reset", on_click=reset_plot_labels, key="reset_plot_labels_btn")
-                            st.button("🔄 Reset", on_click=lambda: reset_plot_labels(time_sel, selected_depth), key="reset_plot_labels_btn")
+                            # st.button("🔄 Reset", on_click=lambda: reset_plot_labels(time_sel, selected_depth), key="reset_plot_labels_btn")
         
         
                     def reset_tick_settings():
