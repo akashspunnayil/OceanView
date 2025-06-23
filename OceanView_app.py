@@ -193,7 +193,10 @@ else:
                             scale_val = st.number_input("Scale Value", value=1.0, step=0.1)
                             
                     # var = st.selectbox("🔎 Variable", list(plot_vars.keys()))
-                    var = st.selectbox("### 🔎 Variable", list(plot_vars.keys()))
+                    # var = st.selectbox("### 🔎 Variable", list(plot_vars.keys()))
+                    st.markdown("### 🔎 Variable")
+                    var = st.selectbox("", list(plot_vars.keys()))
+
 
                     # ds_sel = ds[var]
     
