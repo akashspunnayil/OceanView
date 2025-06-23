@@ -273,27 +273,28 @@ else:
                     lat_range = (south_lat, north_lat)
                     lon_range = (west_lon, east_lon)
 
-                    # -- Define lat/lon bounds
+                    # --- Define bounds
                     lat_min, lat_max = float(lat_vals.min()), float(lat_vals.max())
                     lon_min, lon_max = float(lon_vals.min()), float(lon_vals.max())
                     
-                    # -- Initialize default values in session_state if not already set
-                    for key, default in {
-                        "north_lat": lat_max,
-                        "south_lat": lat_min,
-                        "west_lon": lon_min,
-                        "east_lon": lon_max,
-                    }.items():
-                        if key not in st.session_state:
-                            st.session_state[key] = default
+                    # --- Reset trigger
+                    if "reset_coords" not in st.session_state:
+                        st.session_state.reset_coords = False
                     
-                    # -- Reset Button (updates session_state BEFORE widget rendering)
+                    # --- Trigger reset on button click
                     if st.button("🔄 Reset to Full Extent"):
-                        st.session_state.north_lat = lat_max
-                        st.session_state.south_lat = lat_min
-                        st.session_state.west_lon = lon_min
-                        st.session_state.east_lon = lon_max
-                        st.experimental_rerun()  # reruns to avoid modification-after-render error
+                        st.session_state.reset_coords = True
+                        st.experimental_rerun()
+                    
+                    # --- Apply reset before widget instantiation
+                    if st.session_state.reset_coords:
+                        st.session_state["north_lat"] = lat_max
+                        st.session_state["south_lat"] = lat_min
+                        st.session_state["west_lon"] = lon_min
+                        st.session_state["east_lon"] = lon_max
+                        st.session_state.reset_coords = False
+                        st.experimental_rerun()
+
 
                     
                         
