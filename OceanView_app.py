@@ -621,8 +621,7 @@ else:
                             )
                     #---------------------------------Intercative Spatial Map View----------------------------------------------------------#
                     if show_interactive_spatial_map:
-                        st.subheader("🎞️ Interactive Map View")
-
+                        
                         # -- Plot Mode Selection
                         plot_mode = st.radio("🧭 Select Plot Mode", [
                             "Single Time + Single Depth",
@@ -675,6 +674,7 @@ else:
                         else:
                             time_str = pd.to_datetime(raw_time_value).strftime('%Y-%m-%d')
 
+                        st.subheader("🎞️ Interactive Map View")
                         
                         def figsize_to_plotly(width_in, height_in, dpi=100):
                             return int(width_in * dpi), int(height_in * dpi)
@@ -693,6 +693,28 @@ else:
                                         coord_map[standard] = coord_candidates[opt]
                                         break
                             return coord_map
+
+                        # ------------------ Data Extraction ------------------ #
+                        data = ds[var]
+                        data = data.sel({lat_var: slice(*lat_range), lon_var: slice(*lon_range)})
+                    
+                        if "Depth Range Avg" in plot_mode:
+                            data = data.sel({depth_var: slice(dmin, dmax)})
+                            data = data.mean(dim=depth_var, skipna=True)
+                            depth_str = f"{dmin:.0f}–{dmax:.0f} m"
+                        else:
+                            data = data.sel({depth_var: selected_depth}, method="nearest")
+                            depth_str = f"{selected_depth:.0f} m"
+                    
+                        if "Time Range Avg" in plot_mode:
+                            data = data.sel({time_var: slice(t1, t2)})
+                            data = data.mean(dim=time_var, skipna=True)
+                            time_str = f"{pd.to_datetime(t1).strftime('%Y-%m-%d')} to {pd.to_datetime(t2).strftime('%Y-%m-%d')}"
+                        else:
+                            data = data.sel({time_var: raw_time_value})
+                            time_str = pd.to_datetime(raw_time_value).strftime('%Y-%m-%d')
+                    
+                        # ------------------ Plotting ------------------ #
                     
                         data_2d = data.squeeze()
                         coord_map = standardize_coords(data_2d)
