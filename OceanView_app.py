@@ -227,55 +227,88 @@ else:
                     lon_vals = ds[lon_var].values
         
 
-                    st.markdown("#### 🌐 Region & Depth Selection")
+                    # st.markdown("#### 🌐 Region & Depth Selection")
 
-                    # -- Top Row: North Latitude (centered using column span)
-                    cols_north = st.columns([1, 1, 1])
-                    with cols_north[1]:
-                        north_lat = st.number_input(
-                            "⬆️ Lat Max",
-                            min_value=float(lat_vals.min()),
-                            max_value=float(lat_vals.max()),
-                            value=float(lat_vals.max()),
-                            key="north_lat"
-                        )
+                    # # -- Top Row: North Latitude (centered using column span)
+                    # cols_north = st.columns([1, 1, 1])
+                    # with cols_north[1]:
+                    #     north_lat = st.number_input(
+                    #         "⬆️ Lat Max",
+                    #         min_value=float(lat_vals.min()),
+                    #         max_value=float(lat_vals.max()),
+                    #         value=float(lat_vals.max()),
+                    #         key="north_lat"
+                    #     )
                     
-                    # -- Middle Row: West and East Longitude
-                    cols_mid = st.columns([1, 1])
-                    with cols_mid[0]:
-                        west_lon = st.number_input(
-                            "⬅️ Lon Min",
-                            min_value=float(lon_vals.min()),
-                            max_value=float(lon_vals.max()),
-                            value=float(lon_vals.min()),
-                            key="west_lon"
-                        )
-                    with cols_mid[1]:
-                        east_lon = st.number_input(
-                            "➡️ Lon Min",
-                            min_value=float(lon_vals.min()),
-                            max_value=float(lon_vals.max()),
-                            value=float(lon_vals.max()),
-                            key="east_lon"
-                        )
+                    # # -- Middle Row: West and East Longitude
+                    # cols_mid = st.columns([1, 1])
+                    # with cols_mid[0]:
+                    #     west_lon = st.number_input(
+                    #         "⬅️ Lon Min",
+                    #         min_value=float(lon_vals.min()),
+                    #         max_value=float(lon_vals.max()),
+                    #         value=float(lon_vals.min()),
+                    #         key="west_lon"
+                    #     )
+                    # with cols_mid[1]:
+                    #     east_lon = st.number_input(
+                    #         "➡️ Lon Min",
+                    #         min_value=float(lon_vals.min()),
+                    #         max_value=float(lon_vals.max()),
+                    #         value=float(lon_vals.max()),
+                    #         key="east_lon"
+                    #     )
                     
-                    # -- Bottom Row: South Latitude (centered)
-                    cols_south = st.columns([1, 1, 1])
-                    with cols_south[1]:
-                        south_lat = st.number_input(
-                            "⬇️ Lat Min",
-                            min_value=float(lat_vals.min()),
-                            max_value=float(lat_vals.max()),
-                            value=float(lat_vals.min()),
-                            key="south_lat"
-                        )
+                    # # -- Bottom Row: South Latitude (centered)
+                    # cols_south = st.columns([1, 1, 1])
+                    # with cols_south[1]:
+                    #     south_lat = st.number_input(
+                    #         "⬇️ Lat Min",
+                    #         min_value=float(lat_vals.min()),
+                    #         max_value=float(lat_vals.max()),
+                    #         value=float(lat_vals.min()),
+                    #         key="south_lat"
+                    #     )
                         
-                    lat_range = (south_lat, north_lat)
-                    lon_range = (west_lon, east_lon)
+                    # lat_range = (south_lat, north_lat)
+                    # lon_range = (west_lon, east_lon)
+
+                    # # --- Define bounds
+                    # lat_min, lat_max = float(lat_vals.min()), float(lat_vals.max())
+                    # lon_min, lon_max = float(lon_vals.min()), float(lon_vals.max())
+                    
+                    # # --- Initialize reset flag
+                    # if "reset_coords" not in st.session_state:
+                    #     st.session_state.reset_coords = False
+                    
+                    # # --- Reset button
+                    # if st.button("🔄 Reset to Full Extent"):
+                    #     st.session_state.reset_coords = True
+                    #     st.rerun()  # use this instead of experimental_rerun
+                    
+                    # # --- Perform reset BEFORE widgets render
+                    # if st.session_state.reset_coords:
+                    #     st.session_state["north_lat"] = lat_max
+                    #     st.session_state["south_lat"] = lat_min
+                    #     st.session_state["west_lon"] = lon_min
+                    #     st.session_state["east_lon"] = lon_max
+                    #     st.session_state.reset_coords = False
+                    #     st.rerun()
 
                     # --- Define bounds
                     lat_min, lat_max = float(lat_vals.min()), float(lat_vals.max())
                     lon_min, lon_max = float(lon_vals.min()), float(lon_vals.max())
+                    
+                    # --- Initialize default values in session_state
+                    default_coords = {
+                        "north_lat": lat_max,
+                        "south_lat": lat_min,
+                        "west_lon": lon_min,
+                        "east_lon": lon_max,
+                    }
+                    for key, val in default_coords.items():
+                        if key not in st.session_state:
+                            st.session_state[key] = val
                     
                     # --- Initialize reset flag
                     if "reset_coords" not in st.session_state:
@@ -284,16 +317,63 @@ else:
                     # --- Reset button
                     if st.button("🔄 Reset to Full Extent"):
                         st.session_state.reset_coords = True
-                        st.rerun()  # use this instead of experimental_rerun
+                        st.rerun()
                     
-                    # --- Perform reset BEFORE widgets render
+                    # --- Handle reset before rendering widgets
                     if st.session_state.reset_coords:
-                        st.session_state["north_lat"] = lat_max
-                        st.session_state["south_lat"] = lat_min
-                        st.session_state["west_lon"] = lon_min
-                        st.session_state["east_lon"] = lon_max
+                        for key, val in default_coords.items():
+                            st.session_state[key] = val
                         st.session_state.reset_coords = False
                         st.rerun()
+                    
+                    # --- Region & Depth Selection UI
+                    st.markdown("#### 🌐 Region & Depth Selection")
+                    
+                    # -- Top Row: North Latitude (centered)
+                    cols_north = st.columns([1, 1, 1])
+                    with cols_north[1]:
+                        north_lat = st.number_input(
+                            "⬆️ Lat Max",
+                            min_value=lat_min,
+                            max_value=lat_max,
+                            value=st.session_state["north_lat"],
+                            key="north_lat"
+                        )
+                    
+                    # -- Middle Row: West and East Longitude
+                    cols_mid = st.columns([1, 1])
+                    with cols_mid[0]:
+                        west_lon = st.number_input(
+                            "⬅️ Lon Min",
+                            min_value=lon_min,
+                            max_value=lon_max,
+                            value=st.session_state["west_lon"],
+                            key="west_lon"
+                        )
+                    with cols_mid[1]:
+                        east_lon = st.number_input(
+                            "➡️ Lon Max",
+                            min_value=lon_min,
+                            max_value=lon_max,
+                            value=st.session_state["east_lon"],
+                            key="east_lon"
+                        )
+                    
+                    # -- Bottom Row: South Latitude (centered)
+                    cols_south = st.columns([1, 1, 1])
+                    with cols_south[1]:
+                        south_lat = st.number_input(
+                            "⬇️ Lat Min",
+                            min_value=lat_min,
+                            max_value=lat_max,
+                            value=st.session_state["south_lat"],
+                            key="south_lat"
+                        )
+                    
+                    # -- Final lat/lon range
+                    lat_range = (south_lat, north_lat)
+                    lon_range = (west_lon, east_lon)
+
 
 
 
