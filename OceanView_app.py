@@ -1778,8 +1778,8 @@ else:
                     # === STEP 3: Clean DataFrame ===
                     df = pd.read_excel(uploaded_file, header=header_row)
                     df.replace(r'^\s*$', np.nan, regex=True, inplace=True)
-                    st.write("✅ Cleaned Data:")
-                    st.dataframe(df)
+                    # st.write("✅ Cleaned Data:")
+                    # st.dataframe(df)
         
                     # === STEP 4: Parse latitudes from column headers ===
                     station_labels = df.columns[1:]  # Skip 'Depth'
