@@ -1841,8 +1841,8 @@ else:
     
     
             
-        # except Exception as e:
-        #     st.error(f"⚠️ Failed to subset or plot data: {e}")
+        except Exception as e:
+            st.error(f"⚠️ Failed to subset or plot data: {e}")
 
 
         
