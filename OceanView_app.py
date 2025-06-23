@@ -291,6 +291,9 @@ else:
                             value=float(lat_vals.min()),
                             key="south_lat"
                         )
+                        
+                    lat_range = (south_lat, north_lat)
+                    lon_range = (west_lon, east_lon)
                     
                     # -- Optional Depth Input
                     if depth_var:
@@ -308,9 +311,6 @@ else:
                         selected_depth = None
 
 
-
-
-                    
                     if time_var:
                         raw_time_vals, time_labels = try_decode_time(ds, time_var)
                         time_sel = st.selectbox("🕒 Select Time", time_labels)
