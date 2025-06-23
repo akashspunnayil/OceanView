@@ -1751,36 +1751,68 @@ else:
             #---------------------------------------- Station Contour (Excel) ----------------------------------------------------#
     
             if  station_plot:
-                st.subheader("📂 Upload Station Excel File")
-                uploaded_file = st.file_uploader("Upload your Excel file", type=["xlsx", "xls"])
-                
-                if uploaded_file:
-                    df = pd.read_excel(uploaded_file)
-                    st.write("Preview of uploaded data:")
-                    st.dataframe(df)
-                
-                    try:
-                        depths = df.iloc[:, 0].values  # First column: Depths
-                        station_names = df.columns[1:].astype(str)  # ← Convert headers to strings
+               
+                import re
 
-                        # station_names = df.columns[1:]  # Skip depth column
-                        data_matrix = df.iloc[:, 1:].values  # Only station data
+                st.subheader("📊 Section Plot from Excel: Depth vs Latitude")
                 
-                        # Plot
+                uploaded_file = st.file_uploader("📂 Upload Excel File", type=["xlsx", "xls"])
+                if uploaded_file:
+                    try:
+                        # Try to read with default header guess
+                        raw_df = pd.read_excel(uploaded_file, header=None)
+                
+                        # Identify data start row (assume depth starts after metadata — usually where first int appears)
+                        data_start_row = raw_df.applymap(lambda x: isinstance(x, (int, float))).any(axis=1).idxmax()
+                
+                        # Use the previous row as header
+                        df = pd.read_excel(uploaded_file, header=data_start_row - 1, skiprows=range(data_start_row))
+                
+                        # Handle missing values (blank cells to NaN)
+                        df.replace(r'^\s*$', np.nan, regex=True, inplace=True)
+                
+                        st.success("✅ Excel file loaded and cleaned.")
+                        st.dataframe(df)
+                
+                        # --- Parse x-axis: Latitudes from column names ---
+                        station_labels = df.columns[1:]  # Skip depth column
+                        latitudes = []
+                
+                        for label in station_labels:
+                            match = re.search(r"\(?([0-9.]+)", str(label))
+                            if match:
+                                latitudes.append(float(match.group(1)))
+                            else:
+                                latitudes.append(np.nan)
+                
+                        latitudes = np.array(latitudes)
+                
+                        # --- Prepare depth and data matrix ---
+                        depths = df.iloc[:, 0].astype(float).values
+                        data_matrix = df.iloc[:, 1:].astype(float).values.T  # Transpose: (stations x depth)
+                
+                        # --- Plot using pcolormesh ---
                         fig, ax = plt.subplots(figsize=(10, 6))
-                        cs = ax.contourf(station_names, depths, data_matrix, levels=15, cmap='viridis')
-                        ax.invert_yaxis()  # Optional: invert y-axis to show surface on top
-                        cbar = plt.colorbar(cs, ax=ax)
+                        pcm = ax.pcolormesh(
+                            latitudes,
+                            depths,
+                            data_matrix,
+                            shading='auto',
+                            cmap='viridis'
+                        )
+                        ax.invert_yaxis()
+                        cbar = fig.colorbar(pcm, ax=ax)
                         cbar.set_label("Scalar Value")
                 
-                        ax.set_xlabel("Station")
+                        ax.set_xlabel("Latitude (°N)")
                         ax.set_ylabel("Depth (m)")
-                        ax.set_title("Contour Plot: Scalar vs. Depth and Station")
+                        ax.set_title("Section Plot (Depth vs Latitude)")
                 
                         st.pyplot(fig)
                 
                     except Exception as e:
-                        st.error(f"❌ Error plotting contour: {e}")
+                        st.error(f"❌ Failed to process file: {e}")
+
 
 
         # except Exception as e:
