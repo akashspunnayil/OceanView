@@ -562,17 +562,17 @@ else:
                             "Time Range Avg + Depth Range Avg"
                         ])
                         
-                        # # -- Depth
-                        # depth_vals = ds[depth_var].values if depth_var else None
-                        # if depth_var:
-                        #     if "Depth Range Avg" in plot_mode:
-                        #         col1, col2 = st.columns(2)
-                        #         with col1:
-                        #             dmin = st.number_input("Min Depth", float(depth_vals.min()), float(depth_vals.max()), value=0.0, key="depth_min")
-                        #         with col2:
-                        #             dmax = st.number_input("Max Depth", float(depth_vals.min()), float(depth_vals.max()), value=200.0, key="depth_max")
-                        #     else:
-                        #         selected_depth = st.number_input("Depth (m)", float(depth_vals.min()), float(depth_vals.max()), value=float(depth_vals.min()), step=10.0, key="depth_single")
+                        # -- Depth
+                        depth_vals = ds[depth_var].values if depth_var else None
+                        if depth_var:
+                            if "Depth Range Avg" in plot_mode:
+                                col1, col2 = st.columns(2)
+                                with col1:
+                                    dmin = st.number_input("Min Depth", float(depth_vals.min()), float(depth_vals.max()), value=0.0, key="depth_min")
+                                with col2:
+                                    dmax = st.number_input("Max Depth", float(depth_vals.min()), float(depth_vals.max()), value=200.0, key="depth_max")
+                            else:
+                                selected_depth = st.number_input("Depth (m)", float(depth_vals.min()), float(depth_vals.max()), value=float(depth_vals.min()), step=10.0, key="depth_single")
                                 
                         
                         # -- Time
@@ -587,21 +587,21 @@ else:
                             time_index = list(time_labels).index(time_sel)
                             raw_time_value = time_vals[time_index]
 
-                        if "Depth Range Avg" in plot_mode:
-                            data = data.sel({depth_var: slice(dmin, dmax)})
-                            data = data.mean(dim=depth_var, skipna=True)
-                            depth_str = f"{dmin:.0f}–{dmax:.0f} m"
-                        else:
-                            data = data.sel({depth_var: selected_depth}, method="nearest")
-                            depth_str = f"{selected_depth:.0f} m"
+                        # if "Depth Range Avg" in plot_mode:
+                        #     data = data.sel({depth_var: slice(dmin, dmax)})
+                        #     data = data.mean(dim=depth_var, skipna=True)
+                        #     depth_str = f"{dmin:.0f}–{dmax:.0f} m"
+                        # else:
+                        #     data = data.sel({depth_var: selected_depth}, method="nearest")
+                        #     depth_str = f"{selected_depth:.0f} m"
                     
-                        if "Time Range Avg" in plot_mode:
-                            data = data.sel({time_var: slice(t1, t2)})
-                            data = data.mean(dim=time_var, skipna=True)
-                            time_str = f"{pd.to_datetime(t1).strftime('%Y-%m-%d')} to {pd.to_datetime(t2).strftime('%Y-%m-%d')}"
-                        else:
-                            data = data.sel({time_var: raw_time_value})
-                            time_str = pd.to_datetime(raw_time_value).strftime('%Y-%m-%d')
+                        # if "Time Range Avg" in plot_mode:
+                        #     data = data.sel({time_var: slice(t1, t2)})
+                        #     data = data.mean(dim=time_var, skipna=True)
+                        #     time_str = f"{pd.to_datetime(t1).strftime('%Y-%m-%d')} to {pd.to_datetime(t2).strftime('%Y-%m-%d')}"
+                        # else:
+                        #     data = data.sel({time_var: raw_time_value})
+                        #     time_str = pd.to_datetime(raw_time_value).strftime('%Y-%m-%d')
 
                         
                         st.subheader("🗺️ Map View")
