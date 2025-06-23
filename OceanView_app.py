@@ -491,22 +491,7 @@ else:
                             "Time Range Avg + Depth Range Avg"
                         ])
 
-                        # ------------------ Compute time_str and depth_str ------------------ #
-                        depth_str = ""
-                        time_str = ""
                         
-                        # Depth string
-                        if "Depth Range Avg" in plot_mode:
-                            depth_str = f"{dmin:.0f}–{dmax:.0f} m"
-                        else:
-                            depth_str = f"{selected_depth:.0f} m"
-                        
-                        # Time string
-                        if "Time Range Avg" in plot_mode:
-                            time_str = f"{pd.to_datetime(t1).strftime('%Y-%m-%d')} to {pd.to_datetime(t2).strftime('%Y-%m-%d')}"
-                        else:
-                            time_str = pd.to_datetime(raw_time_value).strftime('%Y-%m-%d')
-
                         # -- Depth Input
                         depth_vals = ds[depth_var].values if depth_var else None
                         if depth_var:
@@ -533,7 +518,24 @@ else:
                             time_sel = st.selectbox("🕒 Select Time", time_labels, key="map_single_time")
                             time_index = list(time_labels).index(time_sel)
                             raw_time_value = time_vals[time_index]
-                    
+
+                        # ------------------ Compute time_str and depth_str ------------------ #
+                        depth_str = ""
+                        time_str = ""
+                        
+                        # Depth string
+                        if "Depth Range Avg" in plot_mode:
+                            depth_str = f"{dmin:.0f}–{dmax:.0f} m"
+                        else:
+                            depth_str = f"{selected_depth:.0f} m"
+                        
+                        # Time string
+                        if "Time Range Avg" in plot_mode:
+                            time_str = f"{pd.to_datetime(t1).strftime('%Y-%m-%d')} to {pd.to_datetime(t2).strftime('%Y-%m-%d')}"
+                        else:
+                            time_str = pd.to_datetime(raw_time_value).strftime('%Y-%m-%d')
+
+                        
                         # ------------------ Data Extraction ------------------ #
                         data = ds[var]
                         data = data.sel({lat_var: slice(*lat_range), lon_var: slice(*lon_range)})
