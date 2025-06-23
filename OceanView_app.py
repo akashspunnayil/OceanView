@@ -213,67 +213,66 @@ if file_type == "Excel (.xlsx)":
         colorbar_label = st.text_input("Colorbar Label", value="Scalar Value")
         xtick_rotation = st.slider("X-Tick Label Rotation (°)", 0, 90, 45)
             
-        # === STEP 1: File uploader ===
-        uploaded_file = st.file_uploader("📂 Upload Excel File", type=["xlsx", "xls"])
+        # # === STEP 1: File uploader ===
+        # uploaded_file = st.file_uploader("📂 Upload Excel File", type=["xlsx", "xls"])
         
-        # === STEP 2: Proceed only if file is uploaded ===
-        if uploaded_file:
-            try:
-                # === Load raw file (no header) ===
-                raw_df = pd.read_excel(uploaded_file, header=None)
+        # # === STEP 2: Proceed only if file is uploaded ===
+        # if uploaded_file:
+        #     try:
+        # === Load raw file (no header) ===
+        raw_df = pd.read_excel(uploaded_file, header=None)
+
+        # Detect header row
+        data_start_idx = raw_df.applymap(lambda x: str(x).strip().lower() == 'depth').any(axis=1)
+        header_row = data_start_idx.idxmax() if data_start_idx.any() else 0
+
+        # Load cleaned DataFrame
+        df = pd.read_excel(uploaded_file, header=header_row)
+        df.replace(r'^\s*$', np.nan, regex=True, inplace=True)
+
+        # Parse latitudes from column headers
+        station_labels = df.columns[1:]
+        latitudes = []
+        for label in station_labels:
+            match = re.search(r"([0-9.]+)", str(label))
+            latitudes.append(float(match.group(1)) if match else np.nan)
+        latitudes = np.array(latitudes)
+
+        # Filter valid columns
+        valid_indices = ~np.isnan(latitudes)
+        valid_lats = latitudes[valid_indices]
+        valid_cols = df.columns[1:][valid_indices]
+
+        # Prepare depth and scalar matrix
+        depths = pd.to_numeric(df.iloc[:, 0], errors='coerce')
+        scalar_data = df[valid_cols].apply(pd.to_numeric, errors='coerce').T.values
+
+        valid_depth_mask = ~np.isnan(depths)
+        depths = depths[valid_depth_mask]
+        scalar_data = scalar_data[:, valid_depth_mask]
+
+        X, Y = np.meshgrid(valid_lats, depths)
+
+        # === Plotting ===
+        fig, ax = plt.subplots(figsize=(10, 6))
+        cmap = plt.cm.viridis.copy()
+        cmap.set_bad(color='white')  # Show NaNs as white
+
+        masked_data = np.ma.masked_invalid(scalar_data.T)
+        pcm = ax.pcolormesh(X, Y, masked_data, cmap=cmap, shading='auto')
+
+        ax.invert_yaxis()
+        ax.set_xlabel(xlabel)
+        ax.set_ylabel(ylabel)
+        ax.set_title(plot_title)
+        plt.setp(ax.get_xticklabels(), rotation=xtick_rotation)
+
+        cbar = fig.colorbar(pcm, ax=ax)
+        cbar.set_label(colorbar_label)
+
+        st.pyplot(fig)
         
-                # Detect header row
-                data_start_idx = raw_df.applymap(lambda x: str(x).strip().lower() == 'depth').any(axis=1)
-                header_row = data_start_idx.idxmax() if data_start_idx.any() else 0
-        
-                # Load cleaned DataFrame
-                df = pd.read_excel(uploaded_file, header=header_row)
-                df.replace(r'^\s*$', np.nan, regex=True, inplace=True)
-        
-                # Parse latitudes from column headers
-                station_labels = df.columns[1:]
-                latitudes = []
-                for label in station_labels:
-                    match = re.search(r"([0-9.]+)", str(label))
-                    latitudes.append(float(match.group(1)) if match else np.nan)
-                latitudes = np.array(latitudes)
-        
-                # Filter valid columns
-                valid_indices = ~np.isnan(latitudes)
-                valid_lats = latitudes[valid_indices]
-                valid_cols = df.columns[1:][valid_indices]
-        
-                # Prepare depth and scalar matrix
-                depths = pd.to_numeric(df.iloc[:, 0], errors='coerce')
-                scalar_data = df[valid_cols].apply(pd.to_numeric, errors='coerce').T.values
-        
-                valid_depth_mask = ~np.isnan(depths)
-                depths = depths[valid_depth_mask]
-                scalar_data = scalar_data[:, valid_depth_mask]
-        
-                X, Y = np.meshgrid(valid_lats, depths)
-        
-                # === Plotting ===
-                fig, ax = plt.subplots(figsize=(10, 6))
-                cmap = plt.cm.viridis.copy()
-                cmap.set_bad(color='white')  # Show NaNs as white
-        
-                masked_data = np.ma.masked_invalid(scalar_data.T)
-                pcm = ax.pcolormesh(X, Y, masked_data, cmap=cmap, shading='auto')
-        
-                ax.invert_yaxis()
-                ax.set_xlabel(xlabel)
-                ax.set_ylabel(ylabel)
-                ax.set_title(plot_title)
-                plt.setp(ax.get_xticklabels(), rotation=xtick_rotation)
-        
-                cbar = fig.colorbar(pcm, ax=ax)
-                cbar.set_label(colorbar_label)
-        
-                st.pyplot(fig)
-        
-            except Exception as e:
-                st.error(f"❌ Plotting failed: {e}")
+           
 
 # === NetCDF Handling ===
 else:
