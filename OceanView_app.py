@@ -240,15 +240,49 @@ else:
                     lat_vals = ds[lat_var].values
                     lon_vals = ds[lon_var].values
         
-                    lat_range = st.slider("🌐 Latitude Range", float(lat_vals.min()), float(lat_vals.max()), (float(lat_vals.min()), float(lat_vals.max())))
-                    lon_range = st.slider("🗺️ Longitude Range", float(lon_vals.min()), float(lon_vals.max()), (float(lon_vals.min()), float(lon_vals.max())))
+                    # lat_range = st.slider("🌐 Latitude Range", float(lat_vals.min()), float(lat_vals.max()), (float(lat_vals.min()), float(lat_vals.max())))
+                    # lon_range = st.slider("🗺️ Longitude Range", float(lon_vals.min()), float(lon_vals.max()), (float(lon_vals.min()), float(lon_vals.max())))
         
+                    # if depth_var:
+                    #     depth_vals = ds[depth_var].values
+                    #     selected_depth = st.slider("🧭 Select Depth Level", float(depth_vals.min()), float(depth_vals.max()), float(depth_vals.min())) if len(depth_vals) > 1 else depth_vals[0]
+                    # else:
+                    #     selected_depth = None
+
+                    st.markdown("### 🌍 Manual Region & Depth Selection")
+
+                    # Top Row (North)
+                    st.markdown("**North**")
+                    north_lat = st.number_input("🧭 North Latitude", min_value=float(lat_vals.min()), max_value=float(lat_vals.max()), value=float(lat_vals.max()), key="north_lat")
+                    
+                    # Middle Row (West, Center, East)
+                    cols_cross = st.columns([1, 1, 1])
+                    
+                    with cols_cross[0]:
+                        west_lon = st.number_input("⬅️ West Longitude", min_value=float(lon_vals.min()), max_value=float(lon_vals.max()), value=float(lon_vals.min()), key="west_lon")
+                    
+                    with cols_cross[1]:
+                        st.markdown("**Center Point**")
+                        center_lat = st.number_input("Latitude (°N)", min_value=float(lat_vals.min()), max_value=float(lat_vals.max()), value=np.mean(lat_vals), key="center_lat")
+                        center_lon = st.number_input("Longitude (°E)", min_value=float(lon_vals.min()), max_value=float(lon_vals.max()), value=np.mean(lon_vals), key="center_lon")
+                    
+                    with cols_cross[2]:
+                        east_lon = st.number_input("➡️ East Longitude", min_value=float(lon_vals.min()), max_value=float(lon_vals.max()), value=float(lon_vals.max()), key="east_lon")
+                    
+                    # Bottom Row (South)
+                    st.markdown("**South**")
+                    south_lat = st.number_input("🧭 South Latitude", min_value=float(lat_vals.min()), max_value=float(lat_vals.max()), value=float(lat_vals.min()), key="south_lat")
+                    
+                    # Depth Box
                     if depth_var:
+                        st.markdown("### 🧭 Depth Level")
                         depth_vals = ds[depth_var].values
-                        selected_depth = st.slider("🧭 Select Depth Level", float(depth_vals.min()), float(depth_vals.max()), float(depth_vals.min())) if len(depth_vals) > 1 else depth_vals[0]
+                        selected_depth = st.number_input("Depth (m)", min_value=float(depth_vals.min()), max_value=float(depth_vals.max()), value=float(depth_vals.min()))
                     else:
                         selected_depth = None
-        
+
+
+                    
                     if time_var:
                         raw_time_vals, time_labels = try_decode_time(ds, time_var)
                         time_sel = st.selectbox("🕒 Select Time", time_labels)
