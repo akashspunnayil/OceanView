@@ -186,17 +186,16 @@ else:
 
                 with left_col:
 
+                    # var = st.selectbox("🔎 Variable", list(plot_vars.keys()))
+                    # var = st.selectbox("### 🔎 Variable", list(plot_vars.keys()))
+                    st.markdown("#### 🔎 Variable")
+                    var = st.selectbox("", list(plot_vars.keys()))
+
                     with st.expander("🧮 Apply Scaling to Variable Values (Optional)"):
                         apply_scaling = st.checkbox("Apply arithmetic scaling?")
                         if apply_scaling:
                             scale_op = st.selectbox("Operation", ["*", "/", "+", "-"], index=0)
                             scale_val = st.number_input("Scale Value", value=1.0, step=0.1)
-                            
-                    # var = st.selectbox("🔎 Variable", list(plot_vars.keys()))
-                    # var = st.selectbox("### 🔎 Variable", list(plot_vars.keys()))
-                    st.markdown("### 🔎 Variable")
-                    var = st.selectbox("", list(plot_vars.keys()))
-
 
                     # ds_sel = ds[var]
     
