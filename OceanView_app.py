@@ -770,17 +770,22 @@ else:
                                 
                                     # ax_anim.text(0.5, -0.1, xlabel, transform=ax_anim.transAxes, ha='center', va='top', fontsize=10)
                                     # ax_anim.text(-0.15, 0.5, ylabel, transform=ax_anim.transAxes, ha='right', va='center', rotation='vertical', fontsize=10)
-                                    # Get axis position in figure coordinates (left, bottom, width, height)
-                                    bbox = ax.get_position()
+                                    # -- Get dynamic offsets based on current figure size
+                                    fig_w, fig_h = fig_anim.get_size_inches()
+                                    x_offset = -0.05 * (8 / fig_w)
+                                    y_offset = -0.08 * (5 / fig_h)
                                     
-                                    # Adjust offsets based on axis size
-                                    x_offset = -0.05 * (10 / fig.get_size_inches()[0])  # proportionally shrink offset
-                                    y_offset = -0.1 * (6 / fig.get_size_inches()[1])
+                                    # -- Adaptive font size based on plot span
+                                    lon_span = lon_range[1] - lon_range[0]
+                                    lat_span = lat_range[1] - lat_range[0]
+                                    label_fontsize = 8 if lon_span < 2 or lat_span < 2 else 10
                                     
-                                    # Place labels relative to axis
-                                    ax.text(0.5, y_offset, xlabel, transform=ax.transAxes, ha='center', va='top', fontsize=12)
-                                    ax.text(x_offset-0.1, 0.5, ylabel, transform=ax.transAxes, ha='right', va='center',
-                                            rotation='vertical', fontsize=12)
+                                    # -- Add labels with dynamic position
+                                    ax_anim.text(0.5, y_offset, xlabel, transform=ax_anim.transAxes,
+                                                 ha='center', va='top', fontsize=label_fontsize)
+                                    ax_anim.text(x_offset, 0.5, ylabel, transform=ax_anim.transAxes,
+                                                 ha='right', va='center', rotation='vertical', fontsize=label_fontsize)
+
                                 
                                     # 🕒 Use decoded, formatted time string from time_labels
                                     try:
