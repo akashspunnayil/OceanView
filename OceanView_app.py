@@ -480,175 +480,7 @@ else:
                 #++++++++++++++++++++++++++++                    
                         
                     #---------------------------------Normal Spatial Map View----------------------------------------------------------#
-                    
-                    # if show_spatial_map:
-                    #     st.subheader("🗺️ Map View")
-                    #     # Apply the selected font family first
-                    #     plt.rcParams['font.family'] = st.session_state.get("font_family", "DejaVu Sans")                
             
-                    #     fig, ax = plt.subplots(figsize=(10, 6), subplot_kw={"projection": ccrs.PlateCarree()})
-                    #     plot_kwargs = {"ax": ax, "transform": ccrs.PlateCarree(), "cmap": cmap_choice, "add_colorbar": True}
-                    #     if set_clim:
-                    #         plot_kwargs["vmin"] = vmin
-                    #         plot_kwargs["vmax"] = vmax
-            
-                    #     im = data.squeeze().plot.pcolormesh(**plot_kwargs)
-                    #     ax.coastlines()
-                    #     gl = ax.gridlines(draw_labels=True, linewidth=0.5, color='gray', alpha=0.5, linestyle='--')
-                    #     gl.top_labels = gl.right_labels = False
-                    #     gl.xlabel_style = gl.ylabel_style = {'size': 12}
-            
-                    #     if st.session_state.get("manual_ticks", False):
-                    #         xtick_step = st.session_state.get("xtick_step")
-                    #         ytick_step = st.session_state.get("ytick_step")
-                    #         if xtick_step and ytick_step:
-                    #             gl.xlocator = mticker.FixedLocator(np.arange(lon_range[0], lon_range[1] + xtick_step, xtick_step))
-                    #             gl.ylocator = mticker.FixedLocator(np.arange(lat_range[0], lat_range[1] + ytick_step, ytick_step))
-            
-            
-                    #     if mask_land:
-                    #         ax.add_feature(cfeature.LAND, facecolor=mask_color, zorder=3)
-                    #     if mask_sea:
-                    #         ax.add_feature(cfeature.OCEAN, facecolor=mask_color, zorder=3)
-            
-                    #     ax.set_title(plot_title, fontsize=14)
-                    #     # if hasattr(im, 'colorbar') and im.colorbar:
-                    #     #     im.colorbar.set_label(cbar_label, fontsize=12)
-
-                    #     if hasattr(im, 'colorbar') and im.colorbar:
-                    #         # Remove default colorbar
-                    #         im.colorbar.remove()
-                        
-                    #     # Manually create colorbar with controlled size
-                    #     cbar = fig.colorbar(im, ax=ax, orientation='vertical', shrink=0.6, pad=0.05)
-                    #     cbar.set_label(cbar_label, fontsize=12)
-
-                        
-                    #     # ax.text(0.5, -0.2, xlabel, transform=ax.transAxes, ha='center', va='top', fontsize=12)
-                    #     # ax.text(-0.3, 0.5, ylabel, transform=ax.transAxes, ha='right', va='center', rotation='vertical', fontsize=12)
-
-                    #     # Get axis position in figure coordinates (left, bottom, width, height)
-                    #     bbox = ax.get_position()
-                        
-                    #     # Adjust offsets based on axis size
-                    #     x_offset = -0.05 * (10 / fig.get_size_inches()[0])  # proportionally shrink offset
-                    #     y_offset = -0.1 * (6 / fig.get_size_inches()[1])
-                        
-                    #     # Place labels relative to axis
-                    #     ax.text(0.5, y_offset, xlabel, transform=ax.transAxes, ha='center', va='top', fontsize=12)
-                    #     ax.text(x_offset-0.1, 0.5, ylabel, transform=ax.transAxes, ha='right', va='center',
-                    #             rotation='vertical', fontsize=12)
-
-                    #     st.pyplot(fig)
-            
-            
-                    #     if save_btn:
-                    #         buf = io.BytesIO()
-                    #         fig.savefig(buf, format=save_format, dpi=dpi_value, bbox_inches="tight")
-                    #         st.success(f"✅ Plot saved as {save_format.upper()} ({dpi_value} DPI)")
-                    #         st.download_button(
-                    #             label=f"📥 Download {save_format.upper()} file",
-                    #             data=buf.getvalue(),
-                    #             file_name=f"ocean_plot.{save_format}",
-                    #             mime=f"image/{'jpeg' if save_format == 'jpg' else save_format}"
-                    #         )
-
-                    # if show_spatial_map:
-                    #     # -- Plot Mode Selection
-                    #     plot_mode = st.radio("🧭 Select Plot Mode", [
-                    #         "Single Time + Single Depth",
-                    #         "Time Range Avg + Single Depth",
-                    #         "Single Time + Depth Range Avg",
-                    #         "Time Range Avg + Depth Range Avg"
-                    #     ])
-                        
-                    #     # -- Depth
-                    #     depth_vals = ds[depth_var].values if depth_var else None
-                    #     if depth_var:
-                    #         if "Depth Range Avg" in plot_mode:
-                    #             col1, col2 = st.columns(2)
-                    #             with col1:
-                    #                 dmin = st.number_input("Min Depth", float(depth_vals.min()), float(depth_vals.max()), value=0.0, key="depth_min")
-                    #             with col2:
-                    #                 dmax = st.number_input("Max Depth", float(depth_vals.min()), float(depth_vals.max()), value=200.0, key="depth_max")
-                    #         else:
-                    #             selected_depth = st.number_input("Depth (m)", float(depth_vals.min()), float(depth_vals.max()), value=float(depth_vals.min()), step=10.0, key="depth_single")
-                                
-                        
-                    #     # -- Time
-                    #     time_vals, time_labels = try_decode_time(ds, time_var)
-                    #     if "Time Range Avg" in plot_mode:
-                    #         t1 = st.date_input("🕒 Start Date", value=pd.to_datetime(time_labels[0]), key="map_start")
-                    #         t2 = st.date_input("🕒 End Date", value=pd.to_datetime(time_labels[-1]), key="map_end")
-                    #         t1 = np.datetime64(t1)
-                    #         t2 = np.datetime64(t2)
-                    #     else:
-                    #         time_sel = st.selectbox("🕒 Select Time", time_labels, key="map_single_time")
-                    #         time_index = list(time_labels).index(time_sel)
-                    #         raw_time_value = time_vals[time_index]
-
-                    #     # if "Depth Range Avg" in plot_mode:
-                    #     #     data = data.sel({depth_var: slice(dmin, dmax)})
-                    #     #     data = data.mean(dim=depth_var, skipna=True)
-                    #     #     depth_str = f"{dmin:.0f}–{dmax:.0f} m"
-                    #     # else:
-                    #     #     data = data.sel({depth_var: selected_depth}, method="nearest")
-                    #     #     depth_str = f"{selected_depth:.0f} m"
-                    
-                    #     # if "Time Range Avg" in plot_mode:
-                    #     #     data = data.sel({time_var: slice(t1, t2)})
-                    #     #     data = data.mean(dim=time_var, skipna=True)
-                    #     #     time_str = f"{pd.to_datetime(t1).strftime('%Y-%m-%d')} to {pd.to_datetime(t2).strftime('%Y-%m-%d')}"
-                    #     # else:
-                    #     #     data = data.sel({time_var: raw_time_value})
-                    #     #     time_str = pd.to_datetime(raw_time_value).strftime('%Y-%m-%d')
-
-                        
-                    #     st.subheader("🗺️ Map View")
-                    #     plt.rcParams['font.family'] = st.session_state.get("font_family", "DejaVu Sans")                
-                
-                    #     fig, ax = plt.subplots(figsize=(10, 6), subplot_kw={"projection": ccrs.PlateCarree()})
-                    #     plot_kwargs = {"ax": ax, "transform": ccrs.PlateCarree(), "cmap": cmap_choice, "add_colorbar": True}
-                    #     if set_clim:
-                    #         plot_kwargs["vmin"] = vmin
-                    #         plot_kwargs["vmax"] = vmax
-                
-                    #     im = data.squeeze().plot.pcolormesh(**plot_kwargs)
-                    #     ax.coastlines()
-                
-                    #     gl = ax.gridlines(draw_labels=True, linewidth=0.5, color='gray', alpha=0.5, linestyle='--')
-                    #     gl.top_labels = gl.right_labels = False
-                    #     gl.xlabel_style = gl.ylabel_style = {'size': 12}
-                
-                    #     if st.session_state.get("manual_ticks", False):
-                    #         xtick_step = st.session_state.get("xtick_step")
-                    #         ytick_step = st.session_state.get("ytick_step")
-                    #         if xtick_step and ytick_step:
-                    #             gl.xlocator = mticker.FixedLocator(np.arange(lon_range[0], lon_range[1] + xtick_step, xtick_step))
-                    #             gl.ylocator = mticker.FixedLocator(np.arange(lat_range[0], lat_range[1] + ytick_step, ytick_step))
-                
-                    #     if mask_land:
-                    #         ax.add_feature(cfeature.LAND, facecolor=mask_color, zorder=3)
-                    #     if mask_sea:
-                    #         ax.add_feature(cfeature.OCEAN, facecolor=mask_color, zorder=3)
-                
-                    #     # 🟡 Title with time & depth info
-                    #     ax.set_title(f"{plot_title}\n {time_str} | Depth: {depth_str}", fontsize=14)
-                
-                    #     # Replace colorbar
-                    #     if hasattr(im, 'colorbar') and im.colorbar:
-                    #         im.colorbar.remove()
-                    #     cbar = fig.colorbar(im, ax=ax, orientation='vertical', shrink=0.6, pad=0.05)
-                    #     cbar.set_label(cbar_label, fontsize=12)
-                
-                    #     # Adaptive label positioning
-                    #     fig_w, fig_h = fig.get_size_inches()
-                    #     x_offset = -0.05 * (10 / fig_w)
-                    #     y_offset = -0.1 * (6 / fig_h)
-                    #     ax.text(0.5, y_offset, xlabel, transform=ax.transAxes, ha='center', va='top', fontsize=12)
-                    #     ax.text(x_offset - 0.1, 0.5, ylabel, transform=ax.transAxes, ha='right', va='center', rotation='vertical', fontsize=12)
-                
-                    #     st.pyplot(fig)
                     if show_spatial_map:
                         # -- Plot Mode Selection
                         plot_mode = st.radio("🧭 Select Plot Mode", [
@@ -769,17 +601,12 @@ else:
                                 mime=f"image/{'jpeg' if save_format == 'jpg' else save_format}"
                             )
                     #---------------------------------Intercative Spatial Map View----------------------------------------------------------#
-                    
                     if show_interactive_spatial_map:
                         st.subheader("🎞️ Interactive Map View")
-            
+                    
                         def figsize_to_plotly(width_in, height_in, dpi=100):
                             return int(width_in * dpi), int(height_in * dpi)
-            
-                        import streamlit as st
-                        import xarray as xr
-                        import plotly.graph_objects as go
-            
+                    
                         def standardize_coords(dataarray):
                             coord_map = {
                                 'latitude': None,
@@ -787,11 +614,7 @@ else:
                                 'time': None,
                                 'depth': None
                             }
-                            
-                        
                             coord_candidates = {k.lower(): k for k in dataarray.coords}
-                        
-                            # Match based on known naming variants
                             for standard, options in {
                                 'latitude': ['lat', 'latitude'],
                                 'longitude': ['lon', 'longitude'],
@@ -802,21 +625,16 @@ else:
                                     if opt in coord_candidates:
                                         coord_map[standard] = coord_candidates[opt]
                                         break
-                        
                             return coord_map
-                        
-            
-                        # Assuming `data` is your 2D DataArray (lat x lon)
+                    
+                        # Assume `data` is already subset and averaged appropriately
                         data_2d = data.squeeze()
-                        # st.write("Data coordinates:", data_2d.coords)
-                        
                         coord_map = standardize_coords(data_2d)
-            
+                    
                         lat = data_2d[coord_map['latitude']].values
                         lon = data_2d[coord_map['longitude']].values
                         z = data_2d.values
-            
-            
+                    
                         fig = go.Figure(
                             data=go.Heatmap(
                                 z=z,
@@ -829,18 +647,90 @@ else:
                                 hovertemplate="Lon: %{x:.2f}<br>Lat: %{y:.2f}<br>Value: %{z:.2f}<extra></extra>"
                             )
                         )
-            
+                    
                         width, height = figsize_to_plotly(10, 6)
                         fig.update_layout(
-                            title=plot_title,
+                            title=f"{plot_title}<br><sub>🕒 {time_str} | Depth: {depth_str}</sub>",
                             xaxis_title=xlabel,
                             yaxis_title=ylabel,
-                            # height=600,
                             width=width,
-                            height=height
+                            height=height,
+                            margin=dict(l=20, r=20, t=60, b=40)
                         )
-                        
+                    
                         st.plotly_chart(fig, use_container_width=True)
+
+                    # if show_interactive_spatial_map:
+                    #     st.subheader("🎞️ Interactive Map View")
+            
+                    #     def figsize_to_plotly(width_in, height_in, dpi=100):
+                    #         return int(width_in * dpi), int(height_in * dpi)
+            
+                    #     import streamlit as st
+                    #     import xarray as xr
+                    #     import plotly.graph_objects as go
+            
+                    #     def standardize_coords(dataarray):
+                    #         coord_map = {
+                    #             'latitude': None,
+                    #             'longitude': None,
+                    #             'time': None,
+                    #             'depth': None
+                    #         }
+                            
+                        
+                    #         coord_candidates = {k.lower(): k for k in dataarray.coords}
+                        
+                    #         # Match based on known naming variants
+                    #         for standard, options in {
+                    #             'latitude': ['lat', 'latitude'],
+                    #             'longitude': ['lon', 'longitude'],
+                    #             'time': ['time'],
+                    #             'depth': ['depth', 'depth1_1', 'z']
+                    #         }.items():
+                    #             for opt in options:
+                    #                 if opt in coord_candidates:
+                    #                     coord_map[standard] = coord_candidates[opt]
+                    #                     break
+                        
+                    #         return coord_map
+                        
+            
+                    #     # Assuming `data` is your 2D DataArray (lat x lon)
+                    #     data_2d = data.squeeze()
+                    #     # st.write("Data coordinates:", data_2d.coords)
+                        
+                    #     coord_map = standardize_coords(data_2d)
+            
+                    #     lat = data_2d[coord_map['latitude']].values
+                    #     lon = data_2d[coord_map['longitude']].values
+                    #     z = data_2d.values
+            
+            
+                    #     fig = go.Figure(
+                    #         data=go.Heatmap(
+                    #             z=z,
+                    #             x=lon,
+                    #             y=lat,
+                    #             colorscale=cmap_choice,
+                    #             zmin=vmin if set_clim else None,
+                    #             zmax=vmax if set_clim else None,
+                    #             colorbar=dict(title=cbar_label),
+                    #             hovertemplate="Lon: %{x:.2f}<br>Lat: %{y:.2f}<br>Value: %{z:.2f}<extra></extra>"
+                    #         )
+                    #     )
+            
+                    #     width, height = figsize_to_plotly(10, 6)
+                    #     fig.update_layout(
+                    #         title=plot_title,
+                    #         xaxis_title=xlabel,
+                    #         yaxis_title=ylabel,
+                    #         # height=600,
+                    #         width=width,
+                    #         height=height
+                    #     )
+                        
+                    #     st.plotly_chart(fig, use_container_width=True)
 
                     #---------------------------------------------Spatial Map Animation--------------------------------------------------#
 
