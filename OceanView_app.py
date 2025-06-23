@@ -1508,135 +1508,135 @@ else:
                     #             st.error(f"❌ Failed to extract profile: {e}")
 
                     import plotly.graph_objects as go
-                        if show_interactive_vertical_profile:
-                            st.markdown("### 📉 Interactive Vertical Profile")
-                        
-                            coord_map = detect_coord_names(ds_sel)
-                            lat_key = coord_map["latitude"]
-                            lon_key = coord_map["longitude"]
-                            depth_key = coord_map["depth"]
-                            time_key = coord_map["time"]
-                        
-                            profile_mode = st.selectbox("Profile Mode", [
-                                "Single Point (lat, lon)",
-                                "Lat-Lon Box Averaged",
-                                "Latitudinal Transect (fixed lon)",
-                                "Longitudinal Transect (fixed lat)"
-                            ])
-                        
-                            time_profile_mode = st.radio("Time Aggregation Mode", [
-                                "Use selected time only",
-                                "Average over selected time range",
-                                "Plot all times"
-                            ])
-                        
-                            if not all([lat_key, lon_key, depth_key]):
-                                st.error("❌ Could not detect necessary coordinate names (lat/lon/depth).")
-                            else:
-                                try:
-                                    depth_min = st.number_input("Min Depth (m)", float(ds[depth_key].min()), float(ds[depth_key].max()), value=0.0)
-                                    depth_max = st.number_input("Max Depth (m)", float(ds[depth_key].min()), float(ds[depth_key].max()), value=500.0)
-                        
-                                    if profile_mode == "Single Point (lat, lon)":
-                                        input_lat = st.number_input("Latitude (°N)", float(ds[lat_key].min()), float(ds[lat_key].max()), value=15.0)
-                                        input_lon = st.number_input("Longitude (°E)", float(ds[lon_key].min()), float(ds[lon_key].max()), value=60.0)
-                                        profile = ds[var].sel({lat_key: input_lat, lon_key: input_lon}, method="nearest")
-                                        label = f"({input_lat:.2f}°N, {input_lon:.2f}°E)"
-                        
-                                    elif profile_mode == "Lat-Lon Box Averaged":
-                                        lat_min = st.number_input("Min Latitude", float(ds[lat_key].min()), float(ds[lat_key].max()), value=10.0)
-                                        lat_max = st.number_input("Max Latitude", float(ds[lat_key].min()), float(ds[lat_key].max()), value=20.0)
-                                        lon_min = st.number_input("Min Longitude", float(ds[lon_key].min()), float(ds[lon_key].max()), value=50.0)
-                                        lon_max = st.number_input("Max Longitude", float(ds[lon_key].min()), float(ds[lon_key].max()), value=70.0)
-                                        profile = ds[var].sel({lat_key: slice(lat_min, lat_max), lon_key: slice(lon_min, lon_max)})
-                                        profile = profile.mean(dim=[lat_key, lon_key], skipna=True)
-                                        label = f"Grid Avg ({lat_min}-{lat_max}°N, {lon_min}-{lon_max}°E)"
-                        
-                                    elif profile_mode == "Latitudinal Transect (fixed lon)":
-                                        lon_fixed = st.number_input("Fixed Longitude (°E)", float(ds[lon_key].min()), float(ds[lon_key].max()), value=60.0)
-                                        lat_min = st.number_input("Min Latitude", float(ds[lat_key].min()), float(ds[lat_key].max()), value=10.0)
-                                        lat_max = st.number_input("Max Latitude", float(ds[lat_key].min()), float(ds[lat_key].max()), value=20.0)
-                                        profile = ds[var].sel({lon_key: lon_fixed}, method="nearest")
-                                        profile = profile.sel({lat_key: slice(lat_min, lat_max)})
-                                        profile = profile.mean(dim=lat_key, skipna=True)
-                                        label = f"Lat Avg ({lat_min}-{lat_max}°N) at {lon_fixed}°E"
-                        
-                                    elif profile_mode == "Longitudinal Transect (fixed lat)":
-                                        lat_fixed = st.number_input("Fixed Latitude (°N)", float(ds[lat_key].min()), float(ds[lat_key].max()), value=15.0)
-                                        lon_min = st.number_input("Min Longitude", float(ds[lon_key].min()), float(ds[lon_key].max()), value=50.0)
-                                        lon_max = st.number_input("Max Longitude", float(ds[lon_key].min()), float(ds[lon_key].max()), value=70.0)
-                                        profile = ds[var].sel({lat_key: lat_fixed}, method="nearest")
-                                        profile = profile.sel({lon_key: slice(lon_min, lon_max)})
-                                        profile = profile.mean(dim=lon_key, skipna=True)
-                                        label = f"Lon Avg ({lon_min}-{lon_max}°E) at {lat_fixed}°N"
-                        
-                                    # Handle time
-                                    if time_key and time_key in profile.dims:
-                                        if time_profile_mode == "Use selected time only":
-                                            time_vals, time_labels = try_decode_time(ds, time_key)
-                                            time_sel_str = st.selectbox("Select Time", time_labels, key="prof_time_sel")
-                                            time_index = list(time_labels).index(time_sel_str)
-                                            time_sel = time_vals[time_index]
-                                            profile = profile.sel({time_key: time_sel}, method="nearest")
-                                            time_title = f"\n🕒 {pd.to_datetime(time_sel).strftime('%Y-%m-%d')}"
-                        
-                                        elif time_profile_mode == "Average over selected time range":
-                                            time_vals, time_labels = try_decode_time(ds, time_key)
-                                            time_min_idx = st.number_input("Min Time Index", 0, int(ds.dims[time_key]) - 1, value=0)
-                                            time_max_idx = st.number_input("Max Time Index", time_min_idx, int(ds.dims[time_key]) - 1, value=5)
-                                            t1 = time_vals[time_min_idx]
-                                            t2 = time_vals[time_max_idx]
-                                            profile = profile.isel({time_key: slice(time_min_idx, time_max_idx + 1)}).mean(dim=time_key, skipna=True)
-                                            time_title = f"\n🕒 {pd.to_datetime(t1).strftime('%Y-%m-%d')} to {pd.to_datetime(t2).strftime('%Y-%m-%d')}"
-                        
-                                        elif time_profile_mode == "Plot all times":
-                                            time_title = "\n🕒 All Available Times"
-                                        else:
-                                            time_title = ""
+                    if show_interactive_vertical_profile:
+                        st.markdown("### 📉 Interactive Vertical Profile")
+                    
+                        coord_map = detect_coord_names(ds_sel)
+                        lat_key = coord_map["latitude"]
+                        lon_key = coord_map["longitude"]
+                        depth_key = coord_map["depth"]
+                        time_key = coord_map["time"]
+                    
+                        profile_mode = st.selectbox("Profile Mode", [
+                            "Single Point (lat, lon)",
+                            "Lat-Lon Box Averaged",
+                            "Latitudinal Transect (fixed lon)",
+                            "Longitudinal Transect (fixed lat)"
+                        ])
+                    
+                        time_profile_mode = st.radio("Time Aggregation Mode", [
+                            "Use selected time only",
+                            "Average over selected time range",
+                            "Plot all times"
+                        ])
+                    
+                        if not all([lat_key, lon_key, depth_key]):
+                            st.error("❌ Could not detect necessary coordinate names (lat/lon/depth).")
+                        else:
+                            try:
+                                depth_min = st.number_input("Min Depth (m)", float(ds[depth_key].min()), float(ds[depth_key].max()), value=0.0)
+                                depth_max = st.number_input("Max Depth (m)", float(ds[depth_key].min()), float(ds[depth_key].max()), value=500.0)
+                    
+                                if profile_mode == "Single Point (lat, lon)":
+                                    input_lat = st.number_input("Latitude (°N)", float(ds[lat_key].min()), float(ds[lat_key].max()), value=15.0)
+                                    input_lon = st.number_input("Longitude (°E)", float(ds[lon_key].min()), float(ds[lon_key].max()), value=60.0)
+                                    profile = ds[var].sel({lat_key: input_lat, lon_key: input_lon}, method="nearest")
+                                    label = f"({input_lat:.2f}°N, {input_lon:.2f}°E)"
+                    
+                                elif profile_mode == "Lat-Lon Box Averaged":
+                                    lat_min = st.number_input("Min Latitude", float(ds[lat_key].min()), float(ds[lat_key].max()), value=10.0)
+                                    lat_max = st.number_input("Max Latitude", float(ds[lat_key].min()), float(ds[lat_key].max()), value=20.0)
+                                    lon_min = st.number_input("Min Longitude", float(ds[lon_key].min()), float(ds[lon_key].max()), value=50.0)
+                                    lon_max = st.number_input("Max Longitude", float(ds[lon_key].min()), float(ds[lon_key].max()), value=70.0)
+                                    profile = ds[var].sel({lat_key: slice(lat_min, lat_max), lon_key: slice(lon_min, lon_max)})
+                                    profile = profile.mean(dim=[lat_key, lon_key], skipna=True)
+                                    label = f"Grid Avg ({lat_min}-{lat_max}°N, {lon_min}-{lon_max}°E)"
+                    
+                                elif profile_mode == "Latitudinal Transect (fixed lon)":
+                                    lon_fixed = st.number_input("Fixed Longitude (°E)", float(ds[lon_key].min()), float(ds[lon_key].max()), value=60.0)
+                                    lat_min = st.number_input("Min Latitude", float(ds[lat_key].min()), float(ds[lat_key].max()), value=10.0)
+                                    lat_max = st.number_input("Max Latitude", float(ds[lat_key].min()), float(ds[lat_key].max()), value=20.0)
+                                    profile = ds[var].sel({lon_key: lon_fixed}, method="nearest")
+                                    profile = profile.sel({lat_key: slice(lat_min, lat_max)})
+                                    profile = profile.mean(dim=lat_key, skipna=True)
+                                    label = f"Lat Avg ({lat_min}-{lat_max}°N) at {lon_fixed}°E"
+                    
+                                elif profile_mode == "Longitudinal Transect (fixed lat)":
+                                    lat_fixed = st.number_input("Fixed Latitude (°N)", float(ds[lat_key].min()), float(ds[lat_key].max()), value=15.0)
+                                    lon_min = st.number_input("Min Longitude", float(ds[lon_key].min()), float(ds[lon_key].max()), value=50.0)
+                                    lon_max = st.number_input("Max Longitude", float(ds[lon_key].min()), float(ds[lon_key].max()), value=70.0)
+                                    profile = ds[var].sel({lat_key: lat_fixed}, method="nearest")
+                                    profile = profile.sel({lon_key: slice(lon_min, lon_max)})
+                                    profile = profile.mean(dim=lon_key, skipna=True)
+                                    label = f"Lon Avg ({lon_min}-{lon_max}°E) at {lat_fixed}°N"
+                    
+                                # Handle time
+                                if time_key and time_key in profile.dims:
+                                    if time_profile_mode == "Use selected time only":
+                                        time_vals, time_labels = try_decode_time(ds, time_key)
+                                        time_sel_str = st.selectbox("Select Time", time_labels, key="prof_time_sel")
+                                        time_index = list(time_labels).index(time_sel_str)
+                                        time_sel = time_vals[time_index]
+                                        profile = profile.sel({time_key: time_sel}, method="nearest")
+                                        time_title = f"\n🕒 {pd.to_datetime(time_sel).strftime('%Y-%m-%d')}"
+                    
+                                    elif time_profile_mode == "Average over selected time range":
+                                        time_vals, time_labels = try_decode_time(ds, time_key)
+                                        time_min_idx = st.number_input("Min Time Index", 0, int(ds.dims[time_key]) - 1, value=0)
+                                        time_max_idx = st.number_input("Max Time Index", time_min_idx, int(ds.dims[time_key]) - 1, value=5)
+                                        t1 = time_vals[time_min_idx]
+                                        t2 = time_vals[time_max_idx]
+                                        profile = profile.isel({time_key: slice(time_min_idx, time_max_idx + 1)}).mean(dim=time_key, skipna=True)
+                                        time_title = f"\n🕒 {pd.to_datetime(t1).strftime('%Y-%m-%d')} to {pd.to_datetime(t2).strftime('%Y-%m-%d')}"
+                    
+                                    elif time_profile_mode == "Plot all times":
+                                        time_title = "\n🕒 All Available Times"
                                     else:
                                         time_title = ""
-                        
-                                    profile = profile.sel({depth_key: slice(depth_min, depth_max)})
-                        
-                                    if depth_key in profile.coords:
-                                        depth_vals = profile[depth_key].values
-                                    elif depth_key in ds.coords:
-                                        depth_vals = ds[depth_key].values
-                                    else:
-                                        st.error("❌ Could not find depth values in dataset.")
-                                        st.stop()
-                        
-                                    fig = go.Figure()
-                        
-                                    if time_profile_mode == "Plot all times" and time_key in profile.dims:
-                                        for t in range(profile.sizes[time_key]):
-                                            time_val = profile[time_key][t].values
-                                            fig.add_trace(go.Scatter(
-                                                y=depth_vals,
-                                                x=profile.isel({time_key: t}).values,
-                                                mode='lines+markers',
-                                                name=f"t={pd.to_datetime(time_val).strftime('%Y-%m-%d')}"
-                                            ))
-                                    else:
+                                else:
+                                    time_title = ""
+                    
+                                profile = profile.sel({depth_key: slice(depth_min, depth_max)})
+                    
+                                if depth_key in profile.coords:
+                                    depth_vals = profile[depth_key].values
+                                elif depth_key in ds.coords:
+                                    depth_vals = ds[depth_key].values
+                                else:
+                                    st.error("❌ Could not find depth values in dataset.")
+                                    st.stop()
+                    
+                                fig = go.Figure()
+                    
+                                if time_profile_mode == "Plot all times" and time_key in profile.dims:
+                                    for t in range(profile.sizes[time_key]):
+                                        time_val = profile[time_key][t].values
                                         fig.add_trace(go.Scatter(
                                             y=depth_vals,
-                                            x=profile.values,
+                                            x=profile.isel({time_key: t}).values,
                                             mode='lines+markers',
-                                            name=var
+                                            name=f"t={pd.to_datetime(time_val).strftime('%Y-%m-%d')}"
                                         ))
-                        
-                                    fig.update_layout(
-                                        title=f"{var} Vertical Profile<br>{label}{time_title}",
-                                        xaxis_title=var,
-                                        yaxis_title="Depth (m)",
-                                        yaxis_autorange="reversed",
-                                        height=500,
-                                        width=500
-                                    )
-                                    st.plotly_chart(fig)
-                        
-                                except Exception as e:
-                                    st.error(f"❌ Failed to extract profile: {e}")
+                                else:
+                                    fig.add_trace(go.Scatter(
+                                        y=depth_vals,
+                                        x=profile.values,
+                                        mode='lines+markers',
+                                        name=var
+                                    ))
+                    
+                                fig.update_layout(
+                                    title=f"{var} Vertical Profile<br>{label}{time_title}",
+                                    xaxis_title=var,
+                                    yaxis_title="Depth (m)",
+                                    yaxis_autorange="reversed",
+                                    height=500,
+                                    width=500
+                                )
+                                st.plotly_chart(fig)
+                    
+                            except Exception as e:
+                                st.error(f"❌ Failed to extract profile: {e}")
 
                         
                     #---------------------------------------- Hovmoller ----------------------------------------------------#
