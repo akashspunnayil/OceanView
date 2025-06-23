@@ -793,12 +793,18 @@ else:
                                 time_start_default = pd.to_datetime(time_labels[0])
                                 time_end_default = pd.to_datetime(time_labels[-1])
                     
+                                # col1, col2 = st.columns(2)
+                                # with col1:
+                                #     t1 = st.date_input("🕒 Start Date", value=time_start_default)
+                                # with col2:
+                                #     t2 = st.date_input("🕒 End Date", value=time_end_default)
+
                                 col1, col2 = st.columns(2)
                                 with col1:
-                                    t1 = st.date_input("🕒 Start Date", value=time_start_default)
+                                    t1 = st.date_input("🕒 Start Date", value=time_start_default, key="anim_start_date")
                                 with col2:
-                                    t2 = st.date_input("🕒 End Date", value=time_end_default)
-                    
+                                    t2 = st.date_input("🕒 End Date", value=time_end_default, key="anim_end_date")
+
                                 t1 = np.datetime64(t1)
                                 t2 = np.datetime64(t2)
                     
