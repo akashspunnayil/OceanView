@@ -1578,7 +1578,7 @@ else:
                                         time_index = list(time_labels).index(time_sel_str)
                                         time_sel = time_vals[time_index]
                                         profile = profile.sel({time_key: time_sel}, method="nearest")
-                                        time_title = f"\n🕒 {pd.to_datetime(time_sel).strftime('%Y-%m-%d')}"
+                                        time_title = f"\n {pd.to_datetime(time_sel).strftime('%Y-%m-%d')}"
                     
                                     elif time_profile_mode == "Average over selected time range":
                                         time_vals, time_labels = try_decode_time(ds, time_key)
@@ -1587,7 +1587,7 @@ else:
                                         t1 = time_vals[time_min_idx]
                                         t2 = time_vals[time_max_idx]
                                         profile = profile.isel({time_key: slice(time_min_idx, time_max_idx + 1)}).mean(dim=time_key, skipna=True)
-                                        time_title = f"\n🕒 {pd.to_datetime(t1).strftime('%Y-%m-%d')} to {pd.to_datetime(t2).strftime('%Y-%m-%d')}"
+                                        time_title = f"\n {pd.to_datetime(t1).strftime('%Y-%m-%d')} to {pd.to_datetime(t2).strftime('%Y-%m-%d')}"
                     
                                     elif time_profile_mode == "Plot all times":
                                         time_title = "\n🕒 All Available Times"
