@@ -1761,7 +1761,9 @@ else:
                 
                     try:
                         depths = df.iloc[:, 0].values  # First column: Depths
-                        station_names = df.columns[1:]  # Skip depth column
+                        station_names = df.columns[1:].astype(str)  # ← Convert headers to strings
+
+                        # station_names = df.columns[1:]  # Skip depth column
                         data_matrix = df.iloc[:, 1:].values  # Only station data
                 
                         # Plot
