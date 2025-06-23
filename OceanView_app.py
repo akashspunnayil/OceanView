@@ -1038,111 +1038,7 @@ else:
                             st.error(f"❌ Failed to plot vertical section: {e}")
 
                     #----------------------------------- Interactive Vertical Section--------------------------------------------------#
-                                        
-                    # if show_interactive_vertical_section:
-                    #     st.markdown("### 🧪 Interactive Vertical Section")
-                    
-                    #     section_mode = st.selectbox("Section Mode (Interactive)", [
-                    #         "Z vs Longitude (at fixed Latitude)",
-                    #         "Z vs Latitude (at fixed Longitude)",
-                    #         "Z vs Longitude (averaged over Latitude band)",
-                    #         "Z vs Latitude (averaged over Longitude band)"
-                    #     ])
-                    
-                    #     try:
-                    #         section = ds[var]
-                    
-                    #         if time_var and raw_time_value is not None:
-                    #             section = section.sel({time_var: raw_time_value}, method="nearest")
-                    
-                    #         # --- Depth Range Selection ---
-                    #         depth_min = st.number_input("Min Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=0.0, step=10.0, key="dmin_int")
-                    #         depth_max = st.number_input("Max Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=500.0, step=10.0, key="dmax_int")
-                    
-                    #         if section_mode == "Z vs Longitude (at fixed Latitude)":
-                    #             fixed_lat = st.number_input("Fixed Latitude (°N)", float(lat_vals.min()), float(lat_vals.max()), value=15.0, key="fixed_lat_int")
-                    #             lon_min, lon_max = st.slider("Longitude Range (°E)", float(lon_vals.min()), float(lon_vals.max()), (50.0, 80.0), key="lon_range_int")
-                    #             section = section.sel({lat_var: fixed_lat}, method="nearest")
-                    #             section = section.sel({lon_var: slice(lon_min, lon_max)})
-                    #             section = section.transpose(depth_var, lon_var)
-                    #             section = section.sel({depth_var: slice(depth_min, depth_max)})
-                    #             x_vals = section[lon_var].values
-                    #             xlabel = "Longitude (°E)"
-                    #             section_label = f"{fixed_lat:.2f}°N"
-                    
-                    #         elif section_mode == "Z vs Latitude (at fixed Longitude)":
-                    #             fixed_lon = st.number_input("Fixed Longitude (°E)", float(lon_vals.min()), float(lon_vals.max()), value=60.0, key="fixed_lon_int")
-                    #             lat_min, lat_max = st.slider("Latitude Range (°N)", float(lat_vals.min()), float(lat_vals.max()), (0.0, 25.0), key="lat_range_int")
-                    #             section = section.sel({lon_var: fixed_lon}, method="nearest")
-                    #             section = section.sel({lat_var: slice(lat_min, lat_max)})
-                    #             section = section.transpose(depth_var, lat_var)
-                    #             section = section.sel({depth_var: slice(depth_min, depth_max)})
-                    #             x_vals = section[lat_var].values
-                    #             xlabel = "Latitude (°N)"
-                    #             section_label = f"{fixed_lon:.2f}°E"
-                    
-                    #         elif section_mode == "Z vs Longitude (averaged over Latitude band)":
-                    #             lat_min = st.number_input("Min Latitude", float(lat_vals.min()), float(lat_vals.max()), value=10.0, key="latmin_int")
-                    #             lat_max = st.number_input("Max Latitude", float(lat_vals.min()), float(lat_vals.max()), value=20.0, key="latmax_int")
-                    #             lon_min, lon_max = st.slider("Longitude Range (°E)", float(lon_vals.min()), float(lon_vals.max()), (50.0, 80.0), key="lon_avg_int")
-                    #             section = section.sel({lat_var: slice(lat_min, lat_max), lon_var: slice(lon_min, lon_max)})
-                    #             section = section.mean(dim=lat_var, skipna=True)
-                    #             section = section.transpose(depth_var, lon_var)
-                    #             section = section.sel({depth_var: slice(depth_min, depth_max)})
-                    #             x_vals = section[lon_var].values
-                    #             xlabel = "Longitude (°E)"
-                    #             section_label = f"Lat Avg ({lat_min}-{lat_max}°N)"
-                    
-                    #         elif section_mode == "Z vs Latitude (averaged over Longitude band)":
-                    #             lon_min = st.number_input("Min Longitude", float(lon_vals.min()), float(lon_vals.max()), value=50.0, key="lonmin_int")
-                    #             lon_max = st.number_input("Max Longitude", float(lon_vals.min()), float(lon_vals.max()), value=70.0, key="lonmax_int")
-                    #             lat_min, lat_max = st.slider("Latitude Range (°N)", float(lat_vals.min()), float(lat_vals.max()), (0.0, 25.0), key="lat_avg_int")
-                    #             section = section.sel({lat_var: slice(lat_min, lat_max), lon_var: slice(lon_min, lon_max)})
-                    #             section = section.mean(dim=lon_var, skipna=True)
-                    #             section = section.transpose(depth_var, lat_var)
-                    #             section = section.sel({depth_var: slice(depth_min, depth_max)})
-                    #             x_vals = section[lat_var].values
-                    #             xlabel = "Latitude (°N)"
-                    #             section_label = f"Lon Avg ({lon_min}-{lon_max}°E)"
-                    
-                    #         else:
-                    #             st.warning("🚫 Unknown section mode selected.")
-                    #             st.stop()
-                    
-                    #         z_vals = section[depth_var].values
-                    #         data_vals = section.values
-                    
-                    #         import plotly.graph_objects as go
-                    
-                    #         fig_plotly = go.Figure(data=go.Heatmap(
-                    #             z=data_vals,
-                    #             x=x_vals,
-                    #             y=z_vals,
-                    #             colorscale=cmap_choice,
-                    #             zmin=vmin if set_clim else None,
-                    #             zmax=vmax if set_clim else None,
-                    #             colorbar=dict(title=cbar_label),
-                    #             hovertemplate=(
-                    #                 f"{xlabel}: %{{x:.2f}}<br>"
-                    #                 "Depth: %{y:.1f} m<br>"
-                    #                 f"{var}: %{{z:.2f}}<extra></extra>"
-                    #             )
-                    #         ))
-                    
-                    #         fig_plotly.update_layout(
-                    #             title=f"{var} Vertical Section at {section_label}",
-                    #             xaxis_title=xlabel,
-                    #             yaxis_title="Depth (m)",
-                    #             yaxis_autorange="reversed",
-                    #             width=900,
-                    #             height=600
-                    #         )
-                    
-                    #         st.plotly_chart(fig_plotly, use_container_width=True)
-                    
-                    #     except Exception as e:
-                    #         st.error(f"❌ Failed to plot interactive vertical section: {e}")
-
+                  
                     if show_interactive_vertical_section:
                         st.markdown("### 🧪 Interactive Vertical Section")
                     
@@ -1353,6 +1249,104 @@ else:
                             st.error(f"❌ Failed to plot time series: {e}")
                     
                     #---------------------------Normal Vertical Profile ----------------------------------#
+                    # if show_vertical_profile:
+                    #     st.markdown("### 📉 Vertical Profile")
+                    
+                    #     coord_map = detect_coord_names(ds_sel)
+                    #     lat_key = coord_map["latitude"]
+                    #     lon_key = coord_map["longitude"]
+                    #     depth_key = coord_map["depth"]
+                    #     time_key = coord_map["time"]
+                    
+                    #     profile_mode = st.selectbox("Profile Mode", [
+                    #         "Single Point (lat, lon)",
+                    #         "Lat-Lon Box Averaged",
+                    #         "Latitudinal Transect (fixed lon)",
+                    #         "Longitudinal Transect (fixed lat)"
+                    #     ])
+                    
+                    #     time_profile_mode = st.radio("Time Aggregation Mode", [
+                    #         "Use selected time only",
+                    #         "Average over selected time range",
+                    #         "Plot all times"
+                    #     ])
+                    
+                    #     if not all([lat_key, lon_key, depth_key]):
+                    #         st.error("❌ Could not detect necessary coordinate names (lat/lon/depth).")
+                    #     else:
+                    #         try:
+                    #             depth_min = st.number_input("Min Depth (m)", float(ds[depth_key].min()), float(ds[depth_key].max()), value=0.0)
+                    #             depth_max = st.number_input("Max Depth (m)", float(ds[depth_key].min()), float(ds[depth_key].max()), value=500.0)
+                    
+                    #             if profile_mode == "Single Point (lat, lon)":
+                    #                 input_lat = st.number_input("Latitude (°N)", float(ds[lat_key].min()), float(ds[lat_key].max()), value=15.0)
+                    #                 input_lon = st.number_input("Longitude (°E)", float(ds[lon_key].min()), float(ds[lon_key].max()), value=60.0)
+                    #                 profile = ds[var].sel({lat_key: input_lat, lon_key: input_lon}, method="nearest")
+                    #                 label = f"({input_lat:.2f}°N, {input_lon:.2f}°E)"
+                    
+                    #             elif profile_mode == "Lat-Lon Box Averaged":
+                    #                 lat_min = st.number_input("Min Latitude", float(ds[lat_key].min()), float(ds[lat_key].max()), value=10.0)
+                    #                 lat_max = st.number_input("Max Latitude", float(ds[lat_key].min()), float(ds[lat_key].max()), value=20.0)
+                    #                 lon_min = st.number_input("Min Longitude", float(ds[lon_key].min()), float(ds[lon_key].max()), value=50.0)
+                    #                 lon_max = st.number_input("Max Longitude", float(ds[lon_key].min()), float(ds[lon_key].max()), value=70.0)
+                    #                 profile = ds[var].sel({lat_key: slice(lat_min, lat_max), lon_key: slice(lon_min, lon_max)})
+                    #                 profile = profile.mean(dim=[lat_key, lon_key], skipna=True)
+                    #                 label = f"Grid Avg ({lat_min}-{lat_max}°N, {lon_min}-{lon_max}°E)"
+                    
+                    #             elif profile_mode == "Latitudinal Transect (fixed lon)":
+                    #                 lon_fixed = st.number_input("Fixed Longitude (°E)", float(ds[lon_key].min()), float(ds[lon_key].max()), value=60.0)
+                    #                 lat_min = st.number_input("Min Latitude", float(ds[lat_key].min()), float(ds[lat_key].max()), value=10.0)
+                    #                 lat_max = st.number_input("Max Latitude", float(ds[lat_key].min()), float(ds[lat_key].max()), value=20.0)
+                    #                 profile = ds[var].sel({lon_key: lon_fixed}, method="nearest")
+                    #                 profile = profile.sel({lat_key: slice(lat_min, lat_max)})
+                    #                 profile = profile.mean(dim=lat_key, skipna=True)
+                    #                 label = f"Lat Avg ({lat_min}-{lat_max}°N) at {lon_fixed}°E"
+                    
+                    #             elif profile_mode == "Longitudinal Transect (fixed lat)":
+                    #                 lat_fixed = st.number_input("Fixed Latitude (°N)", float(ds[lat_key].min()), float(ds[lat_key].max()), value=15.0)
+                    #                 lon_min = st.number_input("Min Longitude", float(ds[lon_key].min()), float(ds[lon_key].max()), value=50.0)
+                    #                 lon_max = st.number_input("Max Longitude", float(ds[lon_key].min()), float(ds[lon_key].max()), value=70.0)
+                    #                 profile = ds[var].sel({lat_key: lat_fixed}, method="nearest")
+                    #                 profile = profile.sel({lon_key: slice(lon_min, lon_max)})
+                    #                 profile = profile.mean(dim=lon_key, skipna=True)
+                    #                 label = f"Lon Avg ({lon_min}-{lon_max}°E) at {lat_fixed}°N"
+                    
+                    #             if time_key and time_key in profile.dims:
+                    #                 if time_profile_mode == "Use selected time only":
+                    #                     profile = profile.sel({time_key: time_sel}, method="nearest")
+                    #                 elif time_profile_mode == "Average over selected time range":
+                    #                     time_min = st.number_input("Min Time Index", 0, int(ds.dims[time_key]) - 1, value=0)
+                    #                     time_max = st.number_input("Max Time Index", time_min, int(ds.dims[time_key]) - 1, value=5)
+                    #                     profile = profile.isel({time_key: slice(time_min, time_max + 1)}).mean(dim=time_key, skipna=True)
+                    #                 elif time_profile_mode == "Plot all times":
+                    #                     pass  # keep time dimension
+                    
+                    #             profile = profile.sel({depth_key: slice(depth_min, depth_max)})
+                    
+                    #             if depth_key in profile.coords:
+                    #                 depth_vals = profile[depth_key].values
+                    #             elif depth_key in ds.coords:
+                    #                 depth_vals = ds[depth_key].values
+                    #             else:
+                    #                 st.error("❌ Could not find depth values in dataset.")
+                    #                 st.stop()
+                    
+                    #             fig, ax = plt.subplots(figsize=(6, 5))
+                    
+                    #             if time_profile_mode == "Plot all times" and time_key in profile.dims:
+                    #                 for t in range(profile.sizes[time_key]):
+                    #                     time_val = profile[time_key][t].values
+                    #                     ax.plot(profile.isel({time_key: t}).values, depth_vals, marker='o', linestyle='-', label=f"t={time_val}")
+                    #                 ax.legend(fontsize=8)
+                    #             else:
+                    #                 var_vals = profile.values
+                    #                 ax.plot(var_vals, depth_vals, marker='o', linestyle='-')
+                    
+                    #             ax.set_xlabel(var)
+                    #             ax.set_ylabel("Depth (m)")
+                    #             ax.invert_yaxis()
+                    #             ax.set_title(f"{var} Profile at {label}")
+                    #             st.pyplot(fig)
                     if show_vertical_profile:
                         st.markdown("### 📉 Vertical Profile")
                     
@@ -1416,14 +1410,22 @@ else:
                                     label = f"Lon Avg ({lon_min}-{lon_max}°E) at {lat_fixed}°N"
                     
                                 if time_key and time_key in profile.dims:
+                                    time_vals, time_labels = try_decode_time(ds, time_key)
+                    
                                     if time_profile_mode == "Use selected time only":
-                                        profile = profile.sel({time_key: time_sel}, method="nearest")
+                                        time_sel = st.selectbox("Select Time", time_labels, key="vprof_single_time")
+                                        raw_time_value = time_vals[list(time_labels).index(time_sel)]
+                                        profile = profile.sel({time_key: raw_time_value}, method="nearest")
+                    
                                     elif time_profile_mode == "Average over selected time range":
-                                        time_min = st.number_input("Min Time Index", 0, int(ds.dims[time_key]) - 1, value=0)
-                                        time_max = st.number_input("Max Time Index", time_min, int(ds.dims[time_key]) - 1, value=5)
-                                        profile = profile.isel({time_key: slice(time_min, time_max + 1)}).mean(dim=time_key, skipna=True)
+                                        t1 = st.date_input("Start Date", value=pd.to_datetime(time_labels[0]), key="vprof_start")
+                                        t2 = st.date_input("End Date", value=pd.to_datetime(time_labels[-1]), key="vprof_end")
+                                        t1 = np.datetime64(t1)
+                                        t2 = np.datetime64(t2)
+                                        profile = profile.sel({time_key: slice(t1, t2)}).mean(dim=time_key, skipna=True)
+                    
                                     elif time_profile_mode == "Plot all times":
-                                        pass  # keep time dimension
+                                        pass
                     
                                 profile = profile.sel({depth_key: slice(depth_min, depth_max)})
                     
@@ -1440,7 +1442,7 @@ else:
                                 if time_profile_mode == "Plot all times" and time_key in profile.dims:
                                     for t in range(profile.sizes[time_key]):
                                         time_val = profile[time_key][t].values
-                                        ax.plot(profile.isel({time_key: t}).values, depth_vals, marker='o', linestyle='-', label=f"t={time_val}")
+                                        ax.plot(profile.isel({time_key: t}).values, depth_vals, marker='o', linestyle='-', label=pd.to_datetime(time_val).strftime('%Y-%m-%d'))
                                     ax.legend(fontsize=8)
                                 else:
                                     var_vals = profile.values
@@ -1451,6 +1453,10 @@ else:
                                 ax.invert_yaxis()
                                 ax.set_title(f"{var} Profile at {label}")
                                 st.pyplot(fig)
+                    
+                            except Exception as e:
+                                st.error(f"❌ Failed to plot vertical profile: {e}")
+
                     
                                 if save_btn:
                                     buf = io.BytesIO()
