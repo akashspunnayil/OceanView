@@ -101,7 +101,22 @@ def detect_coord_names(dataarray):
             found[standard_name] = None  # Not found
 
     return found
-# --- File uploader ---
+
+def scale_dataarray(dataarray, op, val):
+    if op == "*":
+        return dataarray * val
+    elif op == "/":
+        return dataarray / val
+    elif op == "+":
+        return dataarray + val
+    elif op == "-":
+        return dataarray - val
+    return dataarray
+
+
+
+
+# ------------------------------------------------ File uploader ---------------------------------------------- #
 # uploaded_file = st.file_uploader("📂 Upload a NetCDF file", type=["nc"])
 
 # Mode selection
@@ -144,13 +159,25 @@ else:
                     st.error("❌ No valid spatial variables (lat/lon) found.")
                     st.stop()
 
-                var = st.selectbox("🔎 Variable", list(plot_vars.keys()))
-                ds_sel = ds[var]
+                # var = st.selectbox("🔎 Variable", list(plot_vars.keys()))
+                # # ds_sel = ds[var]
 
-                # Ensure dims are coords
-                for d in ds_sel.dims:
-                    if d not in ds_sel.coords and d in ds.coords:
-                        ds_sel = ds_sel.assign_coords({d: ds[d]})
+                # ds_sel = ds[var]
+                # if apply_scaling:
+                #     ds_sel = scale_dataarray(ds_sel, scale_op, scale_val)
+
+
+                # with st.expander("🧮 Apply Scaling to Variable Values (Optional)"):
+                #     apply_scaling = st.checkbox("Apply arithmetic scaling?")
+                #     if apply_scaling:
+                #         scale_op = st.selectbox("Operation", ["*", "/", "+", "-"], index=0)
+                #         scale_val = st.number_input("Scale Value", value=1.0, step=0.1)
+
+
+                # # Ensure dims are coords
+                # for d in ds_sel.dims:
+                #     if d not in ds_sel.coords and d in ds.coords:
+                #         ds_sel = ds_sel.assign_coords({d: ds[d]})
                         
                 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#
                 #--------------------------LEFT SIDE - INPUTS-------------------------------------#
@@ -158,6 +185,27 @@ else:
                 left_col, right_col = st.columns([1, 2])
 
                 with left_col:
+
+                    var = st.selectbox("🔎 Variable", list(plot_vars.keys()))
+                    # ds_sel = ds[var]
+    
+                    ds_sel = ds[var]
+                    if apply_scaling:
+                        ds_sel = scale_dataarray(ds_sel, scale_op, scale_val)
+    
+    
+                    with st.expander("🧮 Apply Scaling to Variable Values (Optional)"):
+                        apply_scaling = st.checkbox("Apply arithmetic scaling?")
+                        if apply_scaling:
+                            scale_op = st.selectbox("Operation", ["*", "/", "+", "-"], index=0)
+                            scale_val = st.number_input("Scale Value", value=1.0, step=0.1)
+    
+    
+                    # Ensure dims are coords
+                    for d in ds_sel.dims:
+                        if d not in ds_sel.coords and d in ds.coords:
+                            ds_sel = ds_sel.assign_coords({d: ds[d]})
+                            
                     time_var = find_coord_from_dims(ds_sel, "time")
                     depth_var = find_coord_from_dims(ds_sel, "depth")
                     lat_var = find_coord_from_dims(ds_sel, "lat")
