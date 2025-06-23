@@ -1414,7 +1414,7 @@ else:
 
                                     if time_profile_mode == "Use selected time only":
                                         time_vals, time_labels = try_decode_time(ds, time_key)
-                                        time_sel_label = st.selectbox("Select Time", time_labels, key="vprof_single_time")
+                                        time_sel_label = st.selectbox("Select Time", time_labels, key="vprof_single_timee")
                                         time_index = list(time_labels).index(time_sel_label)
                                         time_sel = time_vals[time_index]
                                         profile = profile.sel({time_key: time_sel}, method="nearest")
