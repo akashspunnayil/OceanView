@@ -11,6 +11,7 @@ import matplotlib.ticker as mticker
 import tempfile
 import io
 import os
+import plotly.graph_objects as go
     
 st.set_page_config(layout="wide")
 st.title("🌊 Ocean Viewer (NetCDF)")
