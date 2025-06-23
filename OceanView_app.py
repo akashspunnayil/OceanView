@@ -249,77 +249,64 @@ else:
                     # else:
                     #     selected_depth = None
 
-                    st.markdown("### 🌍 Manual Region & Depth Selection")
+                    st.markdown("### 🌐 Cross-style Region Selection")
 
-                    # --- Compass Layout using Grid Style ---
-                    
-                    # North (Top)
+                    # --- Top: North Latitude (centered) ---
                     st.markdown("##### ⬆️ North")
+                    st.markdown("<div style='text-align:center;'>", unsafe_allow_html=True)
                     north_lat = st.number_input(
-                        "North Latitude (°N)", 
-                        min_value=float(lat_vals.min()), 
-                        max_value=float(lat_vals.max()), 
-                        value=float(lat_vals.max()), 
+                        "North Latitude (°N)",
+                        min_value=float(lat_vals.min()),
+                        max_value=float(lat_vals.max()),
+                        value=float(lat_vals.max()),
                         key="north_lat"
                     )
+                    st.markdown("</div>", unsafe_allow_html=True)
                     
-                    # Center: West | Center | East
-                    cols = st.columns([1, 1, 1])
-                    with cols[0]:
+                    # --- Middle Row: West and East ---
+                    cols_mid = st.columns([1, 0.2, 1])
+                    with cols_mid[0]:
                         west_lon = st.number_input(
-                            "⬅️ West Longitude (°E)", 
-                            min_value=float(lon_vals.min()), 
-                            max_value=float(lon_vals.max()), 
-                            value=float(lon_vals.min()), 
+                            "⬅️ West Longitude (°E)",
+                            min_value=float(lon_vals.min()),
+                            max_value=float(lon_vals.max()),
+                            value=float(lon_vals.min()),
                             key="west_lon"
                         )
-                    
-                    with cols[1]:
-                        st.markdown("##### 🎯 Center Point")
-                        center_lat = st.number_input(
-                            "Center Latitude (°N)", 
-                            min_value=float(lat_vals.min()), 
-                            max_value=float(lat_vals.max()), 
-                            value=np.mean(lat_vals), 
-                            key="center_lat"
-                        )
-                        center_lon = st.number_input(
-                            "Center Longitude (°E)", 
-                            min_value=float(lon_vals.min()), 
-                            max_value=float(lon_vals.max()), 
-                            value=np.mean(lon_vals), 
-                            key="center_lon"
-                        )
-                    
-                    with cols[2]:
+                    with cols_mid[1]:
+                        st.write("")  # spacer
+                    with cols_mid[2]:
                         east_lon = st.number_input(
-                            "➡️ East Longitude (°E)", 
-                            min_value=float(lon_vals.min()), 
-                            max_value=float(lon_vals.max()), 
-                            value=float(lon_vals.max()), 
+                            "➡️ East Longitude (°E)",
+                            min_value=float(lon_vals.min()),
+                            max_value=float(lon_vals.max()),
+                            value=float(lon_vals.max()),
                             key="east_lon"
                         )
                     
-                    # South (Bottom)
+                    # --- Bottom: South Latitude (centered) ---
                     st.markdown("##### ⬇️ South")
+                    st.markdown("<div style='text-align:center;'>", unsafe_allow_html=True)
                     south_lat = st.number_input(
-                        "South Latitude (°N)", 
-                        min_value=float(lat_vals.min()), 
-                        max_value=float(lat_vals.max()), 
-                        value=float(lat_vals.min()), 
+                        "South Latitude (°N)",
+                        min_value=float(lat_vals.min()),
+                        max_value=float(lat_vals.max()),
+                        value=float(lat_vals.min()),
                         key="south_lat"
                     )
+                    st.markdown("</div>", unsafe_allow_html=True)
                     
-                    # Depth
+                    # --- Optional: Depth ---
                     if depth_var:
-                        st.markdown("### 🌊 Depth Selection")
+                        st.markdown("##### 🌊 Depth")
                         depth_vals = ds[depth_var].values
                         selected_depth = st.number_input(
-                            "Depth (m)", 
-                            min_value=float(depth_vals.min()), 
-                            max_value=float(depth_vals.max()), 
-                            value=float(depth_vals.min()), 
-                            step=10.0
+                            "Depth (m)",
+                            min_value=float(depth_vals.min()),
+                            max_value=float(depth_vals.max()),
+                            value=float(depth_vals.min()),
+                            step=10.0,
+                            key="depth_input"
                         )
                     else:
                         selected_depth = None
