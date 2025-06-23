@@ -420,7 +420,7 @@ else:
             show_vertical_profile = st.checkbox("Vertical Profile")
             show_interactive_vertical_profile =  st.checkbox("Vertical Interactive Profile ")
             show_hovmoller = st.checkbox("Hovmöller Diagram")
-            station_plot = st..checkbox("Station Contour (Using excel/csv)")
+            station_plot = st.checkbox("Station Contour (Using excel/csv)")
 
                 
         if show_spatial_map or show_vertical_section or show_time_animation or show_interactive_spatial_map:
