@@ -625,7 +625,7 @@ else:
                             st.info("⏳ Animation unavailable: Time dimension not found in selected variable.")
 
                     
-                    #--------------------------------------------- Vertical Section--------------------------------------------------#
+                    #-------------------------------------------- Vertical Section--------------------------------------------------#
                     
                     if show_vertical_section:
                         st.markdown("### 📉 Vertical Section Plot")
