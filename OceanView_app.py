@@ -611,7 +611,7 @@ else:
                         
                         # Place labels relative to axis
                         ax.text(0.5, y_offset, xlabel, transform=ax.transAxes, ha='center', va='top', fontsize=12)
-                        ax.text(x_offset, 0.5, ylabel, transform=ax.transAxes, ha='right', va='center',
+                        ax.text(x_offset+0.5, 0.5, ylabel, transform=ax.transAxes, ha='right', va='center',
                                 rotation='vertical', fontsize=12)
 
                         st.pyplot(fig)
