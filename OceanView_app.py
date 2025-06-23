@@ -915,15 +915,15 @@ else:
 
                         # -- Time Input
                         time_vals, time_labels = try_decode_time(ds, time_var)
-                        if "Time Range Avg" in plot_mode:
-                            t1 = st.date_input("🕒 Start Date", value=pd.to_datetime(time_labels[0]), key="map_start")
-                            t2 = st.date_input("🕒 End Date", value=pd.to_datetime(time_labels[-1]), key="map_end")
-                            t1 = np.datetime64(t1)
-                            t2 = np.datetime64(t2)
-                        else:
-                            time_sel = st.selectbox("🕒 Select Time", time_labels, key="map_single_time")
-                            time_index = list(time_labels).index(time_sel)
-                            raw_time_value = time_vals[time_index]
+                        # if "Time Range Avg" in plot_mode:
+                        #     t1 = st.date_input("🕒 Start Date", value=pd.to_datetime(time_labels[0]), key="map_start")
+                        #     t2 = st.date_input("🕒 End Date", value=pd.to_datetime(time_labels[-1]), key="map_end")
+                        #     t1 = np.datetime64(t1)
+                        #     t2 = np.datetime64(t2)
+                        # else:
+                        time_sel = st.selectbox("🕒 Select Time", time_labels, key="map_single_time")
+                        time_index = list(time_labels).index(time_sel)
+                        raw_time_value = time_vals[time_index]
                     
                         try:
                             section = ds[var]
