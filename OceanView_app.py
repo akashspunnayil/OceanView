@@ -166,10 +166,10 @@ else:
                     if lat_var and ds[lat_var][0] > ds[lat_var][-1]:
                         ds = ds.sortby(lat_var)
     
-                    if "missing_value" in ds_sel.attrs:
-                        mv = ds_sel.attrs["missing_value"]
+                    if "missing_value" in ds[var].attrs:
+                        mv = ds[var].attrs["missing_value"]
                         if abs(mv) > 1e10:
-                            ds_sel = ds_sel.where(ds_sel != mv)
+                            ds[var] = ds[var].where(ds[var] != mv)
         
                     if time_var and not np.issubdtype(ds[time_var].dtype, np.datetime64):
                         try:
@@ -514,9 +514,9 @@ else:
                         st.subheader("🎞️ Time-Loop Animation (GIF)")
                         plt.rcParams['font.family'] = st.session_state.get("font_family", "DejaVu Sans")
                         
-                        if time_var and time_var in ds_sel.dims:
+                        if time_var and time_var in ds[var].dims:
                             try:
-                                da_anim = ds_sel
+                                da_anim = ds[var]
                         
                                 if depth_var and selected_depth is not None and depth_var in da_anim.dims:
                                     da_anim = da_anim.sel({depth_var: selected_depth}, method="nearest")
@@ -638,7 +638,7 @@ else:
                         ])
                     
                         try:
-                            section = ds_sel
+                            section = ds[var]
                     
                             if time_var and raw_time_value is not None:
                                 section = section.sel({time_var: raw_time_value}, method="nearest")
@@ -743,7 +743,7 @@ else:
                         ])
                     
                         try:
-                            section = ds_sel
+                            section = ds[var]
                     
                             if time_var and raw_time_value is not None:
                                 section = section.sel({time_var: raw_time_value}, method="nearest")
@@ -849,7 +849,7 @@ else:
                     
                         # === Shared Input: Variable Selection ===
                         # var = st.selectbox("Select Variable", list(ds.data_vars))
-                        da = ds_sel
+                        da = ds[var]
                     
                         # === Coordinate Map ===
                         coord_map = detect_coord_names(ds)
@@ -950,7 +950,7 @@ else:
                                 if profile_mode == "Single Point (lat, lon)":
                                     input_lat = st.number_input("Latitude (°N)", float(ds[lat_key].min()), float(ds[lat_key].max()), value=15.0)
                                     input_lon = st.number_input("Longitude (°E)", float(ds[lon_key].min()), float(ds[lon_key].max()), value=60.0)
-                                    profile = ds_sel.sel({lat_key: input_lat, lon_key: input_lon}, method="nearest")
+                                    profile = ds[var].sel({lat_key: input_lat, lon_key: input_lon}, method="nearest")
                                     label = f"({input_lat:.2f}°N, {input_lon:.2f}°E)"
                     
                                 elif profile_mode == "Lat-Lon Box Averaged":
@@ -958,7 +958,7 @@ else:
                                     lat_max = st.number_input("Max Latitude", float(ds[lat_key].min()), float(ds[lat_key].max()), value=20.0)
                                     lon_min = st.number_input("Min Longitude", float(ds[lon_key].min()), float(ds[lon_key].max()), value=50.0)
                                     lon_max = st.number_input("Max Longitude", float(ds[lon_key].min()), float(ds[lon_key].max()), value=70.0)
-                                    profile = ds_sel.sel({lat_key: slice(lat_min, lat_max), lon_key: slice(lon_min, lon_max)})
+                                    profile = ds[var].sel({lat_key: slice(lat_min, lat_max), lon_key: slice(lon_min, lon_max)})
                                     profile = profile.mean(dim=[lat_key, lon_key], skipna=True)
                                     label = f"Grid Avg ({lat_min}-{lat_max}°N, {lon_min}-{lon_max}°E)"
                     
@@ -966,7 +966,7 @@ else:
                                     lon_fixed = st.number_input("Fixed Longitude (°E)", float(ds[lon_key].min()), float(ds[lon_key].max()), value=60.0)
                                     lat_min = st.number_input("Min Latitude", float(ds[lat_key].min()), float(ds[lat_key].max()), value=10.0)
                                     lat_max = st.number_input("Max Latitude", float(ds[lat_key].min()), float(ds[lat_key].max()), value=20.0)
-                                    profile = ds_sel.sel({lon_key: lon_fixed}, method="nearest")
+                                    profile = ds[var].sel({lon_key: lon_fixed}, method="nearest")
                                     profile = profile.sel({lat_key: slice(lat_min, lat_max)})
                                     profile = profile.mean(dim=lat_key, skipna=True)
                                     label = f"Lat Avg ({lat_min}-{lat_max}°N) at {lon_fixed}°E"
@@ -975,7 +975,7 @@ else:
                                     lat_fixed = st.number_input("Fixed Latitude (°N)", float(ds[lat_key].min()), float(ds[lat_key].max()), value=15.0)
                                     lon_min = st.number_input("Min Longitude", float(ds[lon_key].min()), float(ds[lon_key].max()), value=50.0)
                                     lon_max = st.number_input("Max Longitude", float(ds[lon_key].min()), float(ds[lon_key].max()), value=70.0)
-                                    profile = ds_sel.sel({lat_key: lat_fixed}, method="nearest")
+                                    profile = ds[var].sel({lat_key: lat_fixed}, method="nearest")
                                     profile = profile.sel({lon_key: slice(lon_min, lon_max)})
                                     profile = profile.mean(dim=lon_key, skipna=True)
                                     label = f"Lon Avg ({lon_min}-{lon_max}°E) at {lat_fixed}°N"
@@ -1066,7 +1066,7 @@ else:
                                 if profile_mode == "Single Point (lat, lon)":
                                     input_lat = st.number_input("Latitude (°N)", float(ds[lat_key].min()), float(ds[lat_key].max()), value=15.0)
                                     input_lon = st.number_input("Longitude (°E)", float(ds[lon_key].min()), float(ds[lon_key].max()), value=60.0)
-                                    profile = ds_sel.sel({lat_key: input_lat, lon_key: input_lon}, method="nearest")
+                                    profile = ds[var].sel({lat_key: input_lat, lon_key: input_lon}, method="nearest")
                                     label = f"({input_lat:.2f}°N, {input_lon:.2f}°E)"
                     
                                 elif profile_mode == "Lat-Lon Box Averaged":
@@ -1074,7 +1074,7 @@ else:
                                     lat_max = st.number_input("Max Latitude", float(ds[lat_key].min()), float(ds[lat_key].max()), value=20.0)
                                     lon_min = st.number_input("Min Longitude", float(ds[lon_key].min()), float(ds[lon_key].max()), value=50.0)
                                     lon_max = st.number_input("Max Longitude", float(ds[lon_key].min()), float(ds[lon_key].max()), value=70.0)
-                                    profile = ds_sel.sel({lat_key: slice(lat_min, lat_max), lon_key: slice(lon_min, lon_max)})
+                                    profile = ds[var].sel({lat_key: slice(lat_min, lat_max), lon_key: slice(lon_min, lon_max)})
                                     profile = profile.mean(dim=[lat_key, lon_key], skipna=True)
                                     label = f"Grid Avg ({lat_min}-{lat_max}°N, {lon_min}-{lon_max}°E)"
                     
@@ -1082,7 +1082,7 @@ else:
                                     lon_fixed = st.number_input("Fixed Longitude (°E)", float(ds[lon_key].min()), float(ds[lon_key].max()), value=60.0)
                                     lat_min = st.number_input("Min Latitude", float(ds[lat_key].min()), float(ds[lat_key].max()), value=10.0)
                                     lat_max = st.number_input("Max Latitude", float(ds[lat_key].min()), float(ds[lat_key].max()), value=20.0)
-                                    profile = ds_sel.sel({lon_key: lon_fixed}, method="nearest")
+                                    profile = ds[var].sel({lon_key: lon_fixed}, method="nearest")
                                     profile = profile.sel({lat_key: slice(lat_min, lat_max)})
                                     profile = profile.mean(dim=lat_key, skipna=True)
                                     label = f"Lat Avg ({lat_min}-{lat_max}°N) at {lon_fixed}°E"
@@ -1091,7 +1091,7 @@ else:
                                     lat_fixed = st.number_input("Fixed Latitude (°N)", float(ds[lat_key].min()), float(ds[lat_key].max()), value=15.0)
                                     lon_min = st.number_input("Min Longitude", float(ds[lon_key].min()), float(ds[lon_key].max()), value=50.0)
                                     lon_max = st.number_input("Max Longitude", float(ds[lon_key].min()), float(ds[lon_key].max()), value=70.0)
-                                    profile = ds_sel.sel({lat_key: lat_fixed}, method="nearest")
+                                    profile = ds[var].sel({lat_key: lat_fixed}, method="nearest")
                                     profile = profile.sel({lon_key: slice(lon_min, lon_max)})
                                     profile = profile.mean(dim=lon_key, skipna=True)
                                     label = f"Lon Avg ({lon_min}-{lon_max}°E) at {lat_fixed}°N"
@@ -1179,7 +1179,7 @@ else:
                     #             if profile_mode == "Single Point (lat, lon)":
                     #                 input_lat = st.number_input("Latitude (°N)", float(ds[lat_key].min()), float(ds[lat_key].max()), value=15.0)
                     #                 input_lon = st.number_input("Longitude (°E)", float(ds[lon_key].min()), float(ds[lon_key].max()), value=60.0)
-                    #                 profile = ds_sel.sel({lat_key: input_lat, lon_key: input_lon}, method="nearest")
+                    #                 profile = ds[var].sel({lat_key: input_lat, lon_key: input_lon}, method="nearest")
                     #                 label = f"({input_lat:.2f}°N, {input_lon:.2f}°E)"
                     
                     #             elif profile_mode == "Lat-Lon Box Averaged":
@@ -1187,7 +1187,7 @@ else:
                     #                 lat_max = st.number_input("Max Latitude", float(ds[lat_key].min()), float(ds[lat_key].max()), value=20.0)
                     #                 lon_min = st.number_input("Min Longitude", float(ds[lon_key].min()), float(ds[lon_key].max()), value=50.0)
                     #                 lon_max = st.number_input("Max Longitude", float(ds[lon_key].min()), float(ds[lon_key].max()), value=70.0)
-                    #                 profile = ds_sel.sel({lat_key: slice(lat_min, lat_max), lon_key: slice(lon_min, lon_max)})
+                    #                 profile = ds[var].sel({lat_key: slice(lat_min, lat_max), lon_key: slice(lon_min, lon_max)})
                     #                 profile = profile.mean(dim=[lat_key, lon_key], skipna=True)
                     #                 label = f"Grid Avg ({lat_min}-{lat_max}°N, {lon_min}-{lon_max}°E)"
                     
@@ -1195,7 +1195,7 @@ else:
                     #                 lon_fixed = st.number_input("Fixed Longitude (°E)", float(ds[lon_key].min()), float(ds[lon_key].max()), value=60.0)
                     #                 lat_min = st.number_input("Min Latitude", float(ds[lat_key].min()), float(ds[lat_key].max()), value=10.0)
                     #                 lat_max = st.number_input("Max Latitude", float(ds[lat_key].min()), float(ds[lat_key].max()), value=20.0)
-                    #                 profile = ds_sel.sel({lon_key: lon_fixed}, method="nearest")
+                    #                 profile = ds[var].sel({lon_key: lon_fixed}, method="nearest")
                     #                 profile = profile.sel({lat_key: slice(lat_min, lat_max)})
                     #                 profile = profile.mean(dim=lat_key, skipna=True)
                     #                 label = f"Lat Avg ({lat_min}-{lat_max}°N) at {lon_fixed}°E"
@@ -1204,7 +1204,7 @@ else:
                     #                 lat_fixed = st.number_input("Fixed Latitude (°N)", float(ds[lat_key].min()), float(ds[lat_key].max()), value=15.0)
                     #                 lon_min = st.number_input("Min Longitude", float(ds[lon_key].min()), float(ds[lon_key].max()), value=50.0)
                     #                 lon_max = st.number_input("Max Longitude", float(ds[lon_key].min()), float(ds[lon_key].max()), value=70.0)
-                    #                 profile = ds_sel.sel({lat_key: lat_fixed}, method="nearest")
+                    #                 profile = ds[var].sel({lat_key: lat_fixed}, method="nearest")
                     #                 profile = profile.sel({lon_key: slice(lon_min, lon_max)})
                     #                 profile = profile.mean(dim=lon_key, skipna=True)
                     #                 label = f"Lon Avg ({lon_min}-{lon_max}°E) at {lat_fixed}°N"
@@ -1274,7 +1274,7 @@ else:
                             "Depth vs Time • Grid Avg (Lat-Lon box)"
                         ])
                     
-                        da = ds_sel
+                        da = ds[var]
                     
                         coord_map = detect_coord_names(ds)
                         lat_var, lon_var, depth_var, time_var = coord_map['latitude'], coord_map['longitude'], coord_map['depth'], coord_map['time']
