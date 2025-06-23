@@ -513,18 +513,18 @@ else:
                         st.code(ds.__repr__(), language="python")
 
         
-                    # --- Subset and Plot ---
-                    subset_kwargs = {}
-                    if time_var and time_var in ds_sel.dims and raw_time_value is not None:
-                        ds_sel = ds_sel.sel({time_var: raw_time_value}, method="nearest")
-                    if depth_var and depth_var in ds_sel.dims and selected_depth is not None:
-                        ds_sel = ds_sel.sel({depth_var: selected_depth}, method="nearest")
-                    if lat_var in ds_sel.dims:
-                        subset_kwargs[lat_var] = slice(*lat_range)
-                    if lon_var in ds_sel.dims:
-                        subset_kwargs[lon_var] = slice(*lon_range)
+                    # # --- Subset and Plot ---
+                    # subset_kwargs = {}
+                    # if time_var and time_var in ds_sel.dims and raw_time_value is not None:
+                    #     ds_sel = ds_sel.sel({time_var: raw_time_value}, method="nearest")
+                    # if depth_var and depth_var in ds_sel.dims and selected_depth is not None:
+                    #     ds_sel = ds_sel.sel({depth_var: selected_depth}, method="nearest")
+                    # if lat_var in ds_sel.dims:
+                    #     subset_kwargs[lat_var] = slice(*lat_range)
+                    # if lon_var in ds_sel.dims:
+                    #     subset_kwargs[lon_var] = slice(*lon_range)
                     
-                    data = ds_sel.sel(subset_kwargs)
+                    # data = ds_sel.sel(subset_kwargs)
 
                     
                     # =============================
