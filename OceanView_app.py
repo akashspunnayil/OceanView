@@ -249,13 +249,13 @@ else:
                     # else:
                     #     selected_depth = None
 
-                    st.markdown("### 🌐 Manual Region & Depth Selection")
+                    st.markdown("#### 🌐 Region & Depth Selection")
 
                     # -- Top Row: North Latitude (centered using column span)
                     cols_north = st.columns([1, 1, 1])
                     with cols_north[1]:
                         north_lat = st.number_input(
-                            "⬆️ North Latitude (°N)",
+                            "⬆️ Lat Max",
                             min_value=float(lat_vals.min()),
                             max_value=float(lat_vals.max()),
                             value=float(lat_vals.max()),
@@ -266,7 +266,7 @@ else:
                     cols_mid = st.columns([1, 1])
                     with cols_mid[0]:
                         west_lon = st.number_input(
-                            "⬅️ West Longitude (°E)",
+                            "⬅️ Lon Min",
                             min_value=float(lon_vals.min()),
                             max_value=float(lon_vals.max()),
                             value=float(lon_vals.min()),
@@ -274,7 +274,7 @@ else:
                         )
                     with cols_mid[1]:
                         east_lon = st.number_input(
-                            "➡️ East Longitude (°E)",
+                            "➡️ Lon Min",
                             min_value=float(lon_vals.min()),
                             max_value=float(lon_vals.max()),
                             value=float(lon_vals.max()),
@@ -285,7 +285,7 @@ else:
                     cols_south = st.columns([1, 1, 1])
                     with cols_south[1]:
                         south_lat = st.number_input(
-                            "⬇️ South Latitude (°N)",
+                            "⬇️ Lat Min",
                             min_value=float(lat_vals.min()),
                             max_value=float(lat_vals.max()),
                             value=float(lat_vals.min()),
@@ -297,7 +297,7 @@ else:
                     
                     # -- Optional Depth Input
                     if depth_var:
-                        st.markdown("### 🌊 Depth Level")
+                        st.markdown("#### Depth Level")
                         depth_vals = ds[depth_var].values
                         selected_depth = st.number_input(
                             "Depth (m)",
