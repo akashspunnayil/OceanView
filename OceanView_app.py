@@ -1622,9 +1622,11 @@ else:
                     
                         col1, col2 = st.columns(2)
                         with col1:
-                            t1 = st.date_input("🕒 Start Date", value=time_start_default)
+                            # t1 = st.date_input("🕒 Start Date", value=time_start_default)
+                            t1 = st.date_input("🕒 Start Date", value=time_start_default, key="hov_start_date")
                         with col2:
-                            t2 = st.date_input("🕒 End Date", value=time_end_default)
+                            # t2 = st.date_input("🕒 End Date", value=time_end_default)
+                            t2 = st.date_input("🕒 End Date", value=time_end_default, key="hov_end_date")
                     
                         t1 = np.datetime64(t1)
                         t2 = np.datetime64(t2)
