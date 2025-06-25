@@ -51,24 +51,6 @@ def load_netcdf_safe(file_obj):
         else:
             raise
 
-# # ❌ DO NOT use cache for file-like inputs
-# def load_netcdf_safe(file_obj):
-#     import tempfile
-#     import xarray as xr
-
-#     with tempfile.NamedTemporaryFile(delete=False, suffix=".nc") as tmp:
-#         tmp.write(file_obj.read())
-#         tmp_path = tmp.name
-
-#     try:
-#         return xr.open_dataset(tmp_path)
-#     except ValueError as e:
-#         if "unable to decode time units" in str(e) and "calendar 'NOLEAP'" in str(e):
-#             st.warning("⚠️ Time decoding failed. Retrying with decode_times=False...")
-#             return xr.open_dataset(tmp_path, decode_times=False)
-#         else:
-#             raise
-
 
 def load_netcdf_safe_from_path(path):
     try:
@@ -464,43 +446,17 @@ else:
                         
                     # Use left_col for plot selection checkboxes
                     with st.expander("🗺️ Select Plot Options", expanded=True):
-                        user_show_spatial_map = st.checkbox("Spatial Map")
-                        user_show_interactive_spatial_map = st.checkbox("Spatial Interactive Map")
-                        user_show_time_animation = st.checkbox("Spatial Map - Time Animation")
-                        user_show_vertical_section = st.checkbox("Vertical Section")
-                        user_show_interactive_vertical_section = st.checkbox("Interactive Vertical Section")
-                        user_show_timeseries_plot = st.checkbox("Time Series Plot")
-                        user_show_vertical_profile = st.checkbox("Vertical Profile")
-                        user_show_interactive_vertical_profile =  st.checkbox("Vertical Interactive Profile ")
-                        user_show_hovmoller = st.checkbox("Hovmöller Diagram")
-                        user_show_interactive_hovmoller = st.checkbox("Hovmöller Interactive Diagram")
-                        user_station_plot = st.checkbox("Station Contour (Using excel/csv)")
-            
-
-                        # === Apply logic to enable or disable them ===
-                        show_spatial_map = user_show_spatial_map
-                        show_interactive_spatial_map = user_show_interactive_spatial_map
-                        show_time_animation = user_show_time_animation if time_var else False
-                        show_vertical_section = user_show_vertical_section if depth_var else False
-                        show_interactive_vertical_section = user_show_interactive_vertical_section if depth_var else False
-                        show_timeseries_plot = user_show_timeseries_plot if time_var else False
-                        show_vertical_profile = user_show_vertical_profile if depth_var else False
-                        show_interactive_vertical_profile = user_show_interactive_vertical_profile if depth_var else False
-                        show_hovmoller = user_show_hovmoller if time_var else False
-                        show_interactive_hovmoller = user_show_interactive_hovmoller if time_var else False
-
-                    # === Disable unsupported plots based on missing dimensions ===
-                    # if not time_var:
-                    #     show_time_animation = False
-                    #     show_timeseries_plot = False
-                    #     show_hovmoller = False
-                    #     show_interactive_hovmoller = False
-                    
-                    # if not depth_var:
-                    #     show_vertical_section = False
-                    #     show_interactive_vertical_section = False
-                    #     show_vertical_profile = False
-                    #     show_interactive_vertical_profile = False
+                        show_spatial_map = st.checkbox("Spatial Map")
+                        show_interactive_spatial_map = st.checkbox("Spatial Interactive Map")
+                        show_time_animation = st.checkbox("Spatial Map - Time Animation")
+                        show_vertical_section = st.checkbox("Vertical Section")
+                        show_interactive_vertical_section = st.checkbox("Interactive Vertical Section")
+                        show_timeseries_plot = st.checkbox("Time Series Plot")
+                        show_vertical_profile = st.checkbox("Vertical Profile")
+                        show_interactive_vertical_profile =  st.checkbox("Vertical Interactive Profile ")
+                        show_hovmoller = st.checkbox("Hovmöller Diagram")
+                        show_interactive_hovmoller = st.checkbox("Hovmöller Interactive Diagram")
+                        station_plot = st.checkbox("Station Contour (Using excel/csv)")
 
                     if show_spatial_map or show_vertical_section or show_time_animation or show_interactive_spatial_map:
                         with st.expander("🌍 Land/Sea Masking"):
@@ -649,50 +605,17 @@ else:
                         
                         # -- Plot Mode Selection
                         
-                        # plot_mode = st.radio("🧭 Select Plot Mode", [
-                        #     "Single Time + Single Depth",
-                        #     "Time Range Avg + Single Depth",
-                        #     "Single Time + Depth Range Avg",
-                        #     "Time Range Avg + Depth Range Avg"
-                        # ])
+                        plot_mode = st.radio("🧭 Select Plot Mode", [
+                            "Single Time + Single Depth",
+                            "Time Range Avg + Single Depth",
+                            "Single Time + Depth Range Avg",
+                            "Time Range Avg + Depth Range Avg"
+                        ])
 
-                        plot_options = []
-
-                        if not time_var and not depth_var:
-                            plot_options = ["Lat-Lon Map (2D Only)"]
-                        elif time_var and not depth_var:
-                            plot_options = ["Single Time", "Time Range Avg"]
-                        elif depth_var and not time_var:
-                            plot_options = ["Single Depth", "Depth Range Avg"]
-                        else:
-                            plot_options = [
-                                "Single Time + Single Depth",
-                                "Time Range Avg + Single Depth",
-                                "Single Time + Depth Range Avg",
-                                "Time Range Avg + Depth Range Avg"
-                            ]
-                        
-                        plot_mode = st.radio("🧭 Select Plot Mode", plot_options)
-
-            
+                    
                         # -- Depth Input
-                        # depth_vals = ds[depth_var].values if depth_var else None
-                        # if depth_var:
-                        #     if "Depth Range Avg" in plot_mode:
-                        #         col1, col2 = st.columns(2)
-                        #         with col1:
-                        #             dmin = st.number_input("Min Depth", float(depth_vals.min()), float(depth_vals.max()), value=float(depth_vals.min()), key="depth_min")
-                        #         with col2:
-                        #             dmax = st.number_input("Max Depth", float(depth_vals.min()), float(depth_vals.max()), value=float(depth_vals.max()), key="depth_max")
-                        #     else:
-                        #         selected_depth = st.number_input(
-                        #             "Depth (m)", float(depth_vals.min()), float(depth_vals.max()),
-                        #             value=float(depth_vals.min()), step=10.0, key="depth_single"
-                        #         )
-
-
-                        if depth_var and "Depth" in plot_mode:
-                            depth_vals = ds[depth_var].values
+                        depth_vals = ds[depth_var].values if depth_var else None
+                        if depth_var:
                             if "Depth Range Avg" in plot_mode:
                                 col1, col2 = st.columns(2)
                                 with col1:
@@ -706,31 +629,46 @@ else:
                                 )
 
 
+                        # if depth_var and "Depth" in plot_mode:
+                        #     depth_vals = ds[depth_var].values
+                        #     if "Depth Range Avg" in plot_mode:
+                        #         col1, col2 = st.columns(2)
+                        #         with col1:
+                        #             dmin = st.number_input("Min Depth", float(depth_vals.min()), float(depth_vals.max()), value=float(depth_vals.min()), key="depth_min")
+                        #         with col2:
+                        #             dmax = st.number_input("Max Depth", float(depth_vals.min()), float(depth_vals.max()), value=float(depth_vals.max()), key="depth_max")
+                        #     else:
+                        #         selected_depth = st.number_input(
+                        #             "Depth (m)", float(depth_vals.min()), float(depth_vals.max()),
+                        #             value=float(depth_vals.min()), step=10.0, key="depth_single"
+                        #         )
+
+
                         
                             
                         # -- Time Input
-                        # time_vals, time_labels = try_decode_time(ds, time_var)
-                        # if "Time Range Avg" in plot_mode:
-                        #     t1 = st.date_input("🕒 Start Date", value=pd.to_datetime(time_labels[0]), key="map_start")
-                        #     t2 = st.date_input("🕒 End Date", value=pd.to_datetime(time_labels[-1]), key="map_end")
-                        #     t1 = np.datetime64(t1)
-                        #     t2 = np.datetime64(t2)
-                        # else:
-                        #     time_sel = st.selectbox("🕒 Select Time", time_labels, key="map_single_time")
-                        #     time_index = list(time_labels).index(time_sel)
-                        #     raw_time_value = time_vals[time_index]
+                        time_vals, time_labels = try_decode_time(ds, time_var)
+                        if "Time Range Avg" in plot_mode:
+                            t1 = st.date_input("🕒 Start Date", value=pd.to_datetime(time_labels[0]), key="map_start")
+                            t2 = st.date_input("🕒 End Date", value=pd.to_datetime(time_labels[-1]), key="map_end")
+                            t1 = np.datetime64(t1)
+                            t2 = np.datetime64(t2)
+                        else:
+                            time_sel = st.selectbox("🕒 Select Time", time_labels, key="map_single_time")
+                            time_index = list(time_labels).index(time_sel)
+                            raw_time_value = time_vals[time_index]
 
-                        if time_var and "Time" in plot_mode:
-                            time_vals, time_labels = try_decode_time(ds, time_var)
-                            if "Time Range Avg" in plot_mode:
-                                t1 = st.date_input("🕒 Start Date", value=pd.to_datetime(time_labels[0]), key="map_start")
-                                t2 = st.date_input("🕒 End Date", value=pd.to_datetime(time_labels[-1]), key="map_end")
-                                t1 = np.datetime64(t1)
-                                t2 = np.datetime64(t2)
-                            else:
-                                time_sel = st.selectbox("🕒 Select Time", time_labels, key="map_single_time")
-                                time_index = list(time_labels).index(time_sel)
-                                raw_time_value = time_vals[time_index]
+                        # if time_var and "Time" in plot_mode:
+                        #     time_vals, time_labels = try_decode_time(ds, time_var)
+                        #     if "Time Range Avg" in plot_mode:
+                        #         t1 = st.date_input("🕒 Start Date", value=pd.to_datetime(time_labels[0]), key="map_start")
+                        #         t2 = st.date_input("🕒 End Date", value=pd.to_datetime(time_labels[-1]), key="map_end")
+                        #         t1 = np.datetime64(t1)
+                        #         t2 = np.datetime64(t2)
+                        #     else:
+                        #         time_sel = st.selectbox("🕒 Select Time", time_labels, key="map_single_time")
+                        #         time_index = list(time_labels).index(time_sel)
+                        #         raw_time_value = time_vals[time_index]
 
                         # ------------------ Compute time_str and depth_str ------------------ #
                         depth_str = ""
@@ -768,7 +706,9 @@ else:
                         else:
                             data = data.sel({time_var: raw_time_value})
                             time_str = pd.to_datetime(raw_time_value).strftime('%Y-%m-%d')
-                    
+
+                        
+                            
                         # ------------------ Plotting ------------------ #
                         st.subheader("🗺️ Map View")
                         plt.rcParams['font.family'] = st.session_state.get("font_family", "DejaVu Sans")                
@@ -804,7 +744,9 @@ else:
                         if mask_sea:
                             ax.add_feature(cfeature.OCEAN, facecolor=mask_color, zorder=3)
                     
-                        ax.set_title(f"{plot_title}\n {time_str} | Depth: {depth_str}", fontsize=14)
+                        # ax.set_title(f"{plot_title}\n {time_str} | Depth: {depth_str}", fontsize=14)
+                        ax.set_title(f"{plot_title}\n{time_str}" + (f" | Depth: {depth_str}" if depth_var else ""), fontsize=14)
+
                     
                         # Replace colorbar
                         if hasattr(im, 'colorbar') and im.colorbar:
@@ -996,28 +938,16 @@ else:
                     
                         # -- Time Input
                         time_vals, time_labels = try_decode_time(ds, time_var)
-                        # if "Time Range Avg" in plot_mode:
-                        #     t1 = st.date_input("🕒 Start Date", value=pd.to_datetime(time_labels[0]), key="imap_start")
-                        #     t2 = st.date_input("🕒 End Date", value=pd.to_datetime(time_labels[-1]), key="imap_end")
-                        #     t1 = np.datetime64(t1)
-                        #     t2 = np.datetime64(t2)
-                        # else:
-                        #     time_sel = st.selectbox("🕒 Select Time", time_labels, key="imap_single_time")
-                        #     time_index = list(time_labels).index(time_sel)
-                        #     raw_time_value = time_vals[time_index]
+                        if "Time Range Avg" in plot_mode:
+                            t1 = st.date_input("🕒 Start Date", value=pd.to_datetime(time_labels[0]), key="imap_start")
+                            t2 = st.date_input("🕒 End Date", value=pd.to_datetime(time_labels[-1]), key="imap_end")
+                            t1 = np.datetime64(t1)
+                            t2 = np.datetime64(t2)
+                        else:
+                            time_sel = st.selectbox("🕒 Select Time", time_labels, key="imap_single_time")
+                            time_index = list(time_labels).index(time_sel)
+                            raw_time_value = time_vals[time_index]
 
-                        if time_var and "Time" in plot_mode:
-                            time_vals, time_labels = try_decode_time(ds, time_var)
-                            if "Time Range Avg" in plot_mode:
-                                t1 = st.date_input("🕒 Start Date", value=pd.to_datetime(time_labels[0]), key="map_start")
-                                t2 = st.date_input("🕒 End Date", value=pd.to_datetime(time_labels[-1]), key="map_end")
-                                t1 = np.datetime64(t1)
-                                t2 = np.datetime64(t2)
-                            else:
-                                time_sel = st.selectbox("🕒 Select Time", time_labels, key="map_single_time")
-                                time_index = list(time_labels).index(time_sel)
-                                raw_time_value = time_vals[time_index]
-                        
                                 
                         # ------------------ Data Extraction ------------------ #
                         data = ds[var]
