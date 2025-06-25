@@ -627,13 +627,34 @@ else:
                     #---------------------------------Normal Spatial Map View----------------------------------------------------------#
             
                     if show_spatial_map:
+                        
                         # -- Plot Mode Selection
-                        plot_mode = st.radio("🧭 Select Plot Mode", [
-                            "Single Time + Single Depth",
-                            "Time Range Avg + Single Depth",
-                            "Single Time + Depth Range Avg",
-                            "Time Range Avg + Depth Range Avg"
-                        ])
+                        
+                        # plot_mode = st.radio("🧭 Select Plot Mode", [
+                        #     "Single Time + Single Depth",
+                        #     "Time Range Avg + Single Depth",
+                        #     "Single Time + Depth Range Avg",
+                        #     "Time Range Avg + Depth Range Avg"
+                        # ])
+
+                        plot_options = []
+
+                        if not time_var and not depth_var:
+                            plot_options = ["Lat-Lon Map (2D Only)"]
+                        elif time_var and not depth_var:
+                            plot_options = ["Single Time", "Time Range Avg"]
+                        elif depth_var and not time_var:
+                            plot_options = ["Single Depth", "Depth Range Avg"]
+                        else:
+                            plot_options = [
+                                "Single Time + Single Depth",
+                                "Time Range Avg + Single Depth",
+                                "Single Time + Depth Range Avg",
+                                "Time Range Avg + Depth Range Avg"
+                            ]
+                        
+                        plot_mode = st.radio("🧭 Select Plot Mode", plot_options)
+
             
                         # -- Depth Input
                         # depth_vals = ds[depth_var].values if depth_var else None
