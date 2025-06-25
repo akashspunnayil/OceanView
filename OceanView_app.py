@@ -746,7 +746,9 @@ else:
                     
                         def standardize_coords(dataarray):
                             coord_map = {'latitude': None, 'longitude': None, 'time': None, 'depth': None}
-                            coord_candidates = {k.lower(): k for k in dataarray.coords}
+                            # coord_candidates = {k.lower(): k for k in dataarray.coords}
+                            coord_candidates = {k.lower(): k for k in list(dataarray.coords) + list(dataarray.dims)}
+
                             for standard, options in {
                                 'latitude': ['lat', 'latitude'],
                                 'longitude': ['lon', 'longitude'],
@@ -765,7 +767,12 @@ else:
                         lat = data_2d[coord_map['latitude']].values
                         lon = data_2d[coord_map['longitude']].values
                         z = data_2d.values
-                    
+
+                        if coord_map['latitude'] is None or coord_map['longitude'] is None:
+                            st.error("❌ Could not detect latitude or longitude dimensions for Plotly heatmap.")
+                            st.stop()
+                        
+
                         fig = go.Figure(
                             data=go.Heatmap(
                                 z=z,
