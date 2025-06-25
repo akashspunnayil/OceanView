@@ -118,10 +118,45 @@ def try_decode_time(ds, time_var):
 #     return found
 
 
+# def detect_coord_names(ds):
+#     coord_map = {}
+
+#     # Step 1: Try exact match from coordinate attributes
+#     standard_names = {
+#         "latitude": ["latitude", "lat", "y"],
+#         "longitude": ["longitude", "lon", "x"],
+#         "depth": ["depth", "lev", "z"],
+#         "time": ["time", "date"]
+#     }
+
+#     for dim in ds.dims:
+#         lname = dim.lower()
+#         for std_name, aliases in standard_names.items():
+#             if any(alias in lname for alias in aliases):
+#                 if std_name not in coord_map:
+#                     coord_map[std_name] = dim
+
+#     # Step 2: Fallback to coordinate variables if missing
+#     for var in ds.coords:
+#         lname = var.lower()
+#         for std_name, aliases in standard_names.items():
+#             if std_name not in coord_map:
+#                 if any(alias in lname for alias in aliases):
+#                     coord_map[std_name] = var
+
+#     # Step 3: Final fallback to variables
+#     for var in ds.variables:
+#         lname = var.lower()
+#         for std_name, aliases in standard_names.items():
+#             if std_name not in coord_map:
+#                 if any(alias in lname for alias in aliases):
+#                     coord_map[std_name] = var
+
+#     return coord_map
+
 def detect_coord_names(ds):
     coord_map = {}
 
-    # Step 1: Try exact match from coordinate attributes
     standard_names = {
         "latitude": ["latitude", "lat", "y"],
         "longitude": ["longitude", "lon", "x"],
@@ -129,28 +164,30 @@ def detect_coord_names(ds):
         "time": ["time", "date"]
     }
 
+    # Step 1: Try from ds.dims (works for Dataset and DataArray)
     for dim in ds.dims:
         lname = dim.lower()
         for std_name, aliases in standard_names.items():
-            if any(alias in lname for alias in aliases):
-                if std_name not in coord_map:
+            if std_name not in coord_map:
+                if any(alias in lname for alias in aliases):
                     coord_map[std_name] = dim
 
-    # Step 2: Fallback to coordinate variables if missing
-    for var in ds.coords:
-        lname = var.lower()
+    # Step 2: Try from ds.coords
+    for coord in ds.coords:
+        lname = coord.lower()
         for std_name, aliases in standard_names.items():
             if std_name not in coord_map:
                 if any(alias in lname for alias in aliases):
-                    coord_map[std_name] = var
+                    coord_map[std_name] = coord
 
-    # Step 3: Final fallback to variables
-    for var in ds.variables:
-        lname = var.lower()
-        for std_name, aliases in standard_names.items():
-            if std_name not in coord_map:
-                if any(alias in lname for alias in aliases):
-                    coord_map[std_name] = var
+    # Step 3: Try from variable names (only if ds is a Dataset)
+    if isinstance(ds, xr.Dataset):
+        for var in ds.variables:
+            lname = var.lower()
+            for std_name, aliases in standard_names.items():
+                if std_name not in coord_map:
+                    if any(alias in lname for alias in aliases):
+                        coord_map[std_name] = var
 
     return coord_map
 
