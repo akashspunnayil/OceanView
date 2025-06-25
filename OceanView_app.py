@@ -445,17 +445,17 @@ else:
                         
                     # Use left_col for plot selection checkboxes
                     with st.expander("🗺️ Select Plot Options", expanded=True):
-                        show_spatial_map = st.checkbox("Spatial Map")
-                        show_interactive_spatial_map = st.checkbox("Spatial Interactive Map")
-                        show_time_animation = st.checkbox("Spatial Map - Time Animation")
-                        show_vertical_section = st.checkbox("Vertical Section")
-                        show_interactive_vertical_section = st.checkbox("Interactive Vertical Section")
-                        show_timeseries_plot = st.checkbox("Time Series Plot")
-                        show_vertical_profile = st.checkbox("Vertical Profile")
-                        show_interactive_vertical_profile =  st.checkbox("Vertical Interactive Profile ")
-                        show_hovmoller = st.checkbox("Hovmöller Diagram")
-                        show_interactive_hovmoller = st.checkbox("Hovmöller Interactive Diagram")
-                        station_plot = st.checkbox("Station Contour (Using excel/csv)")
+                        user_show_spatial_map = st.checkbox("Spatial Map")
+                        user_show_interactive_spatial_map = st.checkbox("Spatial Interactive Map")
+                        user_show_time_animation = st.checkbox("Spatial Map - Time Animation")
+                        user_show_vertical_section = st.checkbox("Vertical Section")
+                        user_show_interactive_vertical_section = st.checkbox("Interactive Vertical Section")
+                        user_show_timeseries_plot = st.checkbox("Time Series Plot")
+                        user_show_vertical_profile = st.checkbox("Vertical Profile")
+                        user_show_interactive_vertical_profile =  st.checkbox("Vertical Interactive Profile ")
+                        user_show_hovmoller = st.checkbox("Hovmöller Diagram")
+                        user_show_interactive_hovmoller = st.checkbox("Hovmöller Interactive Diagram")
+                        user_station_plot = st.checkbox("Station Contour (Using excel/csv)")
             
 
                         # === Apply logic to enable or disable them ===
