@@ -852,18 +852,18 @@ else:
 
                                 # -- Depth Input
                                 depth_vals = ds[depth_var].values if depth_var else None
-                                if depth_var:
-                                    if "Depth Range Avg" in plot_mode:
-                                        col1, col2 = st.columns(2)
-                                        with col1:
-                                            dmin = st.number_input("Min Depth", float(depth_vals.min()), float(depth_vals.max()), value=float(depth_vals.min()), key="depth_min")
-                                        with col2:
-                                            dmax = st.number_input("Max Depth", float(depth_vals.min()), float(depth_vals.max()), value=float(depth_vals.max()), key="depth_max")
-                                    else:
-                                        selected_depth = st.number_input(
-                                            "Depth (m)", float(depth_vals.min()), float(depth_vals.max()),
-                                            value=float(depth_vals.min()), step=10.0, key="depth_single"
-                                        )
+                                # if depth_var:
+                                #     if "Depth Range Avg" in plot_mode:
+                                #         col1, col2 = st.columns(2)
+                                #         with col1:
+                                #             dmin = st.number_input("Min Depth", float(depth_vals.min()), float(depth_vals.max()), value=float(depth_vals.min()), key="depth_min")
+                                #         with col2:
+                                #             dmax = st.number_input("Max Depth", float(depth_vals.min()), float(depth_vals.max()), value=float(depth_vals.max()), key="depth_max")
+                                #     else:
+                                #         selected_depth = st.number_input(
+                                #             "Depth (m)", float(depth_vals.min()), float(depth_vals.max()),
+                                #             value=float(depth_vals.min()), step=10.0, key="depth_single"
+                                #         )
                     
                                 if plot_mode == "Constant Depth":
                                     selected_depth = st.number_input("Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=10.0)
