@@ -1706,7 +1706,10 @@ else:
                                 if "Depth-avg" in hov_mode:
                                     d1 = st.number_input("Min Depth", float(ds[depth_var].min()), float(ds[depth_var].max()), value=0.0)
                                     d2 = st.number_input("Max Depth", float(ds[depth_var].min()), float(ds[depth_var].max()), value=200.0)
-                                    da_sel = da.sel({lon_var: slice(lon_min, lon_max), depth_var: slice(d1, d2)})
+                                    # da_sel = da.sel({lon_var: slice(lon_min, lon_max), depth_var: slice(d1, d2)})
+                                    da_sel = da.sel({lon_var: slice(lon_min, lon_max)})
+                                    da_sel = da_sel.where((da_sel[depth_var] >= d1) & (da_sel[depth_var] <= d2), drop=True)
+
                                     da_sel = da_sel.sel({lat_var: fixed_lat}, method="nearest").mean(dim=depth_var, skipna=True)
                                 else:
                                     fixed_depth = st.number_input("Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=10.0, key="hov_depth")
@@ -1728,7 +1731,10 @@ else:
                                 if "Depth-avg" in hov_mode:
                                     d1 = st.number_input("Min Depth", float(ds[depth_var].min()), float(ds[depth_var].max()), value=0.0, key="hov_d1_lat")
                                     d2 = st.number_input("Max Depth", float(ds[depth_var].min()), float(ds[depth_var].max()), value=200.0, key="hov_d2_lat")
-                                    da_sel = da.sel({lat_var: slice(lat_min, lat_max), depth_var: slice(d1, d2)})
+                                    # da_sel = da.sel({lat_var: slice(lat_min, lat_max), depth_var: slice(d1, d2)})
+                                    da_sel = da.sel({lat_var: slice(lat_min, lat_max)})
+                                    da_sel = da_sel.where((da_sel[depth_var] >= d1) & (da_sel[depth_var] <= d2), drop=True)
+
                                     da_sel = da_sel.sel({lon_var: fixed_lon}, method="nearest").mean(dim=depth_var, skipna=True)
                                 else:
                                     fixed_depth = st.number_input("Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=10.0, key="hov_depth_lat")
