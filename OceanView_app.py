@@ -1248,50 +1248,50 @@ else:
                         ])
             
                         # -- Time Input
-                        # time_vals, time_labels = try_decode_time(ds, time_var)
+                        time_vals, time_labels = try_decode_time(ds, time_var)
             
-                        # if time_mode == "Single Time":
-                        #     time_sel = st.selectbox("Select Time", time_labels, key="vsec_single_time")
-                        #     time_index = list(time_labels).index(time_sel)
-                        #     raw_time_value = time_vals[time_index]
-                        # else:
-                        #     t1 = st.date_input("Start Date", value=pd.to_datetime(time_labels[0]), key="vsec_start")
-                        #     t2 = st.date_input("End Date", value=pd.to_datetime(time_labels[-1]), key="vsec_end")
-                        #     t1 = np.datetime64(t1)
-                        #     t2 = np.datetime64(t2)
+                        if time_mode == "Single Time":
+                            time_sel = st.selectbox("Select Time", time_labels, key="vsec_single_time")
+                            time_index = list(time_labels).index(time_sel)
+                            raw_time_value = time_vals[time_index]
+                        else:
+                            t1 = st.date_input("Start Date", value=pd.to_datetime(time_labels[0]), key="vsec_start")
+                            t2 = st.date_input("End Date", value=pd.to_datetime(time_labels[-1]), key="vsec_end")
+                            t1 = np.datetime64(t1)
+                            t2 = np.datetime64(t2)
 
-                        if time_var:
-                            time_mode = st.radio("🕒 Time Mode", ["Single Time", "Time Range Average"], key="vsec_time_mode")
-                            time_vals, time_labels = try_decode_time(ds, time_var)
+                        # if time_var:
+                        #     time_mode = st.radio("🕒 Time Mode", ["Single Time", "Time Range Average"], key="vsec_time_mode")
+                        #     time_vals, time_labels = try_decode_time(ds, time_var)
                         
-                            if time_mode == "Single Time":
-                                time_sel = st.selectbox("Select Time", time_labels, key="vsec_single_time")
-                                time_index = list(time_labels).index(time_sel)
-                                raw_time_value = time_vals[time_index]
-                            else:
-                                t1 = st.date_input("Start Date", value=pd.to_datetime(time_labels[0]), key="vsec_start")
-                                t2 = st.date_input("End Date", value=pd.to_datetime(time_labels[-1]), key="vsec_end")
-                                t1 = np.datetime64(t1)
-                                t2 = np.datetime64(t2)
+                        #     if time_mode == "Single Time":
+                        #         time_sel = st.selectbox("Select Time", time_labels, key="vsec_single_time")
+                        #         time_index = list(time_labels).index(time_sel)
+                        #         raw_time_value = time_vals[time_index]
+                        #     else:
+                        #         t1 = st.date_input("Start Date", value=pd.to_datetime(time_labels[0]), key="vsec_start")
+                        #         t2 = st.date_input("End Date", value=pd.to_datetime(time_labels[-1]), key="vsec_end")
+                        #         t1 = np.datetime64(t1)
+                        #         t2 = np.datetime64(t2)
                         
 
                         try:
                             section = ds[var]
             
-                            # if time_var:
-                            #     if time_mode == "Single Time":
-                            #         section = section.sel({time_var: raw_time_value}, method="nearest")
-                            #     else:
-                            #         section = section.sel({time_var: slice(t1, t2)})
-                            #         section = section.mean(dim=time_var, skipna=True)
-
                             if time_var:
                                 if time_mode == "Single Time":
-                                    time_str = pd.to_datetime(raw_time_value).strftime('%Y-%m-%d')
+                                    section = section.sel({time_var: raw_time_value}, method="nearest")
                                 else:
-                                    time_str = f"{pd.to_datetime(t1).strftime('%Y-%m-%d')} to {pd.to_datetime(t2).strftime('%Y-%m-%d')}"
-                            else:
-                                time_str = "No Time"
+                                    section = section.sel({time_var: slice(t1, t2)})
+                                    section = section.mean(dim=time_var, skipna=True)
+
+                            # if time_var:
+                            #     if time_mode == "Single Time":
+                            #         time_str = pd.to_datetime(raw_time_value).strftime('%Y-%m-%d')
+                            #     else:
+                            #         time_str = f"{pd.to_datetime(t1).strftime('%Y-%m-%d')} to {pd.to_datetime(t2).strftime('%Y-%m-%d')}"
+                            # else:
+                            #     time_str = "No Time"
 
             
                             # if time_var and raw_time_value is not None:
@@ -1408,49 +1408,49 @@ else:
                         ])
                     
                         # -- Time Input
-                        # time_vals, time_labels = try_decode_time(ds, time_var)
-                        # if time_mode == "Single Time":
-                        #     time_sel = st.selectbox("Select Time", time_labels, key="vsec_single_time_inter")
-                        #     time_index = list(time_labels).index(time_sel)
-                        #     raw_time_value = time_vals[time_index]
-                        # else:
-                        #     t1 = st.date_input("Start Date", value=pd.to_datetime(time_labels[0]), key="vsec_start_inter")
-                        #     t2 = st.date_input("End Date", value=pd.to_datetime(time_labels[-1]), key="vsec_end_inter")
-                        #     t1 = np.datetime64(t1)
-                        #     t2 = np.datetime64(t2)
+                        time_vals, time_labels = try_decode_time(ds, time_var)
+                        if time_mode == "Single Time":
+                            time_sel = st.selectbox("Select Time", time_labels, key="vsec_single_time_inter")
+                            time_index = list(time_labels).index(time_sel)
+                            raw_time_value = time_vals[time_index]
+                        else:
+                            t1 = st.date_input("Start Date", value=pd.to_datetime(time_labels[0]), key="vsec_start_inter")
+                            t2 = st.date_input("End Date", value=pd.to_datetime(time_labels[-1]), key="vsec_end_inter")
+                            t1 = np.datetime64(t1)
+                            t2 = np.datetime64(t2)
 
-                        if time_var:
-                            time_mode = st.radio("🕒 Time Mode (Interactive)", ["Single Time", "Time Range Average"], key="vsec_time_mode_inter")
-                            time_vals, time_labels = try_decode_time(ds, time_var)
+                        # if time_var:
+                        #     time_mode = st.radio("🕒 Time Mode (Interactive)", ["Single Time", "Time Range Average"], key="vsec_time_mode_inter")
+                        #     time_vals, time_labels = try_decode_time(ds, time_var)
                         
-                            if time_mode == "Single Time":
-                                time_sel = st.selectbox("Select Time", time_labels, key="vsec_single_time_inter")
-                                time_index = list(time_labels).index(time_sel)
-                                raw_time_value = time_vals[time_index]
-                            else:
-                                t1 = st.date_input("Start Date", value=pd.to_datetime(time_labels[0]), key="vsec_start_inter")
-                                t2 = st.date_input("End Date", value=pd.to_datetime(time_labels[-1]), key="vsec_end_inter")
-                                t1 = np.datetime64(t1)
-                                t2 = np.datetime64(t2)
+                        #     if time_mode == "Single Time":
+                        #         time_sel = st.selectbox("Select Time", time_labels, key="vsec_single_time_inter")
+                        #         time_index = list(time_labels).index(time_sel)
+                        #         raw_time_value = time_vals[time_index]
+                        #     else:
+                        #         t1 = st.date_input("Start Date", value=pd.to_datetime(time_labels[0]), key="vsec_start_inter")
+                        #         t2 = st.date_input("End Date", value=pd.to_datetime(time_labels[-1]), key="vsec_end_inter")
+                        #         t1 = np.datetime64(t1)
+                        #         t2 = np.datetime64(t2)
                         
 
                         try:
                             section = ds[var]
                     
-                            # if time_var:
-                            #     if time_mode == "Single Time":
-                            #         section = section.sel({time_var: raw_time_value}, method="nearest")
-                            #     else:
-                            #         section = section.sel({time_var: slice(t1, t2)})
-                            #         section = section.mean(dim=time_var, skipna=True)
-
                             if time_var:
                                 if time_mode == "Single Time":
-                                    time_str = pd.to_datetime(raw_time_value).strftime('%Y-%m-%d')
+                                    section = section.sel({time_var: raw_time_value}, method="nearest")
                                 else:
-                                    time_str = f"{pd.to_datetime(t1).strftime('%Y-%m-%d')} to {pd.to_datetime(t2).strftime('%Y-%m-%d')}"
-                            else:
-                                time_str = "No Time"
+                                    section = section.sel({time_var: slice(t1, t2)})
+                                    section = section.mean(dim=time_var, skipna=True)
+
+                            # if time_var:
+                            #     if time_mode == "Single Time":
+                            #         time_str = pd.to_datetime(raw_time_value).strftime('%Y-%m-%d')
+                            #     else:
+                            #         time_str = f"{pd.to_datetime(t1).strftime('%Y-%m-%d')} to {pd.to_datetime(t2).strftime('%Y-%m-%d')}"
+                            # else:
+                            #     time_str = "No Time"
                             
                                 
                             # --- Depth Range Selection ---
