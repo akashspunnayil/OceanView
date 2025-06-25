@@ -72,25 +72,19 @@ def load_netcdf_safe(file_obj):
         else:
             raise
 
-    # --- Inject fake time/depth if missing ---
+    # Detect coords
     coord_map = detect_coord_names(ds)
-    time_var = coord_map.get("time", "time")
-    depth_var = coord_map.get("depth", "depth")
+    has_time = "time" in coord_map.values()
+    has_depth = "depth" in coord_map.values()
 
-    for var in ds.data_vars:
-        da = ds[var]
-
-        # Add fake time dim if missing
-        if time_var not in da.dims:
-            da = da.expand_dims({time_var: [np.datetime64("2000-01-01")]})
-
-        # Add fake depth dim if missing
-        if depth_var not in da.dims:
-            da = da.expand_dims({depth_var: [0.0]})
-
-        ds[var] = da
+    # Inject singleton dims if needed
+    if not has_time:
+        ds = ds.expand_dims({"time": [np.datetime64("2000-01-01")]})
+    if not has_depth:
+        ds = ds.expand_dims({"depth": [0.0]})
 
     return ds
+
 
 
 
