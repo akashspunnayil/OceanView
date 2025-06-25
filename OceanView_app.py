@@ -904,7 +904,7 @@ else:
                                 #         )
                     
                                 if plot_mode == "Constant Depth":
-                                    selected_depth = st.number_input("Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=10.0)
+                                    selected_depth = st.number_input("Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=float(ds[depth_var].min()))
                                 else:
                                     dmin = st.number_input("Min Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=float(depth_vals.min()))
                                     dmax = st.number_input("Max Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=float(depth_vals.max()))
