@@ -52,6 +52,25 @@ def load_netcdf_safe(file_obj):
             raise
 
 
+# from tempfile import NamedTemporaryFile
+
+# def load_netcdf_safe(file_obj):
+#     import xarray as xr
+#     from tempfile import NamedTemporaryFile
+
+#     with NamedTemporaryFile(delete=False, suffix=".nc") as tmp:
+#         tmp.write(file_obj.read())
+#         tmp_path = tmp.name
+#     try:
+#         return xr.open_dataset(tmp_path, engine="netcdf4")
+#     except ValueError as e:
+#         if ("unable to decode time units" in str(e)) or ("calendar 'NOLEAP'" in str(e)):
+#             st.warning("⚠️ Time decoding failed. Retrying with decode_times=False using engine='scipy'...")
+#             return xr.open_dataset(tmp_path, decode_times=False, engine="scipy")
+#         else:
+#             raise
+
+
 def load_netcdf_safe_from_path(path):
     try:
         return xr.open_dataset(path, engine="scipy") #netcdf4
@@ -68,25 +87,12 @@ def find_coord_from_dims(da, keyword):
             return dim
     return None
 
-# def try_decode_time(ds, time_var):
-#     time_vals = ds[time_var].values
-#     if np.issubdtype(time_vals.dtype, np.datetime64):
-#         return time_vals, time_vals
-#     else:
-#         st.warning("⚠️ Time not decoded. Approximating monthly time from 2000-01.")
-#         try:
-#             fake_time = pd.date_range("2000-01-01", periods=len(time_vals), freq="MS")
-#             return time_vals, fake_time
-#         except Exception as e:
-#             st.error(f"❌ Failed to create fake time labels: {e}")
-#             return time_vals, time_vals
-
 def try_decode_time(ds, time_var):
     time_vals = ds[time_var].values
     if np.issubdtype(time_vals.dtype, np.datetime64):
         return time_vals, time_vals
     else:
-        st.warning(f"⚠️ Time not decoded from '{time_var}'. Approximating...")
+        st.warning("⚠️ Time not decoded. Approximating monthly time from 2000-01.")
         try:
             fake_time = pd.date_range("2000-01-01", periods=len(time_vals), freq="MS")
             return time_vals, fake_time
@@ -95,103 +101,28 @@ def try_decode_time(ds, time_var):
             return time_vals, time_vals
 
 #-------------------------------------------------------------------------------------------------------------------#
-# def detect_coord_names(dataarray):
-#     # Known patterns (case-insensitive)
-#     candidates = {
-#         "latitude": ["lat", "latitude"],
-#         "longitude": ["lon", "longitude"],
-#         "depth": ["depth", "depth1_1", "DEPTH", "z"],
-#         "time": ["time", "TIME"]
-#     }
-
-#     # Match from dataarray coords
-#     found = {}
-#     coords_lower = {k.lower(): k for k in dataarray.coords}
-
-#     for standard_name, options in candidates.items():
-#         for name in options:
-#             if name.lower() in coords_lower:
-#                 found[standard_name] = coords_lower[name.lower()]
-#                 break
-#         else:
-#             found[standard_name] = None  # Not found
-
-#     return found
-
-
-# def detect_coord_names(ds):
-#     coord_map = {}
-
-#     # Step 1: Try exact match from coordinate attributes
-#     standard_names = {
-#         "latitude": ["latitude", "lat", "y"],
-#         "longitude": ["longitude", "lon", "x"],
-#         "depth": ["depth", "lev", "z"],
-#         "time": ["time", "date"]
-#     }
-
-#     for dim in ds.dims:
-#         lname = dim.lower()
-#         for std_name, aliases in standard_names.items():
-#             if any(alias in lname for alias in aliases):
-#                 if std_name not in coord_map:
-#                     coord_map[std_name] = dim
-
-#     # Step 2: Fallback to coordinate variables if missing
-#     for var in ds.coords:
-#         lname = var.lower()
-#         for std_name, aliases in standard_names.items():
-#             if std_name not in coord_map:
-#                 if any(alias in lname for alias in aliases):
-#                     coord_map[std_name] = var
-
-#     # Step 3: Final fallback to variables
-#     for var in ds.variables:
-#         lname = var.lower()
-#         for std_name, aliases in standard_names.items():
-#             if std_name not in coord_map:
-#                 if any(alias in lname for alias in aliases):
-#                     coord_map[std_name] = var
-
-#     return coord_map
-
-def detect_coord_names(ds):
-    coord_map = {}
-
-    standard_names = {
-        "latitude": ["latitude", "lat", "y"],
-        "longitude": ["longitude", "lon", "x"],
-        "depth": ["depth", "lev", "z"],
-        "time": ["time", "date"]
+def detect_coord_names(dataarray):
+    # Known patterns (case-insensitive)
+    candidates = {
+        "latitude": ["lat", "latitude"],
+        "longitude": ["lon", "longitude"],
+        "depth": ["depth", "depth1_1", "DEPTH", "z"],
+        "time": ["time", "TIME"]
     }
 
-    # Step 1: Try from ds.dims (works for Dataset and DataArray)
-    for dim in ds.dims:
-        lname = dim.lower()
-        for std_name, aliases in standard_names.items():
-            if std_name not in coord_map:
-                if any(alias in lname for alias in aliases):
-                    coord_map[std_name] = dim
+    # Match from dataarray coords
+    found = {}
+    coords_lower = {k.lower(): k for k in dataarray.coords}
 
-    # Step 2: Try from ds.coords
-    for coord in ds.coords:
-        lname = coord.lower()
-        for std_name, aliases in standard_names.items():
-            if std_name not in coord_map:
-                if any(alias in lname for alias in aliases):
-                    coord_map[std_name] = coord
+    for standard_name, options in candidates.items():
+        for name in options:
+            if name.lower() in coords_lower:
+                found[standard_name] = coords_lower[name.lower()]
+                break
+        else:
+            found[standard_name] = None  # Not found
 
-    # Step 3: Try from variable names (only if ds is a Dataset)
-    if isinstance(ds, xr.Dataset):
-        for var in ds.variables:
-            lname = var.lower()
-            for std_name, aliases in standard_names.items():
-                if std_name not in coord_map:
-                    if any(alias in lname for alias in aliases):
-                        coord_map[std_name] = var
-
-    return coord_map
-
+    return found
 
 def scale_dataarray(dataarray, op, val):
     if op == "*":
@@ -244,42 +175,182 @@ else:
 
 
 		        
-                # # Detect plot-compatible variables
-                # def is_plot_compatible(da):
-                #     dims = set(da.dims)
-                #     return any("lat" in d.lower() for d in dims) and any("lon" in d.lower() for d in dims)
-
-                # plot_vars = {v: ds[v] for v in ds.data_vars if is_plot_compatible(ds[v])}
-                # if not plot_vars:
-                #     st.error("❌ No valid spatial variables (lat/lon) found.")
-                #     st.stop()
-
-
-        		# # Detect plot-compatible variables
-          #       def is_plot_compatible(da):
-          #           dims = set(da.dims)
-          #           return any("lat" in d.lower() for d in dims) and any("lon" in d.lower() for d in dims)
-
-                # def is_plot_compatible(da):
-                #     coord_map = detect_coord_names(da.to_dataset())
-                #     lat = coord_map.get("latitude")
-                #     lon = coord_map.get("longitude")
-                #     return lat in da.dims and lon in da.dims
-
+                # Detect plot-compatible variables
                 def is_plot_compatible(da):
                     dims = set(da.dims)
-                    if len(dims) == 2:
-                        return (
-                            any("lat" in d.lower() for d in dims)
-                            and any("lon" in d.lower() for d in dims)
-                        )
-                    # Fallback to your current logic for 3D/4D
-                    coord_map = detect_coord_names(da.to_dataset())
-                    lat = coord_map.get("latitude")
-                    lon = coord_map.get("longitude")
-                    return lat in da.dims and lon in da.dims
+                    return any("lat" in d.lower() for d in dims) and any("lon" in d.lower() for d in dims)
 
+                plot_vars = {v: ds[v] for v in ds.data_vars if is_plot_compatible(ds[v])}
+                if not plot_vars:
+                    st.error("❌ No valid spatial variables (lat/lon) found.")
+                    st.stop()
 
+# #====+++++++ New excel handling block- END +++++++++++++===========#
+
+# st.subheader("🌊 OceanView: NetCDF + Excel Viewer")
+
+# # === File type selector ===
+# file_type = st.radio("Select file type", ["NetCDF (.nc)", "Excel (.xlsx)"], horizontal=True)
+
+# # === Mode selector ===
+# mode = st.radio("Select mode", ["Upload file (Web App)", "Use local file (Download Desktop App)"])
+
+# df = None
+# ds = None
+
+# # === Excel Handling ===
+# if file_type == "Excel (.xlsx)":
+#     if mode == "Use local file (Download Desktop App)":
+#         file_path = st.text_input("Enter full path to Excel file")
+#         if file_path:
+#             if os.path.exists(file_path):
+#                 try:
+#                     df = pd.read_excel(file_path)
+#                     st.success("✅ Excel file loaded from local path.")
+#                 except Exception as e:
+#                     st.error(f"❌ Failed to load Excel file: {e}")
+#             else:
+#                 st.error("❌ File does not exist.")
+#     else:
+#         st.markdown("#### 📂 Upload an Excel file")
+#         uploaded_file = st.file_uploader("Upload Excel file", type=["xlsx", "xls"], label_visibility="collapsed")
+#         if uploaded_file:
+#             try:
+#                 df = pd.read_excel(uploaded_file)
+#                 st.success("✅ Excel file uploaded and loaded.")
+#             except Exception as e:
+#                 st.error(f"❌ Failed to load Excel: {e}")
+
+#     # --- Plot Excel data ---
+#     if df is not None:
+#         #---------------------------------------- Station Contour (Excel) ----------------------------------------------------#
+
+#         st.markdown("### 📈 Contour Plot (Excel: Depth vs Station)")
+        
+#         import streamlit as st
+#         import pandas as pd
+#         import numpy as np
+#         import matplotlib.pyplot as plt
+#         import re
+#         from matplotlib.cm import get_cmap
+        
+#         st.subheader("📊 Section Plot (Depth vs Latitude) from Excel with NaN Handling")
+        
+#         # === STEP 0: User plot label inputs — move this ABOVE file uploader ===
+#         st.markdown("### 🖋️ Customize Plot Labels")
+
+#         plot_title = st.text_input("Plot Title", value="Section Plot (Depth vs Latitude)")
+#         xlabel = st.text_input("X-axis Label", value="Latitude (°N)")
+#         ylabel = st.text_input("Y-axis Label", value="Depth (m)")
+#         colorbar_label = st.text_input("Colorbar Label", value="Scalar Value")
+#         xtick_rotation = st.slider("X-Tick Label Rotation (°)", 0, 90, 45)
+            
+#         # # === STEP 1: File uploader ===
+#         # uploaded_file = st.file_uploader("📂 Upload Excel File", type=["xlsx", "xls"])
+        
+#         # # === STEP 2: Proceed only if file is uploaded ===
+#         # if uploaded_file:
+#         #     try:
+#         # === Load raw file (no header) ===
+#         raw_df = pd.read_excel(uploaded_file, header=None)
+
+#         # Detect header row
+#         data_start_idx = raw_df.applymap(lambda x: str(x).strip().lower() == 'depth').any(axis=1)
+#         header_row = data_start_idx.idxmax() if data_start_idx.any() else 0
+
+#         # Load cleaned DataFrame
+#         df = pd.read_excel(uploaded_file, header=header_row)
+#         df.replace(r'^\s*$', np.nan, regex=True, inplace=True)
+
+#         # Parse latitudes from column headers
+#         station_labels = df.columns[1:]
+#         latitudes = []
+#         for label in station_labels:
+#             match = re.search(r"([0-9.]+)", str(label))
+#             latitudes.append(float(match.group(1)) if match else np.nan)
+#         latitudes = np.array(latitudes)
+
+#         # Filter valid columns
+#         valid_indices = ~np.isnan(latitudes)
+#         valid_lats = latitudes[valid_indices]
+#         valid_cols = df.columns[1:][valid_indices]
+
+#         # Prepare depth and scalar matrix
+#         depths = pd.to_numeric(df.iloc[:, 0], errors='coerce')
+#         scalar_data = df[valid_cols].apply(pd.to_numeric, errors='coerce').T.values
+
+#         valid_depth_mask = ~np.isnan(depths)
+#         depths = depths[valid_depth_mask]
+#         scalar_data = scalar_data[:, valid_depth_mask]
+
+#         X, Y = np.meshgrid(valid_lats, depths)
+
+#         # === Plotting ===
+#         fig, ax = plt.subplots(figsize=(10, 6))
+#         cmap = plt.cm.viridis.copy()
+#         cmap.set_bad(color='white')  # Show NaNs as white
+
+#         masked_data = np.ma.masked_invalid(scalar_data.T)
+#         pcm = ax.pcolormesh(X, Y, masked_data, cmap=cmap, shading='auto')
+
+#         ax.invert_yaxis()
+#         ax.set_xlabel(xlabel)
+#         ax.set_ylabel(ylabel)
+#         ax.set_title(plot_title)
+#         plt.setp(ax.get_xticklabels(), rotation=xtick_rotation)
+
+#         cbar = fig.colorbar(pcm, ax=ax)
+#         cbar.set_label(colorbar_label)
+
+#         st.pyplot(fig)
+        
+           
+
+# # === NetCDF Handling ===
+# else:
+#     from tempfile import NamedTemporaryFile
+
+#     def load_netcdf_safe(file_obj):
+#         with NamedTemporaryFile(delete=False, suffix=".nc") as tmp:
+#             tmp.write(file_obj.read())
+#             tmp_path = tmp.name
+#         try:
+#             return xr.open_dataset(tmp_path, engine="netcdf4")
+#         except Exception as e:
+#             st.error(f"⚠️ NetCDF read error: {e}")
+#             return None
+
+#     if mode == "Use local file (Download Desktop App)":
+#         file_path = st.text_input("Enter full path to NetCDF file")
+#         if file_path:
+#             if os.path.exists(file_path):
+#                 try:
+#                     ds = xr.open_dataset(file_path)
+#                     st.success("✅ NetCDF loaded from local path.")
+#                 except Exception as e:
+#                     st.error(f"❌ Failed to open NetCDF: {e}")
+#             else:
+#                 st.error("❌ File does not exist.")
+#     else:
+#         st.markdown("#### 📂 Upload a NetCDF file")
+#         uploaded_file = st.file_uploader("Upload NetCDF", type=["nc"], label_visibility="collapsed")
+#         if uploaded_file:
+#             ds = load_netcdf_safe(uploaded_file)
+#             if ds is not None:
+#                 st.success("✅ NetCDF uploaded and loaded.")
+
+#     if ds is not None:
+#         st.write("### 📦 Dataset Summary")
+#         st.write(ds)
+#         # You can add your existing plotting or selection options here.
+        
+# #====+++++++ New excel handling block- END +++++++++++++===========#
+        
+		# Detect plot-compatible variables
+                def is_plot_compatible(da):
+                    dims = set(da.dims)
+                    return any("lat" in d.lower() for d in dims) and any("lon" in d.lower() for d in dims)
+            
                 plot_vars = {v: ds[v] for v in ds.data_vars if is_plot_compatible(ds[v])}
                 if not plot_vars:
                     st.error("❌ No valid spatial variables (lat/lon) found.")
@@ -305,7 +376,6 @@ else:
                     # ds_sel = ds[var]
             
                     ds_sel = ds[var]
-
                     if apply_scaling:
                         ds_sel = scale_dataarray(ds_sel, scale_op, scale_val)
             
@@ -315,24 +385,11 @@ else:
                         if d not in ds_sel.coords and d in ds.coords:
                             ds_sel = ds_sel.assign_coords({d: ds[d]})
                             
-                    # time_var = find_coord_from_dims(ds_sel, "time")
-                    # depth_var = find_coord_from_dims(ds_sel, "depth")
-                    # lat_var = find_coord_from_dims(ds_sel, "lat")
-                    # lon_var = find_coord_from_dims(ds_sel, "lon")
-
-                    coord_map = detect_coord_names(ds_sel.to_dataset())
-                    lat_var = coord_map.get("latitude")
-                    lon_var = coord_map.get("longitude")
-                    depth_var = coord_map.get("depth")
-                    time_var = coord_map.get("time")
-
-
-                    # If depth_var or time_var is missing, skip those input widgets
-                    if not depth_var:
-                        st.info("ℹ️ No depth dimension found in this dataset.")
-                    if not time_var:
-                        st.info("ℹ️ No time dimension found in this dataset.")
-                        
+                    time_var = find_coord_from_dims(ds_sel, "time")
+                    depth_var = find_coord_from_dims(ds_sel, "depth")
+                    lat_var = find_coord_from_dims(ds_sel, "lat")
+                    lon_var = find_coord_from_dims(ds_sel, "lon")
+            
                     if lat_var and ds[lat_var][0] > ds[lat_var][-1]:
                         ds = ds.sortby(lat_var)
             
@@ -455,9 +512,9 @@ else:
                         show_vertical_profile = st.checkbox("Vertical Profile")
                         show_interactive_vertical_profile =  st.checkbox("Vertical Interactive Profile ")
                         show_hovmoller = st.checkbox("Hovmöller Diagram")
-                        show_interactive_hovmoller = st.checkbox("Hovmöller Interactive Diagram")
                         station_plot = st.checkbox("Station Contour (Using excel/csv)")
-
+            
+                            
                     if show_spatial_map or show_vertical_section or show_time_animation or show_interactive_spatial_map:
                         with st.expander("🌍 Land/Sea Masking"):
                             mask_land = st.checkbox("Mask Land", value=False)
@@ -470,7 +527,7 @@ else:
                             st.session_state.pop(key, None)
                         st.session_state["cmap_choice"] = "viridis"
             
-                    if show_spatial_map or show_vertical_section or show_interactive_vertical_section or show_time_animation or show_interactive_spatial_map or show_hovmoller or show_interactive_hovmoller:
+                    if show_spatial_map or show_vertical_section or show_interactive_vertical_section or show_time_animation or show_interactive_spatial_map or show_hovmoller:
                         with st.expander("🎨 Colorbar & Colormap Settings"):
                             cols_colorbar = st.columns([2, 1])
                             with cols_colorbar[0]:
@@ -597,55 +654,34 @@ else:
                     data = ds[var]
                     data = data.sel({lat_var: slice(*lat_range), lon_var: slice(*lon_range)})
                                
-
-                    
+                        
                     #---------------------------------Normal Spatial Map View----------------------------------------------------------#
             
                     if show_spatial_map:
-                        
                         # -- Plot Mode Selection
-                        
                         plot_mode = st.radio("🧭 Select Plot Mode", [
                             "Single Time + Single Depth",
                             "Time Range Avg + Single Depth",
                             "Single Time + Depth Range Avg",
                             "Time Range Avg + Depth Range Avg"
                         ])
-
-                    
+            
+                        
                         # -- Depth Input
                         depth_vals = ds[depth_var].values if depth_var else None
                         if depth_var:
                             if "Depth Range Avg" in plot_mode:
                                 col1, col2 = st.columns(2)
                                 with col1:
-                                    dmin = st.number_input("Min Depth", float(depth_vals.min()), float(depth_vals.max()), value=float(depth_vals.min()), key="depth_min")
+                                    dmin = st.number_input("Min Depth", float(depth_vals.min()), float(depth_vals.max()), value=0.0, key="depth_min")
                                 with col2:
-                                    dmax = st.number_input("Max Depth", float(depth_vals.min()), float(depth_vals.max()), value=float(depth_vals.max()), key="depth_max")
+                                    dmax = st.number_input("Max Depth", float(depth_vals.min()), float(depth_vals.max()), value=200.0, key="depth_max")
                             else:
                                 selected_depth = st.number_input(
                                     "Depth (m)", float(depth_vals.min()), float(depth_vals.max()),
                                     value=float(depth_vals.min()), step=10.0, key="depth_single"
                                 )
-
-
-                        # if depth_var and "Depth" in plot_mode:
-                        #     depth_vals = ds[depth_var].values
-                        #     if "Depth Range Avg" in plot_mode:
-                        #         col1, col2 = st.columns(2)
-                        #         with col1:
-                        #             dmin = st.number_input("Min Depth", float(depth_vals.min()), float(depth_vals.max()), value=float(depth_vals.min()), key="depth_min")
-                        #         with col2:
-                        #             dmax = st.number_input("Max Depth", float(depth_vals.min()), float(depth_vals.max()), value=float(depth_vals.max()), key="depth_max")
-                        #     else:
-                        #         selected_depth = st.number_input(
-                        #             "Depth (m)", float(depth_vals.min()), float(depth_vals.max()),
-                        #             value=float(depth_vals.min()), step=10.0, key="depth_single"
-                        #         )
-
-
-                        
-                            
+                    
                         # -- Time Input
                         time_vals, time_labels = try_decode_time(ds, time_var)
                         if "Time Range Avg" in plot_mode:
@@ -657,26 +693,14 @@ else:
                             time_sel = st.selectbox("🕒 Select Time", time_labels, key="map_single_time")
                             time_index = list(time_labels).index(time_sel)
                             raw_time_value = time_vals[time_index]
-
-                        # if time_var and "Time" in plot_mode:
-                        #     time_vals, time_labels = try_decode_time(ds, time_var)
-                        #     if "Time Range Avg" in plot_mode:
-                        #         t1 = st.date_input("🕒 Start Date", value=pd.to_datetime(time_labels[0]), key="map_start")
-                        #         t2 = st.date_input("🕒 End Date", value=pd.to_datetime(time_labels[-1]), key="map_end")
-                        #         t1 = np.datetime64(t1)
-                        #         t2 = np.datetime64(t2)
-                        #     else:
-                        #         time_sel = st.selectbox("🕒 Select Time", time_labels, key="map_single_time")
-                        #         time_index = list(time_labels).index(time_sel)
-                        #         raw_time_value = time_vals[time_index]
-
+            
                         # ------------------ Compute time_str and depth_str ------------------ #
                         depth_str = ""
                         time_str = ""
                         
                         # Depth string
                         if "Depth Range Avg" in plot_mode:
-                            depth_str = f"{dmin:.0f} to {dmax:.0f} m"
+                            depth_str = f"{dmin:.0f}–{dmax:.0f} m"
                         else:
                             depth_str = f"{selected_depth:.0f} m"
                         
@@ -694,7 +718,7 @@ else:
                         if "Depth Range Avg" in plot_mode:
                             data = data.sel({depth_var: slice(dmin, dmax)})
                             data = data.mean(dim=depth_var, skipna=True)
-                            depth_str = f"{dmin:.0f} to {dmax:.0f} m"
+                            depth_str = f"{dmin:.0f}–{dmax:.0f} m"
                         else:
                             data = data.sel({depth_var: selected_depth}, method="nearest")
                             depth_str = f"{selected_depth:.0f} m"
@@ -706,9 +730,7 @@ else:
                         else:
                             data = data.sel({time_var: raw_time_value})
                             time_str = pd.to_datetime(raw_time_value).strftime('%Y-%m-%d')
-
-                        
-                            
+                    
                         # ------------------ Plotting ------------------ #
                         st.subheader("🗺️ Map View")
                         plt.rcParams['font.family'] = st.session_state.get("font_family", "DejaVu Sans")                
@@ -723,8 +745,7 @@ else:
                         if set_clim:
                             plot_kwargs["vmin"] = vmin
                             plot_kwargs["vmax"] = vmax
-
-                        
+                    
                         im = data.squeeze().plot.pcolormesh(**plot_kwargs)
                         ax.coastlines()
                     
@@ -744,9 +765,7 @@ else:
                         if mask_sea:
                             ax.add_feature(cfeature.OCEAN, facecolor=mask_color, zorder=3)
                     
-                        # ax.set_title(f"{plot_title}\n {time_str} | Depth: {depth_str}", fontsize=14)
-                        ax.set_title(f"{plot_title}\n{time_str}" + (f" | Depth: {depth_str}" if depth_var else ""), fontsize=14)
-
+                        ax.set_title(f"{plot_title}\n {time_str} | Depth: {depth_str}", fontsize=14)
                     
                         # Replace colorbar
                         if hasattr(im, 'colorbar') and im.colorbar:
@@ -775,125 +794,6 @@ else:
                                 file_name=f"ocean_plot.{save_format}",
                                 mime=f"image/{'jpeg' if save_format == 'jpg' else save_format}"
                             )
-
-                    # if show_spatial_map:
-                    #     # --- Dynamic Plot Modes Based on Dimensions ---
-                    #     if not time_var and not depth_var:
-                    #         plot_options = ["Lat-Lon Map (2D Only)"]
-                    #     elif time_var and not depth_var:
-                    #         plot_options = ["Single Time", "Time Range Avg"]
-                    #     elif depth_var and not time_var:
-                    #         plot_options = ["Single Depth", "Depth Range Avg"]
-                    #     else:
-                    #         plot_options = [
-                    #             "Single Time + Single Depth",
-                    #             "Time Range Avg + Single Depth",
-                    #             "Single Time + Depth Range Avg",
-                    #             "Time Range Avg + Depth Range Avg"
-                    #         ]
-                    #     plot_mode = st.radio("🧭 Select Plot Mode", plot_options)
-                    
-                    #     # --- Depth Input ---
-                    #     if depth_var and "Depth" in plot_mode:
-                    #         depth_vals = ds[depth_var].values
-                    #         if "Depth Range Avg" in plot_mode:
-                    #             col1, col2 = st.columns(2)
-                    #             with col1:
-                    #                 dmin = st.number_input("Min Depth", float(depth_vals.min()), float(depth_vals.max()), value=float(depth_vals.min()), key="depth_min")
-                    #             with col2:
-                    #                 dmax = st.number_input("Max Depth", float(depth_vals.min()), float(depth_vals.max()), value=float(depth_vals.max()), key="depth_max")
-                    #         else:
-                    #             selected_depth = st.number_input("Depth (m)", float(depth_vals.min()), float(depth_vals.max()), value=float(depth_vals.min()), step=10.0, key="depth_single")
-                    
-                    #     # --- Time Input ---
-                    #     if time_var and "Time" in plot_mode:
-                    #         time_vals, time_labels = try_decode_time(ds, time_var)
-                    #         if "Time Range Avg" in plot_mode:
-                    #             t1 = st.date_input("🕒 Start Date", value=pd.to_datetime(time_labels[0]), key="map_start")
-                    #             t2 = st.date_input("🕒 End Date", value=pd.to_datetime(time_labels[-1]), key="map_end")
-                    #             t1 = np.datetime64(t1)
-                    #             t2 = np.datetime64(t2)
-                    #         else:
-                    #             time_sel = st.selectbox("🕒 Select Time", time_labels, key="map_single_time")
-                    #             time_index = list(time_labels).index(time_sel)
-                    #             raw_time_value = time_vals[time_index]
-                    
-                    #     # --- Construct Labels ---
-                    #     depth_str = "No Depth"
-                    #     time_str = "No Time"
-                    #     if depth_var and "Depth" in plot_mode:
-                    #         depth_str = f"{dmin:.0f} to {dmax:.0f} m" if "Range" in plot_mode else f"{selected_depth:.0f} m"
-                    #     if time_var and "Time" in plot_mode:
-                    #         time_str = f"{pd.to_datetime(t1).strftime('%Y-%m-%d')} to {pd.to_datetime(t2).strftime('%Y-%m-%d')}" if "Range" in plot_mode else pd.to_datetime(raw_time_value).strftime('%Y-%m-%d')
-                    
-                    #     # --- Data Extraction ---
-                    #     data = ds[var].sel({lat_var: slice(*lat_range), lon_var: slice(*lon_range)})
-                    #     if depth_var and "Depth" in plot_mode:
-                    #         data = data.sel({depth_var: slice(dmin, dmax)}).mean(dim=depth_var, skipna=True) if "Range" in plot_mode else data.sel({depth_var: selected_depth}, method="nearest")
-                    #     if time_var and "Time" in plot_mode:
-                    #         data = data.sel({time_var: slice(t1, t2)}).mean(dim=time_var, skipna=True) if "Range" in plot_mode else data.sel({time_var: raw_time_value})
-                    
-                    #     # --- Plotting ---
-                    #     st.subheader("🗺️ Map View")
-                    #     plt.rcParams['font.family'] = st.session_state.get("font_family", "DejaVu Sans")
-                    #     fig, ax = plt.subplots(figsize=(10, 6), subplot_kw={"projection": ccrs.PlateCarree()})
-                    #     plot_kwargs = {
-                    #         "ax": ax,
-                    #         "transform": ccrs.PlateCarree(),
-                    #         "cmap": cmap_choice,
-                    #         "add_colorbar": True
-                    #     }
-                    #     if set_clim:
-                    #         plot_kwargs["vmin"] = vmin
-                    #         plot_kwargs["vmax"] = vmax
-                    
-                    #     im = data.squeeze().plot.pcolormesh(**plot_kwargs)
-                    #     ax.coastlines()
-                    
-                    #     gl = ax.gridlines(draw_labels=True, linewidth=0.5, color='gray', alpha=0.5, linestyle='--')
-                    #     gl.top_labels = gl.right_labels = False
-                    #     gl.xlabel_style = gl.ylabel_style = {'size': 12}
-                    
-                    #     if st.session_state.get("manual_ticks", False):
-                    #         xtick_step = st.session_state.get("xtick_step")
-                    #         ytick_step = st.session_state.get("ytick_step")
-                    #         if xtick_step and ytick_step:
-                    #             gl.xlocator = mticker.FixedLocator(np.arange(lon_range[0], lon_range[1] + xtick_step, xtick_step))
-                    #             gl.ylocator = mticker.FixedLocator(np.arange(lat_range[0], lat_range[1] + ytick_step, ytick_step))
-                    
-                    #     if mask_land:
-                    #         ax.add_feature(cfeature.LAND, facecolor=mask_color, zorder=3)
-                    #     if mask_sea:
-                    #         ax.add_feature(cfeature.OCEAN, facecolor=mask_color, zorder=3)
-                    
-                    #     ax.set_title(f"{plot_title}\n {time_str} | Depth: {depth_str}", fontsize=14)
-                    
-                    #     if hasattr(im, 'colorbar') and im.colorbar:
-                    #         im.colorbar.remove()
-                    #     cbar = fig.colorbar(im, ax=ax, orientation='vertical', shrink=0.6, pad=0.05)
-                    #     cbar.set_label(cbar_label, fontsize=12)
-                    
-                    #     fig_w, fig_h = fig.get_size_inches()
-                    #     x_offset = -0.05 * (10 / fig_w)
-                    #     y_offset = -0.1 * (6 / fig_h)
-                    #     ax.text(0.5, y_offset, xlabel, transform=ax.transAxes, ha='center', va='top', fontsize=12)
-                    #     ax.text(x_offset - 0.1, 0.5, ylabel, transform=ax.transAxes, ha='right', va='center', rotation='vertical', fontsize=12)
-                    
-                    #     st.pyplot(fig)
-                    
-                    #     # Download
-                    #     if save_btn:
-                    #         buf = io.BytesIO()
-                    #         fig.savefig(buf, format=save_format, dpi=dpi_value, bbox_inches="tight")
-                    #         st.success(f"✅ Plot saved as {save_format.upper()} ({dpi_value} DPI)")
-                    #         st.download_button(
-                    #             label=f"📥 Download {save_format.upper()} file",
-                    #             data=buf.getvalue(),
-                    #             file_name=f"ocean_plot.{save_format}",
-                    #             mime=f"image/{'jpeg' if save_format == 'jpg' else save_format}"
-                    #         )
-                    
-                            
                     #---------------------------------Intercative Spatial Map View----------------------------------------------------------#
             
                     import plotly.graph_objects as go
@@ -908,33 +808,18 @@ else:
                     
                         # -- Depth Input
                         depth_vals = ds[depth_var].values if depth_var else None
-                        # if depth_var:
-                        #     if "Depth Range Avg" in plot_mode:
-                        #         col1, col2 = st.columns(2)
-                        #         with col1:
-                        #             dmin = st.number_input("Min Depth", float(depth_vals.min()), float(depth_vals.max()), value=float(depth_vals.min()), key="imap_depth_min")
-                        #         with col2:
-                        #             dmax = st.number_input("Max Depth", float(depth_vals.min()), float(depth_vals.max()), value=float(depth_vals.max()), key="imap_depth_max")
-                        #     else:
-                        #         selected_depth = st.number_input(
-                        #             "Depth (m)", float(depth_vals.min()), float(depth_vals.max()),
-                        #             value=float(depth_vals.min()), step=10.0, key="imap_depth_single"
-                        #         )
-
-                        if depth_var and "Depth" in plot_mode:
-                            depth_vals = ds[depth_var].values
+                        if depth_var:
                             if "Depth Range Avg" in plot_mode:
                                 col1, col2 = st.columns(2)
                                 with col1:
-                                    dmin = st.number_input("Min Depth", float(depth_vals.min()), float(depth_vals.max()), value=float(depth_vals.min()), key="imap_depth_min")
+                                    dmin = st.number_input("Min Depth", float(depth_vals.min()), float(depth_vals.max()), value=0.0, key="imap_depth_min")
                                 with col2:
-                                    dmax = st.number_input("Max Depth", float(depth_vals.min()), float(depth_vals.max()), value=float(depth_vals.max()), key="imap_depth_max")
+                                    dmax = st.number_input("Max Depth", float(depth_vals.min()), float(depth_vals.max()), value=200.0, key="imap_depth_max")
                             else:
                                 selected_depth = st.number_input(
                                     "Depth (m)", float(depth_vals.min()), float(depth_vals.max()),
                                     value=float(depth_vals.min()), step=10.0, key="imap_depth_single"
                                 )
-
                     
                         # -- Time Input
                         time_vals, time_labels = try_decode_time(ds, time_var)
@@ -947,8 +832,7 @@ else:
                             time_sel = st.selectbox("🕒 Select Time", time_labels, key="imap_single_time")
                             time_index = list(time_labels).index(time_sel)
                             raw_time_value = time_vals[time_index]
-
-                                
+                    
                         # ------------------ Data Extraction ------------------ #
                         data = ds[var]
                         data = data.sel({lat_var: slice(*lat_range), lon_var: slice(*lon_range)})
@@ -956,7 +840,7 @@ else:
                         if "Depth Range Avg" in plot_mode:
                             data = data.sel({depth_var: slice(dmin, dmax)})
                             data = data.mean(dim=depth_var, skipna=True)
-                            depth_str = f"{dmin:.0f} to {dmax:.0f} m"
+                            depth_str = f"{dmin:.0f}–{dmax:.0f} m"
                         else:
                             data = data.sel({depth_var: selected_depth}, method="nearest")
                             depth_str = f"{selected_depth:.0f} m"
@@ -975,30 +859,9 @@ else:
                         def figsize_to_plotly(width_in, height_in, dpi=100):
                             return int(width_in * dpi), int(height_in * dpi)
                     
-                        # def standardize_coords(dataarray):
-                        #     coord_map = {'latitude': None, 'longitude': None, 'time': None, 'depth': None}
-                        #     # coord_candidates = {k.lower(): k for k in dataarray.coords}
-                        #     coord_candidates = {k.lower(): k for k in list(dataarray.coords) + list(dataarray.dims)}
-                        
                         def standardize_coords(dataarray):
                             coord_map = {'latitude': None, 'longitude': None, 'time': None, 'depth': None}
-                            all_candidates = list(dataarray.coords) + list(dataarray.dims)
-                            for standard, options in {
-                                'latitude': ['lat', 'latitude'],
-                                'longitude': ['lon', 'longitude'],
-                                'time': ['time'],
-                                'depth': ['depth', 'lev', 'z']
-                            }.items():
-                                for opt in options:
-                                    for candidate in all_candidates:
-                                        if opt in candidate.lower():
-                                            coord_map[standard] = candidate
-                                            break
-                                    if coord_map[standard]:
-                                        break
-                            return coord_map
-                        
-
+                            coord_candidates = {k.lower(): k for k in dataarray.coords}
                             for standard, options in {
                                 'latitude': ['lat', 'latitude'],
                                 'longitude': ['lon', 'longitude'],
@@ -1013,15 +876,11 @@ else:
                     
                         data_2d = data.squeeze()
                         coord_map = standardize_coords(data_2d)
-
-                        if coord_map['latitude'] is None or coord_map['longitude'] is None:
-                            st.error("❌ Could not detect latitude or longitude dimensions for Plotly heatmap.")
-                            st.stop()
-                            
+                    
                         lat = data_2d[coord_map['latitude']].values
                         lon = data_2d[coord_map['longitude']].values
                         z = data_2d.values
-
+                    
                         fig = go.Figure(
                             data=go.Heatmap(
                                 z=z,
@@ -1079,52 +938,26 @@ else:
                                     "Constant Depth",
                                     "Depth-averaged (Range)"
                                 ])
-
-                                # -- Depth Input
-                                depth_vals = ds[depth_var].values if depth_var else None
-                                # if depth_var:
-                                #     if "Depth Range Avg" in plot_mode:
-                                #         col1, col2 = st.columns(2)
-                                #         with col1:
-                                #             dmin = st.number_input("Min Depth", float(depth_vals.min()), float(depth_vals.max()), value=float(depth_vals.min()), key="depth_min")
-                                #         with col2:
-                                #             dmax = st.number_input("Max Depth", float(depth_vals.min()), float(depth_vals.max()), value=float(depth_vals.max()), key="depth_max")
-                                #     else:
-                                #         selected_depth = st.number_input(
-                                #             "Depth (m)", float(depth_vals.min()), float(depth_vals.max()),
-                                #             value=float(depth_vals.min()), step=10.0, key="depth_single"
-                                #         )
                     
                                 if plot_mode == "Constant Depth":
-                                    selected_depth = st.number_input("Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=float(ds[depth_var].min()))
+                                    selected_depth = st.number_input("Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=10.0)
                                 else:
-                                    dmin = st.number_input("Min Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=float(depth_vals.min()))
-                                    dmax = st.number_input("Max Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=float(depth_vals.max()))
+                                    dmin = st.number_input("Min Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=0.0)
+                                    dmax = st.number_input("Max Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=200.0)
                     
                                 # Select and slice data
                                 da_anim = ds[var]
                                 da_anim = da_anim.sel({lat_var: slice(*lat_range), lon_var: slice(*lon_range)})
-                                # da_anim = da_anim.sel({time_var: slice(t1, t2)})
-                                # Fix for animation slicing
-                                # Fix: Include last time step exactly
-                                t1 = pd.to_datetime(t1)
-                                t2 = pd.to_datetime(t2)
-                                time_vals_all = pd.to_datetime(da_anim[time_var].values)
-                                valid_time_mask = (time_vals_all >= t1) & (time_vals_all <= t2)
-                                
-                                # Apply valid mask
-                                da_anim = da_anim.isel({time_var: np.where(valid_time_mask)[0]})
-                                time_labels = time_vals_all[valid_time_mask]
-
+                                da_anim = da_anim.sel({time_var: slice(t1, t2)})
+                                time_labels = pd.to_datetime(da_anim[time_var].values)
+            
                     
                                 if plot_mode == "Constant Depth":
                                     da_anim = da_anim.sel({depth_var: selected_depth}, method="nearest")
                                 else:
                                     da_anim = da_anim.sel({depth_var: slice(dmin, dmax)})
                                     da_anim = da_anim.mean(dim=depth_var, skipna=True)
-
-                                fps_choice = st.slider("🎚️ Animation Speed (Frames per Second)", min_value=1, max_value=10, value=2)
-
+                    
                                 fig_anim, ax_anim = plt.subplots(figsize=(8, 5), subplot_kw={"projection": ccrs.PlateCarree()})
                                 first_frame = da_anim.isel({time_var: 0})
                     
@@ -1194,7 +1027,7 @@ else:
                                     if plot_mode == "Constant Depth":
                                         title += f" | Depth: {selected_depth} m"
                                     else:
-                                        title += f" | Depth Avg: {dmin} to {dmax} m"
+                                        title += f" | Depth Avg: {dmin}–{dmax} m"
                     
                                     ax_anim.set_title(title, fontsize=12)
                                     return [im]
@@ -1207,11 +1040,8 @@ else:
                     
                                 with tempfile.NamedTemporaryFile(delete=False, suffix=".gif") as tmpfile:
                                     temp_gif_path = tmpfile.name
-
-
-                                ani.save(temp_gif_path, writer="pillow", fps=fps_choice, savefig_kwargs={'bbox_inches': 'tight'})
-
-                                # ani.save(temp_gif_path, writer="pillow", fps=2, savefig_kwargs={'bbox_inches': 'tight'})
+                    
+                                ani.save(temp_gif_path, writer="pillow", fps=2, savefig_kwargs={'bbox_inches': 'tight'})
                     
                                 with open(temp_gif_path, "rb") as f:
                                     gif_bytes = f.read()
@@ -1259,22 +1089,7 @@ else:
                             t2 = st.date_input("End Date", value=pd.to_datetime(time_labels[-1]), key="vsec_end")
                             t1 = np.datetime64(t1)
                             t2 = np.datetime64(t2)
-
-                        # if time_var:
-                        #     time_mode = st.radio("🕒 Time Mode", ["Single Time", "Time Range Average"], key="vsec_time_mode")
-                        #     time_vals, time_labels = try_decode_time(ds, time_var)
-                        
-                        #     if time_mode == "Single Time":
-                        #         time_sel = st.selectbox("Select Time", time_labels, key="vsec_single_time")
-                        #         time_index = list(time_labels).index(time_sel)
-                        #         raw_time_value = time_vals[time_index]
-                        #     else:
-                        #         t1 = st.date_input("Start Date", value=pd.to_datetime(time_labels[0]), key="vsec_start")
-                        #         t2 = st.date_input("End Date", value=pd.to_datetime(time_labels[-1]), key="vsec_end")
-                        #         t1 = np.datetime64(t1)
-                        #         t2 = np.datetime64(t2)
-                        
-
+            
                         try:
                             section = ds[var]
             
@@ -1284,26 +1099,18 @@ else:
                                 else:
                                     section = section.sel({time_var: slice(t1, t2)})
                                     section = section.mean(dim=time_var, skipna=True)
-
-                            # if time_var:
-                            #     if time_mode == "Single Time":
-                            #         time_str = pd.to_datetime(raw_time_value).strftime('%Y-%m-%d')
-                            #     else:
-                            #         time_str = f"{pd.to_datetime(t1).strftime('%Y-%m-%d')} to {pd.to_datetime(t2).strftime('%Y-%m-%d')}"
-                            # else:
-                            #     time_str = "No Time"
-
+            
             
                             # if time_var and raw_time_value is not None:
                             #     section = section.sel({time_var: raw_time_value}, method="nearest")
             
                             # --- Depth Range Selection ---
-                            depth_min = st.number_input("Min Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=float(ds[depth_var].min()), step=10.0)
-                            depth_max = st.number_input("Max Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=float(ds[depth_var].max()), step=10.0)
+                            depth_min = st.number_input("Min Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=0.0, step=10.0)
+                            depth_max = st.number_input("Max Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=500.0, step=10.0)
                             
                             if section_mode == "Z vs Longitude (at fixed Latitude)":
-                                fixed_lat = st.number_input("Fixed Latitude (°N)", float(lat_vals.min()), float(lat_vals.max()), float(lat_vals.min()))
-                                lon_min, lon_max = st.slider("Longitude Range (°E)", float(lon_vals.min()), float(lon_vals.max()), (float(lon_vals.min()), float(lon_vals.max())))
+                                fixed_lat = st.number_input("Fixed Latitude (°N)", float(lat_vals.min()), float(lat_vals.max()), value=15.0)
+                                lon_min, lon_max = st.slider("Longitude Range (°E)", float(lon_vals.min()), float(lon_vals.max()), (50.0, 80.0))
                                 section = section.sel({lat_var: fixed_lat}, method="nearest")
                                 section = section.sel({lon_var: slice(lon_min, lon_max)})
                                 section = section.transpose(depth_var, lon_var)
@@ -1313,8 +1120,8 @@ else:
                                 section_label = f"{fixed_lat:.2f}°N"
                     
                             elif section_mode == "Z vs Latitude (at fixed Longitude)":
-                                fixed_lon = st.number_input("Fixed Longitude (°E)", float(lon_vals.min()), float(lon_vals.max()), value=float(lon_vals.min()))
-                                lat_min, lat_max = st.slider("Latitude Range (°N)", float(lat_vals.min()), float(lat_vals.max()), (float(lat_vals.min()), float(lat_vals.max())))
+                                fixed_lon = st.number_input("Fixed Longitude (°E)", float(lon_vals.min()), float(lon_vals.max()), value=60.0)
+                                lat_min, lat_max = st.slider("Latitude Range (°N)", float(lat_vals.min()), float(lat_vals.max()), (0.0, 25.0))
                                 section = section.sel({lon_var: fixed_lon}, method="nearest")
                                 section = section.sel({lat_var: slice(lat_min, lat_max)})
                                 section = section.transpose(depth_var, lat_var)  # ✅ FIX HERE
@@ -1325,9 +1132,9 @@ else:
             
                     
                             elif section_mode == "Z vs Longitude (averaged over Latitude band)":
-                                lat_min = st.number_input("Min Latitude", float(lat_vals.min()), float(lat_vals.max()), value=float(lat_vals.min()))
-                                lat_max = st.number_input("Max Latitude", float(lat_vals.min()), float(lat_vals.max()), value=float(lat_vals.max()))
-                                lon_min, lon_max = st.slider("Longitude Range (°E)", float(lon_vals.min()), float(lon_vals.max()), (float(lon_vals.min()), float(lon_vals.max())))
+                                lat_min = st.number_input("Min Latitude", float(lat_vals.min()), float(lat_vals.max()), value=10.0)
+                                lat_max = st.number_input("Max Latitude", float(lat_vals.min()), float(lat_vals.max()), value=20.0)
+                                lon_min, lon_max = st.slider("Longitude Range (°E)", float(lon_vals.min()), float(lon_vals.max()), (50.0, 80.0))
                                 section = section.sel({lat_var: slice(lat_min, lat_max), lon_var: slice(lon_min, lon_max)})
                                 section = section.mean(dim=lat_var, skipna=True)
                                 section = section.transpose(depth_var, lon_var)
@@ -1337,9 +1144,9 @@ else:
                                 section_label = f"Lat Avg ({lat_min}-{lat_max}°N)"
                     
                             elif section_mode == "Z vs Latitude (averaged over Longitude band)":
-                                lon_min = st.number_input("Min Longitude", float(lon_vals.min()), float(lon_vals.max()), value=float(lon_vals.min()))
-                                lon_max = st.number_input("Max Longitude", float(lon_vals.min()), float(lon_vals.max()), value=float(lon_vals.max()))
-                                lat_min, lat_max = st.slider("Latitude Range (°N)", float(lat_vals.min()), float(lat_vals.max()), (float(lat_vals.min()), float(lat_vals.max())))
+                                lon_min = st.number_input("Min Longitude", float(lon_vals.min()), float(lon_vals.max()), value=50.0)
+                                lon_max = st.number_input("Max Longitude", float(lon_vals.min()), float(lon_vals.max()), value=70.0)
+                                lat_min, lat_max = st.slider("Latitude Range (°N)", float(lat_vals.min()), float(lat_vals.max()), (0.0, 25.0))
                                 section = section.sel({lat_var: slice(lat_min, lat_max), lon_var: slice(lon_min, lon_max)})
                                 section = section.mean(dim=lon_var, skipna=True)
                                 section = section.transpose(depth_var, lat_var)  # ✅ FIX HERE
@@ -1418,22 +1225,7 @@ else:
                             t2 = st.date_input("End Date", value=pd.to_datetime(time_labels[-1]), key="vsec_end_inter")
                             t1 = np.datetime64(t1)
                             t2 = np.datetime64(t2)
-
-                        # if time_var:
-                        #     time_mode = st.radio("🕒 Time Mode (Interactive)", ["Single Time", "Time Range Average"], key="vsec_time_mode_inter")
-                        #     time_vals, time_labels = try_decode_time(ds, time_var)
-                        
-                        #     if time_mode == "Single Time":
-                        #         time_sel = st.selectbox("Select Time", time_labels, key="vsec_single_time_inter")
-                        #         time_index = list(time_labels).index(time_sel)
-                        #         raw_time_value = time_vals[time_index]
-                        #     else:
-                        #         t1 = st.date_input("Start Date", value=pd.to_datetime(time_labels[0]), key="vsec_start_inter")
-                        #         t2 = st.date_input("End Date", value=pd.to_datetime(time_labels[-1]), key="vsec_end_inter")
-                        #         t1 = np.datetime64(t1)
-                        #         t2 = np.datetime64(t2)
-                        
-
+                    
                         try:
                             section = ds[var]
                     
@@ -1443,23 +1235,14 @@ else:
                                 else:
                                     section = section.sel({time_var: slice(t1, t2)})
                                     section = section.mean(dim=time_var, skipna=True)
-
-                            # if time_var:
-                            #     if time_mode == "Single Time":
-                            #         time_str = pd.to_datetime(raw_time_value).strftime('%Y-%m-%d')
-                            #     else:
-                            #         time_str = f"{pd.to_datetime(t1).strftime('%Y-%m-%d')} to {pd.to_datetime(t2).strftime('%Y-%m-%d')}"
-                            # else:
-                            #     time_str = "No Time"
-                            
-                                
+                    
                             # --- Depth Range Selection ---
-                            depth_min = st.number_input("Min Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=float(ds[depth_var].min()), step=10.0, key="dmin_int")
-                            depth_max = st.number_input("Max Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=float(ds[depth_var].max()), step=10.0, key="dmax_int")
+                            depth_min = st.number_input("Min Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=0.0, step=10.0, key="dmin_int")
+                            depth_max = st.number_input("Max Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=500.0, step=10.0, key="dmax_int")
                     
                             if section_mode == "Z vs Longitude (at fixed Latitude)":
-                                fixed_lat = st.number_input("Fixed Latitude (°N)", float(lat_vals.min()), float(lat_vals.max()), value=float(lat_vals.min()), key="fixed_lat_int")
-                                lon_min, lon_max = st.slider("Longitude Range (°E)", float(lon_vals.min()), float(lon_vals.max()), (float(lon_vals.min()), float(lon_vals.max())), key="lon_range_int")
+                                fixed_lat = st.number_input("Fixed Latitude (°N)", float(lat_vals.min()), float(lat_vals.max()), value=15.0, key="fixed_lat_int")
+                                lon_min, lon_max = st.slider("Longitude Range (°E)", float(lon_vals.min()), float(lon_vals.max()), (50.0, 80.0), key="lon_range_int")
                                 section = section.sel({lat_var: fixed_lat}, method="nearest")
                                 section = section.sel({lon_var: slice(lon_min, lon_max)})
                                 section = section.transpose(depth_var, lon_var)
@@ -1469,8 +1252,8 @@ else:
                                 section_label = f"{fixed_lat:.2f}°N"
                     
                             elif section_mode == "Z vs Latitude (at fixed Longitude)":
-                                fixed_lon = st.number_input("Fixed Longitude (°E)", float(lon_vals.min()), float(lon_vals.max()), value=float(lon_vals.min()), key="fixed_lon_int")
-                                lat_min, lat_max = st.slider("Latitude Range (°N)", float(lat_vals.min()), float(lat_vals.max()), (float(lat_vals.min()), float(lat_vals.max())), key="lat_range_int")
+                                fixed_lon = st.number_input("Fixed Longitude (°E)", float(lon_vals.min()), float(lon_vals.max()), value=60.0, key="fixed_lon_int")
+                                lat_min, lat_max = st.slider("Latitude Range (°N)", float(lat_vals.min()), float(lat_vals.max()), (0.0, 25.0), key="lat_range_int")
                                 section = section.sel({lon_var: fixed_lon}, method="nearest")
                                 section = section.sel({lat_var: slice(lat_min, lat_max)})
                                 section = section.transpose(depth_var, lat_var)
@@ -1480,9 +1263,9 @@ else:
                                 section_label = f"{fixed_lon:.2f}°E"
                     
                             elif section_mode == "Z vs Longitude (averaged over Latitude band)":
-                                lat_min = st.number_input("Min Latitude", float(lat_vals.min()), float(lat_vals.max()), value=float(lat_vals.min()), key="latmin_int")
-                                lat_max = st.number_input("Max Latitude", float(lat_vals.min()), float(lat_vals.max()), value=float(lat_vals.max()), key="latmax_int")
-                                lon_min, lon_max = st.slider("Longitude Range (°E)", float(lon_vals.min()), float(lon_vals.max()), (float(lon_vals.min()), float(lon_vals.max())), key="lon_avg_int")
+                                lat_min = st.number_input("Min Latitude", float(lat_vals.min()), float(lat_vals.max()), value=10.0, key="latmin_int")
+                                lat_max = st.number_input("Max Latitude", float(lat_vals.min()), float(lat_vals.max()), value=20.0, key="latmax_int")
+                                lon_min, lon_max = st.slider("Longitude Range (°E)", float(lon_vals.min()), float(lon_vals.max()), (50.0, 80.0), key="lon_avg_int")
                                 section = section.sel({lat_var: slice(lat_min, lat_max), lon_var: slice(lon_min, lon_max)})
                                 section = section.mean(dim=lat_var, skipna=True)
                                 section = section.transpose(depth_var, lon_var)
@@ -1492,9 +1275,9 @@ else:
                                 section_label = f"Lat Avg ({lat_min}-{lat_max}°N)"
                     
                             elif section_mode == "Z vs Latitude (averaged over Longitude band)":
-                                lon_min = st.number_input("Min Longitude", float(lon_vals.min()), float(lon_vals.max()), value=float(lon_vals.min()), key="lonmin_int")
-                                lon_max = st.number_input("Max Longitude", float(lon_vals.min()), float(lon_vals.max()), value=float(lon_vals.max()), key="lonmax_int")
-                                lat_min, lat_max = st.slider("Latitude Range (°N)", float(lat_vals.min()), float(lat_vals.max()), (float(lat_vals.min()), float(lat_vals.max())), key="lat_avg_int")
+                                lon_min = st.number_input("Min Longitude", float(lon_vals.min()), float(lon_vals.max()), value=50.0, key="lonmin_int")
+                                lon_max = st.number_input("Max Longitude", float(lon_vals.min()), float(lon_vals.max()), value=70.0, key="lonmax_int")
+                                lat_min, lat_max = st.slider("Latitude Range (°N)", float(lat_vals.min()), float(lat_vals.max()), (0.0, 25.0), key="lat_avg_int")
                                 section = section.sel({lat_var: slice(lat_min, lat_max), lon_var: slice(lon_min, lon_max)})
                                 section = section.mean(dim=lon_var, skipna=True)
                                 section = section.transpose(depth_var, lat_var)
@@ -1570,23 +1353,23 @@ else:
                     
                         # === UI Logic ===
                         if "Point" in ts_mode:
-                            lat_pt = st.number_input("Latitude (°N)", float(ds[lat_var].min()), float(ds[lat_var].max()), value=float(ds[lat_var].min()))
-                            lon_pt = st.number_input("Longitude (°E)", float(ds[lon_var].min()), float(ds[lon_var].max()), value=float(ds[lon_var].max()))
+                            lat_pt = st.number_input("Latitude (°N)", float(ds[lat_var].min()), float(ds[lat_var].max()), value=15.0)
+                            lon_pt = st.number_input("Longitude (°E)", float(ds[lon_var].min()), float(ds[lon_var].max()), value=60.0)
                     
                         if "Grid" in ts_mode:
                             col1, col2 = st.columns(2)
                             with col1:
-                                lat_min = st.number_input("Min Latitude", float(ds[lat_var].min()), float(ds[lat_var].max()), value=float(ds[lat_var].min()))
-                                lat_max = st.number_input("Max Latitude", float(ds[lat_var].min()), float(ds[lat_var].max()), value=float(ds[lat_var].max()))
+                                lat_min = st.number_input("Min Latitude", float(ds[lat_var].min()), float(ds[lat_var].max()), value=10.0)
+                                lat_max = st.number_input("Max Latitude", float(ds[lat_var].min()), float(ds[lat_var].max()), value=20.0)
                             with col2:
-                                lon_min = st.number_input("Min Longitude", float(ds[lon_var].min()), float(ds[lon_var].max()), value=float(ds[lon_var].min()))
-                                lon_max = st.number_input("Max Longitude", float(ds[lon_var].min()), float(ds[lon_var].max()), value=float(ds[lon_var].max()))
+                                lon_min = st.number_input("Min Longitude", float(ds[lon_var].min()), float(ds[lon_var].max()), value=50.0)
+                                lon_max = st.number_input("Max Longitude", float(ds[lon_var].min()), float(ds[lon_var].max()), value=70.0)
                     
                         if "Single Depth" in ts_mode:
                             depth_val = st.number_input("Select Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=float(ds[depth_var].min()))
                         elif "Depth Range" in ts_mode:
-                            depth_min = st.number_input("Min Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=float(ds[depth_var].min()))
-                            depth_max = st.number_input("Max Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=float(ds[depth_var].max()))
+                            depth_min = st.number_input("Min Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=0.0)
+                            depth_max = st.number_input("Max Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=200.0)
                     
                         # === Subsetting and Averaging ===
                         try:
@@ -1655,28 +1438,28 @@ else:
                             st.error("❌ Could not detect necessary coordinate names (lat/lon/depth).")
                         else:
                             try:
-                                depth_min = st.number_input("Min Depth (m)", float(ds[depth_key].min()), float(ds[depth_key].max()), value=float(ds[depth_key].min()))
-                                depth_max = st.number_input("Max Depth (m)", float(ds[depth_key].min()), float(ds[depth_key].max()), value=float(ds[depth_key].max()))
+                                depth_min = st.number_input("Min Depth (m)", float(ds[depth_key].min()), float(ds[depth_key].max()), value=0.0)
+                                depth_max = st.number_input("Max Depth (m)", float(ds[depth_key].min()), float(ds[depth_key].max()), value=500.0)
                     
                                 if profile_mode == "Single Point (lat, lon)":
-                                    input_lat = st.number_input("Latitude (°N)", float(ds[lat_key].min()), float(ds[lat_key].max()), value=float(ds[lat_key].min()))
-                                    input_lon = st.number_input("Longitude (°E)", float(ds[lon_key].min()), float(ds[lon_key].max()), value=float(ds[lon_key].max()))
+                                    input_lat = st.number_input("Latitude (°N)", float(ds[lat_key].min()), float(ds[lat_key].max()), value=15.0)
+                                    input_lon = st.number_input("Longitude (°E)", float(ds[lon_key].min()), float(ds[lon_key].max()), value=60.0)
                                     profile = ds[var].sel({lat_key: input_lat, lon_key: input_lon}, method="nearest")
                                     label = f"({input_lat:.2f}°N, {input_lon:.2f}°E)"
                     
                                 elif profile_mode == "Lat-Lon Box Averaged":
-                                    lat_min = st.number_input("Min Latitude", float(ds[lat_key].min()), float(ds[lat_key].max()), value=float(ds[lat_key].min()))
-                                    lat_max = st.number_input("Max Latitude", float(ds[lat_key].min()), float(ds[lat_key].max()), value=float(ds[lat_key].max()))
-                                    lon_min = st.number_input("Min Longitude", float(ds[lon_key].min()), float(ds[lon_key].max()), value=float(ds[lon_key].min()))
-                                    lon_max = st.number_input("Max Longitude", float(ds[lon_key].min()), float(ds[lon_key].max()), value=float(ds[lon_key].max()))
+                                    lat_min = st.number_input("Min Latitude", float(ds[lat_key].min()), float(ds[lat_key].max()), value=10.0)
+                                    lat_max = st.number_input("Max Latitude", float(ds[lat_key].min()), float(ds[lat_key].max()), value=20.0)
+                                    lon_min = st.number_input("Min Longitude", float(ds[lon_key].min()), float(ds[lon_key].max()), value=50.0)
+                                    lon_max = st.number_input("Max Longitude", float(ds[lon_key].min()), float(ds[lon_key].max()), value=70.0)
                                     profile = ds[var].sel({lat_key: slice(lat_min, lat_max), lon_key: slice(lon_min, lon_max)})
                                     profile = profile.mean(dim=[lat_key, lon_key], skipna=True)
                                     label = f"Grid Avg ({lat_min}-{lat_max}°N, {lon_min}-{lon_max}°E)"
                     
                                 elif profile_mode == "Latitudinal Transect (fixed lon)":
                                     lon_fixed = st.number_input("Fixed Longitude (°E)", float(ds[lon_key].min()), float(ds[lon_key].max()), value=60.0)
-                                    lat_min = st.number_input("Min Latitude", float(ds[lat_key].min()), float(ds[lat_key].max()), value=float(ds[lat_key].min()))
-                                    lat_max = st.number_input("Max Latitude", float(ds[lat_key].min()), float(ds[lat_key].max()), value=float(ds[lat_key].max()))
+                                    lat_min = st.number_input("Min Latitude", float(ds[lat_key].min()), float(ds[lat_key].max()), value=10.0)
+                                    lat_max = st.number_input("Max Latitude", float(ds[lat_key].min()), float(ds[lat_key].max()), value=20.0)
                                     profile = ds[var].sel({lon_key: lon_fixed}, method="nearest")
                                     profile = profile.sel({lat_key: slice(lat_min, lat_max)})
                                     profile = profile.mean(dim=lat_key, skipna=True)
@@ -1684,8 +1467,8 @@ else:
                     
                                 elif profile_mode == "Longitudinal Transect (fixed lat)":
                                     lat_fixed = st.number_input("Fixed Latitude (°N)", float(ds[lat_key].min()), float(ds[lat_key].max()), value=15.0)
-                                    lon_min = st.number_input("Min Longitude", float(ds[lon_key].min()), float(ds[lon_key].max()), value=float(ds[lon_key].min()))
-                                    lon_max = st.number_input("Max Longitude", float(ds[lon_key].min()), float(ds[lon_key].max()), value=float(ds[lon_key].max()))
+                                    lon_min = st.number_input("Min Longitude", float(ds[lon_key].min()), float(ds[lon_key].max()), value=50.0)
+                                    lon_max = st.number_input("Max Longitude", float(ds[lon_key].min()), float(ds[lon_key].max()), value=70.0)
                                     profile = ds[var].sel({lat_key: lat_fixed}, method="nearest")
                                     profile = profile.sel({lon_key: slice(lon_min, lon_max)})
                                     profile = profile.mean(dim=lon_key, skipna=True)
@@ -1797,28 +1580,28 @@ else:
                             st.error("❌ Could not detect necessary coordinate names (lat/lon/depth).")
                         else:
                             try:
-                                depth_min = st.number_input("Min Depth (m)", float(ds[depth_key].min()), float(ds[depth_key].max()), value=float(ds[depth_key].min()))
-                                depth_max = st.number_input("Max Depth (m)", float(ds[depth_key].min()), float(ds[depth_key].max()), value=float(ds[depth_key].max()))
+                                depth_min = st.number_input("Min Depth (m)", float(ds[depth_key].min()), float(ds[depth_key].max()), value=0.0)
+                                depth_max = st.number_input("Max Depth (m)", float(ds[depth_key].min()), float(ds[depth_key].max()), value=500.0)
                     
                                 if profile_mode == "Single Point (lat, lon)":
-                                    input_lat = st.number_input("Latitude (°N)", float(ds[lat_key].min()), float(ds[lat_key].max()), value=float(ds[lat_key].min()))
-                                    input_lon = st.number_input("Longitude (°E)", float(ds[lon_key].min()), float(ds[lon_key].max()), value=float(ds[lon_key].max()))
+                                    input_lat = st.number_input("Latitude (°N)", float(ds[lat_key].min()), float(ds[lat_key].max()), value=15.0)
+                                    input_lon = st.number_input("Longitude (°E)", float(ds[lon_key].min()), float(ds[lon_key].max()), value=60.0)
                                     profile = ds[var].sel({lat_key: input_lat, lon_key: input_lon}, method="nearest")
                                     label = f"({input_lat:.2f}°N, {input_lon:.2f}°E)"
                     
                                 elif profile_mode == "Lat-Lon Box Averaged":
-                                    lat_min = st.number_input("Min Latitude", float(ds[lat_key].min()), float(ds[lat_key].max()), value=float(ds[lat_key].min()))
-                                    lat_max = st.number_input("Max Latitude", float(ds[lat_key].min()), float(ds[lat_key].max()), value=float(ds[lat_key].max()))
-                                    lon_min = st.number_input("Min Longitude", float(ds[lon_key].min()), float(ds[lon_key].max()), value=float(ds[lon_key].min()))
-                                    lon_max = st.number_input("Max Longitude", float(ds[lon_key].min()), float(ds[lon_key].max()), value=float(ds[lon_key].max()))
+                                    lat_min = st.number_input("Min Latitude", float(ds[lat_key].min()), float(ds[lat_key].max()), value=10.0)
+                                    lat_max = st.number_input("Max Latitude", float(ds[lat_key].min()), float(ds[lat_key].max()), value=20.0)
+                                    lon_min = st.number_input("Min Longitude", float(ds[lon_key].min()), float(ds[lon_key].max()), value=50.0)
+                                    lon_max = st.number_input("Max Longitude", float(ds[lon_key].min()), float(ds[lon_key].max()), value=70.0)
                                     profile = ds[var].sel({lat_key: slice(lat_min, lat_max), lon_key: slice(lon_min, lon_max)})
                                     profile = profile.mean(dim=[lat_key, lon_key], skipna=True)
                                     label = f"Grid Avg ({lat_min}-{lat_max}°N, {lon_min}-{lon_max}°E)"
                     
                                 elif profile_mode == "Latitudinal Transect (fixed lon)":
                                     lon_fixed = st.number_input("Fixed Longitude (°E)", float(ds[lon_key].min()), float(ds[lon_key].max()), value=60.0)
-                                    lat_min = st.number_input("Min Latitude", float(ds[lat_key].min()), float(ds[lat_key].max()), value=float(ds[lat_key].min()))
-                                    lat_max = st.number_input("Max Latitude", float(ds[lat_key].min()), float(ds[lat_key].max()), value=float(ds[lat_key].max()))
+                                    lat_min = st.number_input("Min Latitude", float(ds[lat_key].min()), float(ds[lat_key].max()), value=10.0)
+                                    lat_max = st.number_input("Max Latitude", float(ds[lat_key].min()), float(ds[lat_key].max()), value=20.0)
                                     profile = ds[var].sel({lon_key: lon_fixed}, method="nearest")
                                     profile = profile.sel({lat_key: slice(lat_min, lat_max)})
                                     profile = profile.mean(dim=lat_key, skipna=True)
@@ -1826,8 +1609,8 @@ else:
                     
                                 elif profile_mode == "Longitudinal Transect (fixed lat)":
                                     lat_fixed = st.number_input("Fixed Latitude (°N)", float(ds[lat_key].min()), float(ds[lat_key].max()), value=15.0)
-                                    lon_min = st.number_input("Min Longitude", float(ds[lon_key].min()), float(ds[lon_key].max()), value=float(ds[lon_key].min()))
-                                    lon_max = st.number_input("Max Longitude", float(ds[lon_key].min()), float(ds[lon_key].max()), value=float(ds[lon_key].max()))
+                                    lon_min = st.number_input("Min Longitude", float(ds[lon_key].min()), float(ds[lon_key].max()), value=50.0)
+                                    lon_max = st.number_input("Max Longitude", float(ds[lon_key].min()), float(ds[lon_key].max()), value=70.0)
                                     profile = ds[var].sel({lat_key: lat_fixed}, method="nearest")
                                     profile = profile.sel({lon_key: slice(lon_min, lon_max)})
                                     profile = profile.mean(dim=lon_key, skipna=True)
@@ -1939,20 +1722,17 @@ else:
                     
                         try:
                             if hov_mode.startswith("Longitude"):
-                                fixed_lat = st.number_input("Latitude (°N)", float(ds[lat_var].min()), float(ds[lat_var].max()), value=float(ds[lat_var].min()))
+                                fixed_lat = st.number_input("Latitude (°N)", float(ds[lat_var].min()), float(ds[lat_var].max()), value=15.0)
                                 lon_min = st.number_input("Min Longitude", float(ds[lon_var].min()), float(ds[lon_var].max()), value=float(ds[lon_var].min()))
                                 lon_max = st.number_input("Max Longitude", float(ds[lon_var].min()), float(ds[lon_var].max()), value=float(ds[lon_var].max()))
                     
                                 if "Depth-avg" in hov_mode:
-                                    d1 = st.number_input("Min Depth", float(ds[depth_var].min()), float(ds[depth_var].max()), value=float(ds[depth_var].min()))
-                                    d2 = st.number_input("Max Depth", float(ds[depth_var].min()), float(ds[depth_var].max()), value=float(ds[depth_var].max()))
-                                    # da_sel = da.sel({lon_var: slice(lon_min, lon_max), depth_var: slice(d1, d2)})
-                                    da_sel = da.sel({lon_var: slice(lon_min, lon_max)})
-                                    da_sel = da_sel.where((da_sel[depth_var] >= d1) & (da_sel[depth_var] <= d2), drop=True)
-
+                                    d1 = st.number_input("Min Depth", float(ds[depth_var].min()), float(ds[depth_var].max()), value=0.0)
+                                    d2 = st.number_input("Max Depth", float(ds[depth_var].min()), float(ds[depth_var].max()), value=200.0)
+                                    da_sel = da.sel({lon_var: slice(lon_min, lon_max), depth_var: slice(d1, d2)})
                                     da_sel = da_sel.sel({lat_var: fixed_lat}, method="nearest").mean(dim=depth_var, skipna=True)
                                 else:
-                                    fixed_depth = st.number_input("Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=float(ds[depth_var].min()), key="hov_depth")
+                                    fixed_depth = st.number_input("Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=10.0, key="hov_depth")
             
                                     da_sel = da.sel({lon_var: slice(lon_min, lon_max), depth_var: fixed_depth})
                                     da_sel = da_sel.sel({lat_var: fixed_lat}, method="nearest")
@@ -1964,20 +1744,17 @@ else:
                     
             
                             elif hov_mode.startswith("Latitude"):
-                                fixed_lon = st.number_input("Longitude (°E)", float(ds[lon_var].min()), float(ds[lon_var].max()), value=float(ds[lon_var].min()), key="hov_fixed_lon")
+                                fixed_lon = st.number_input("Longitude (°E)", float(ds[lon_var].min()), float(ds[lon_var].max()), value=60.0, key="hov_fixed_lon")
                                 lat_min = st.number_input("Min Latitude", float(ds[lat_var].min()), float(ds[lat_var].max()), value=float(ds[lat_var].min()))
                                 lat_max = st.number_input("Max Latitude", float(ds[lat_var].min()), float(ds[lat_var].max()), value=float(ds[lat_var].max()))
                             
                                 if "Depth-avg" in hov_mode:
-                                    d1 = st.number_input("Min Depth", float(ds[depth_var].min()), float(ds[depth_var].max()), value=float(ds[depth_var].min()), key="hov_d1_lat")
-                                    d2 = st.number_input("Max Depth", float(ds[depth_var].min()), float(ds[depth_var].max()), value=float(ds[depth_var].max()), key="hov_d2_lat")
-                                    # da_sel = da.sel({lat_var: slice(lat_min, lat_max), depth_var: slice(d1, d2)})
-                                    da_sel = da.sel({lat_var: slice(lat_min, lat_max)})
-                                    da_sel = da_sel.where((da_sel[depth_var] >= d1) & (da_sel[depth_var] <= d2), drop=True)
-
+                                    d1 = st.number_input("Min Depth", float(ds[depth_var].min()), float(ds[depth_var].max()), value=0.0, key="hov_d1_lat")
+                                    d2 = st.number_input("Max Depth", float(ds[depth_var].min()), float(ds[depth_var].max()), value=200.0, key="hov_d2_lat")
+                                    da_sel = da.sel({lat_var: slice(lat_min, lat_max), depth_var: slice(d1, d2)})
                                     da_sel = da_sel.sel({lon_var: fixed_lon}, method="nearest").mean(dim=depth_var, skipna=True)
                                 else:
-                                    fixed_depth = st.number_input("Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=float(ds[depth_var].min()), key="hov_depth_lat")
+                                    fixed_depth = st.number_input("Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=10.0, key="hov_depth_lat")
                                     da_sel = da.sel({lat_var: slice(lat_min, lat_max), depth_var: fixed_depth})
                                     da_sel = da_sel.sel({lon_var: fixed_lon}, method="nearest")
                             
@@ -1989,8 +1766,8 @@ else:
             
                             
                             elif hov_mode == "Depth vs Time • Fixed Lat & Lon":
-                                lat_pt = st.number_input("Latitude (°N)", float(ds[lat_var].min()), float(ds[lat_var].max()), value=float(ds[lat_var].min()))
-                                lon_pt = st.number_input("Longitude (°E)", float(ds[lon_var].min()), float(ds[lon_var].max()), value=float(ds[lon_var].max()))
+                                lat_pt = st.number_input("Latitude (°N)", float(ds[lat_var].min()), float(ds[lat_var].max()), value=15.0)
+                                lon_pt = st.number_input("Longitude (°E)", float(ds[lon_var].min()), float(ds[lon_var].max()), value=60.0)
                                 da_sel = da.sel({lat_var: lat_pt, lon_var: lon_pt}, method="nearest")
                                 da_sel = da_sel.sel({time_var: slice(t1, t2)})
                                 hov_x = da_sel[depth_var]
@@ -2000,11 +1777,11 @@ else:
                             elif hov_mode == "Depth vs Time • Grid Avg (Lat-Lon box)":
                                 col1, col2 = st.columns(2)
                                 with col1:
-                                    lat_min = st.number_input("Min Latitude", float(ds[lat_var].min()), float(ds[lat_var].max()), value=float(ds[lat_var].min()))
-                                    lat_max = st.number_input("Max Latitude", float(ds[lat_var].min()), float(ds[lat_var].max()), value=float(ds[lat_var].max()))
+                                    lat_min = st.number_input("Min Latitude", float(ds[lat_var].min()), float(ds[lat_var].max()), value=10.0)
+                                    lat_max = st.number_input("Max Latitude", float(ds[lat_var].min()), float(ds[lat_var].max()), value=20.0)
                                 with col2:
-                                    lon_min = st.number_input("Min Longitude", float(ds[lon_var].min()), float(ds[lon_var].max()), value=float(ds[lon_var].min()))
-                                    lon_max = st.number_input("Max Longitude", float(ds[lon_var].min()), float(ds[lon_var].max()), value=float(ds[lon_var].max()))
+                                    lon_min = st.number_input("Min Longitude", float(ds[lon_var].min()), float(ds[lon_var].max()), value=50.0)
+                                    lon_max = st.number_input("Max Longitude", float(ds[lon_var].min()), float(ds[lon_var].max()), value=70.0)
                                 da_sel = da.sel({lat_var: slice(lat_min, lat_max), lon_var: slice(lon_min, lon_max)})
                                 da_sel = da_sel.mean(dim=[lat_var, lon_var], skipna=True)
                                 da_sel = da_sel.sel({time_var: slice(t1, t2)})
@@ -2062,128 +1839,7 @@ else:
                         except Exception as e:
                             st.error(f"❌ Failed to plot Hovmöller diagram: {e}")
     
-                    #---------------------------------------- Interactive Hovmoller ----------------------------------------------------#
-                    if show_interactive_hovmoller:
-                        st.markdown("### 📊 Interactive Hovmöller Diagram")
-                    
-                        hov_mode = st.selectbox("📌 Select Hovmöller Mode", [
-                            "Longitude vs Time • Fixed Lat & Depth",
-                            "Longitude vs Time • Fixed Lat & Depth-avg",
-                            "Latitude vs Time • Fixed Lon & Depth",
-                            "Latitude vs Time • Fixed Lon & Depth-avg",
-                            "Depth vs Time • Fixed Lat & Lon",
-                            "Depth vs Time • Grid Avg (Lat-Lon box)"
-                        ], key="hov_mode_inter")
-                    
-                        da = ds[var]
-                        coord_map = detect_coord_names(ds)
-                        lat_var, lon_var, depth_var, time_var = coord_map['latitude'], coord_map['longitude'], coord_map['depth'], coord_map['time']
-                    
-                        # Decode time
-                        time_vals, time_labels = try_decode_time(ds, time_var)
-                        da.coords[time_var] = time_labels
-                    
-                        # Time range
-                        t1 = st.date_input("🕒 Start Date", value=pd.to_datetime(time_labels[0]), key="hov_int_start")
-                        t2 = st.date_input("🕒 End Date", value=pd.to_datetime(time_labels[-1]), key="hov_int_end")
-                        t1 = np.datetime64(t1)
-                        t2 = np.datetime64(t2)
-                    
-                        try:
-                            if hov_mode.startswith("Longitude"):
-                                fixed_lat = st.number_input("Latitude (°N)", float(ds[lat_var].min()), float(ds[lat_var].max()), value=float(ds[lat_var].min()))
-                                lon_min = st.number_input("Min Longitude", float(ds[lon_var].min()), float(ds[lon_var].max()), value=float(ds[lon_var].min()))
-                                lon_max = st.number_input("Max Longitude", float(ds[lon_var].min()), float(ds[lon_var].max()), value=float(ds[lon_var].max()))
-                    
-                                if "Depth-avg" in hov_mode:
-                                    d1 = st.number_input("Min Depth", float(ds[depth_var].min()), float(ds[depth_var].max()), value=float(ds[depth_var].min()))
-                                    d2 = st.number_input("Max Depth", float(ds[depth_var].min()), float(ds[depth_var].max()), value=float(ds[depth_var].max()))
-                                    da_sel = da.sel({lon_var: slice(lon_min, lon_max)})
-                                    da_sel = da_sel.where((da_sel[depth_var] >= d1) & (da_sel[depth_var] <= d2), drop=True)
-                                    da_sel = da_sel.sel({lat_var: fixed_lat}, method="nearest").mean(dim=depth_var, skipna=True)
-                                else:
-                                    fixed_depth = st.number_input("Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=float(ds[depth_var].min()), key="hov_int_depth")
-                                    da_sel = da.sel({lon_var: slice(lon_min, lon_max)})
-                                    da_sel = da_sel.sel({depth_var: fixed_depth}, method="nearest")
-                                    da_sel = da_sel.sel({lat_var: fixed_lat}, method="nearest")
-                    
-                                da_sel = da_sel.sel({time_var: slice(t1, t2)})
-                                hov_x = da_sel[lon_var]
-                                hov_y = da_sel[time_var]
-                                hov_z = da_sel.transpose(time_var, lon_var)
-                    
-                            elif hov_mode.startswith("Latitude"):
-                                fixed_lon = st.number_input("Longitude (°E)", float(ds[lon_var].min()), float(ds[lon_var].max()), value=float(ds[lon_var].min()))
-                                lat_min = st.number_input("Min Latitude", float(ds[lat_var].min()), float(ds[lat_var].max()), value=float(ds[lat_var].min()))
-                                lat_max = st.number_input("Max Latitude", float(ds[lat_var].min()), float(ds[lat_var].max()), value=float(ds[lat_var].max()))
-                    
-                                if "Depth-avg" in hov_mode:
-                                    d1 = st.number_input("Min Depth", float(ds[depth_var].min()), float(ds[depth_var].max()), value=float(ds[depth_var].min()))
-                                    d2 = st.number_input("Max Depth", float(ds[depth_var].min()), float(ds[depth_var].max()), value=float(ds[depth_var].max()))
-                                    da_sel = da.sel({lat_var: slice(lat_min, lat_max)})
-                                    da_sel = da_sel.where((da_sel[depth_var] >= d1) & (da_sel[depth_var] <= d2), drop=True)
-                                    da_sel = da_sel.sel({lon_var: fixed_lon}, method="nearest").mean(dim=depth_var, skipna=True)
-                                else:
-                                    fixed_depth = st.number_input("Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=float(ds[depth_var].min()), key="hov_int_depth_lat")
-                                    da_sel = da.sel({lat_var: slice(lat_min, lat_max)})
-                                    da_sel = da_sel.sel({depth_var: fixed_depth}, method="nearest")
-                                    da_sel = da_sel.sel({lon_var: fixed_lon}, method="nearest")
-                    
-                                da_sel = da_sel.sel({time_var: slice(t1, t2)})
-                                hov_x = da_sel[lat_var]
-                                hov_y = da_sel[time_var]
-                                hov_z = da_sel.transpose(time_var, lat_var)
-                    
-                            elif hov_mode == "Depth vs Time • Fixed Lat & Lon":
-                                lat_pt = st.number_input("Latitude (°N)", float(ds[lat_var].min()), float(ds[lat_var].max()), value=float(ds[lat_var].min()))
-                                lon_pt = st.number_input("Longitude (°E)", float(ds[lon_var].min()), float(ds[lon_var].max()), value=float(ds[lon_var].min()))
-                                da_sel = da.sel({lat_var: lat_pt}, method="nearest")
-                                da_sel = da_sel.sel({lon_var: lon_pt}, method="nearest")
-                                da_sel = da_sel.sel({time_var: slice(t1, t2)})
-                                hov_x = da_sel[depth_var]
-                                hov_y = da_sel[time_var]
-                                hov_z = da_sel.transpose(time_var, depth_var)
-                    
-                            elif hov_mode == "Depth vs Time • Grid Avg (Lat-Lon box)":
-                                lat_min = st.number_input("Min Latitude", float(ds[lat_var].min()), float(ds[lat_var].max()), value=float(ds[lat_var].min()))
-                                lat_max = st.number_input("Max Latitude", float(ds[lat_var].min()), float(ds[lat_var].max()), value=float(ds[lat_var].max()))
-                                lon_min = st.number_input("Min Longitude", float(ds[lon_var].min()), float(ds[lon_var].max()), value=float(ds[lon_var].min()))
-                                lon_max = st.number_input("Max Longitude", float(ds[lon_var].min()), float(ds[lon_var].max()), value=float(ds[lon_var].max()))
-                                da_sel = da.sel({lat_var: slice(lat_min, lat_max), lon_var: slice(lon_min, lon_max)})
-                                da_sel = da_sel.mean(dim=[lat_var, lon_var], skipna=True)
-                                da_sel = da_sel.sel({time_var: slice(t1, t2)})
-                                hov_x = da_sel[depth_var]
-                                hov_y = da_sel[time_var]
-                                hov_z = da_sel.transpose(time_var, depth_var)
-                    
-                            import plotly.graph_objects as go
-                            fig = go.Figure(data=go.Heatmap(
-                                z=hov_z.values,
-                                x=hov_x.values,
-                                y=pd.to_datetime(hov_y.values),
-                                colorscale=cmap_choice,
-                                zmin=vmin if set_clim else None,
-                                zmax=vmax if set_clim else None,
-                                colorbar=dict(title=cbar_label),
-                                hovertemplate=f"{hov_x.name}: %{{x}}<br>Time: %{{y}}<br>{var}: %{{z:.2f}}<extra></extra>"
-                            ))
-                    
-                            fig.update_layout(
-                                title=f"{var} Hovmöller Diagram<br>{hov_mode}",
-                                xaxis_title=hov_x.name,
-                                yaxis_title="Time",
-                                yaxis_autorange='reversed' if 'Depth' in hov_mode else True,
-                                height=500,
-                                width=900,
-                                margin=dict(l=60, r=40, t=80, b=60)
-                            )
-                    
-                            st.plotly_chart(fig, use_container_width=True)
-                    
-                        except Exception as e:
-                            st.error(f"❌ Failed to plot interactive Hovmöller: {e}")
-
-
+    
             
         except Exception as e:
             st.error(f"⚠️ Failed to subset or plot data: {e}")
