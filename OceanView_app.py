@@ -458,18 +458,30 @@ else:
                         station_plot = st.checkbox("Station Contour (Using excel/csv)")
             
 
+                        # === Apply logic to enable or disable them ===
+                        show_spatial_map = user_show_spatial_map
+                        show_interactive_spatial_map = user_show_interactive_spatial_map
+                        show_time_animation = user_show_time_animation if time_var else False
+                        show_vertical_section = user_show_vertical_section if depth_var else False
+                        show_interactive_vertical_section = user_show_interactive_vertical_section if depth_var else False
+                        show_timeseries_plot = user_show_timeseries_plot if time_var else False
+                        show_vertical_profile = user_show_vertical_profile if depth_var else False
+                        show_interactive_vertical_profile = user_show_interactive_vertical_profile if depth_var else False
+                        show_hovmoller = user_show_hovmoller if time_var else False
+                        show_interactive_hovmoller = user_show_interactive_hovmoller if time_var else False
+
                     # === Disable unsupported plots based on missing dimensions ===
-                    if not time_var:
-                        show_time_animation = False
-                        show_timeseries_plot = False
-                        show_hovmoller = False
-                        show_interactive_hovmoller = False
+                    # if not time_var:
+                    #     show_time_animation = False
+                    #     show_timeseries_plot = False
+                    #     show_hovmoller = False
+                    #     show_interactive_hovmoller = False
                     
-                    if not depth_var:
-                        show_vertical_section = False
-                        show_interactive_vertical_section = False
-                        show_vertical_profile = False
-                        show_interactive_vertical_profile = False
+                    # if not depth_var:
+                    #     show_vertical_section = False
+                    #     show_interactive_vertical_section = False
+                    #     show_vertical_profile = False
+                    #     show_interactive_vertical_profile = False
 
                     if show_spatial_map or show_vertical_section or show_time_animation or show_interactive_spatial_map:
                         with st.expander("🌍 Land/Sea Masking"):
