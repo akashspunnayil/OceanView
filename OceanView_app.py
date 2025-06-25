@@ -434,6 +434,7 @@ else:
                         show_vertical_profile = st.checkbox("Vertical Profile")
                         show_interactive_vertical_profile =  st.checkbox("Vertical Interactive Profile ")
                         show_hovmoller = st.checkbox("Hovmöller Diagram")
+                        show_interactive_hovmoller = st.checkbox("Hovmöller Interactive Diagram")
                         station_plot = st.checkbox("Station Contour (Using excel/csv)")
             
                             
