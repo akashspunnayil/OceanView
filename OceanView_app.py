@@ -120,30 +120,40 @@ def try_decode_time(ds, time_var):
 
 def detect_coord_names(ds):
     coord_map = {}
-    for name in ds.dims:
-        lname = name.lower()
-        if "lat" in lname or "y" in lname:
-            coord_map["latitude"] = name
-        elif "lon" in lname or "x" in lname:
-            coord_map["longitude"] = name
-        elif "lev" in lname or "depth" in lname or "z" in lname:
-            coord_map["depth"] = name
-        elif "time" in lname:
-            coord_map["time"] = name
 
-    # If any missing, try from variables
+    # Step 1: Try exact match from coordinate attributes
+    standard_names = {
+        "latitude": ["latitude", "lat", "y"],
+        "longitude": ["longitude", "lon", "x"],
+        "depth": ["depth", "lev", "z"],
+        "time": ["time", "date"]
+    }
+
+    for dim in ds.dims:
+        lname = dim.lower()
+        for std_name, aliases in standard_names.items():
+            if any(alias in lname for alias in aliases):
+                if std_name not in coord_map:
+                    coord_map[std_name] = dim
+
+    # Step 2: Fallback to coordinate variables if missing
+    for var in ds.coords:
+        lname = var.lower()
+        for std_name, aliases in standard_names.items():
+            if std_name not in coord_map:
+                if any(alias in lname for alias in aliases):
+                    coord_map[std_name] = var
+
+    # Step 3: Final fallback to variables
     for var in ds.variables:
         lname = var.lower()
-        if "lat" in lname and "latitude" not in coord_map:
-            coord_map["latitude"] = var
-        elif "lon" in lname and "longitude" not in coord_map:
-            coord_map["longitude"] = var
-        elif ("lev" in lname or "depth" in lname) and "depth" not in coord_map:
-            coord_map["depth"] = var
-        elif "time" in lname and "time" not in coord_map:
-            coord_map["time"] = var
+        for std_name, aliases in standard_names.items():
+            if std_name not in coord_map:
+                if any(alias in lname for alias in aliases):
+                    coord_map[std_name] = var
 
     return coord_map
+
 
 def scale_dataarray(dataarray, op, val):
     if op == "*":
@@ -206,168 +216,8 @@ else:
                     st.error("❌ No valid spatial variables (lat/lon) found.")
                     st.stop()
 
-# #====+++++++ New excel handling block- END +++++++++++++===========#
 
-# st.subheader("🌊 OceanView: NetCDF + Excel Viewer")
-
-# # === File type selector ===
-# file_type = st.radio("Select file type", ["NetCDF (.nc)", "Excel (.xlsx)"], horizontal=True)
-
-# # === Mode selector ===
-# mode = st.radio("Select mode", ["Upload file (Web App)", "Use local file (Download Desktop App)"])
-
-# df = None
-# ds = None
-
-# # === Excel Handling ===
-# if file_type == "Excel (.xlsx)":
-#     if mode == "Use local file (Download Desktop App)":
-#         file_path = st.text_input("Enter full path to Excel file")
-#         if file_path:
-#             if os.path.exists(file_path):
-#                 try:
-#                     df = pd.read_excel(file_path)
-#                     st.success("✅ Excel file loaded from local path.")
-#                 except Exception as e:
-#                     st.error(f"❌ Failed to load Excel file: {e}")
-#             else:
-#                 st.error("❌ File does not exist.")
-#     else:
-#         st.markdown("#### 📂 Upload an Excel file")
-#         uploaded_file = st.file_uploader("Upload Excel file", type=["xlsx", "xls"], label_visibility="collapsed")
-#         if uploaded_file:
-#             try:
-#                 df = pd.read_excel(uploaded_file)
-#                 st.success("✅ Excel file uploaded and loaded.")
-#             except Exception as e:
-#                 st.error(f"❌ Failed to load Excel: {e}")
-
-#     # --- Plot Excel data ---
-#     if df is not None:
-#         #---------------------------------------- Station Contour (Excel) ----------------------------------------------------#
-
-#         st.markdown("### 📈 Contour Plot (Excel: Depth vs Station)")
-        
-#         import streamlit as st
-#         import pandas as pd
-#         import numpy as np
-#         import matplotlib.pyplot as plt
-#         import re
-#         from matplotlib.cm import get_cmap
-        
-#         st.subheader("📊 Section Plot (Depth vs Latitude) from Excel with NaN Handling")
-        
-#         # === STEP 0: User plot label inputs — move this ABOVE file uploader ===
-#         st.markdown("### 🖋️ Customize Plot Labels")
-
-#         plot_title = st.text_input("Plot Title", value="Section Plot (Depth vs Latitude)")
-#         xlabel = st.text_input("X-axis Label", value="Latitude (°N)")
-#         ylabel = st.text_input("Y-axis Label", value="Depth (m)")
-#         colorbar_label = st.text_input("Colorbar Label", value="Scalar Value")
-#         xtick_rotation = st.slider("X-Tick Label Rotation (°)", 0, 90, 45)
-            
-#         # # === STEP 1: File uploader ===
-#         # uploaded_file = st.file_uploader("📂 Upload Excel File", type=["xlsx", "xls"])
-        
-#         # # === STEP 2: Proceed only if file is uploaded ===
-#         # if uploaded_file:
-#         #     try:
-#         # === Load raw file (no header) ===
-#         raw_df = pd.read_excel(uploaded_file, header=None)
-
-#         # Detect header row
-#         data_start_idx = raw_df.applymap(lambda x: str(x).strip().lower() == 'depth').any(axis=1)
-#         header_row = data_start_idx.idxmax() if data_start_idx.any() else 0
-
-#         # Load cleaned DataFrame
-#         df = pd.read_excel(uploaded_file, header=header_row)
-#         df.replace(r'^\s*$', np.nan, regex=True, inplace=True)
-
-#         # Parse latitudes from column headers
-#         station_labels = df.columns[1:]
-#         latitudes = []
-#         for label in station_labels:
-#             match = re.search(r"([0-9.]+)", str(label))
-#             latitudes.append(float(match.group(1)) if match else np.nan)
-#         latitudes = np.array(latitudes)
-
-#         # Filter valid columns
-#         valid_indices = ~np.isnan(latitudes)
-#         valid_lats = latitudes[valid_indices]
-#         valid_cols = df.columns[1:][valid_indices]
-
-#         # Prepare depth and scalar matrix
-#         depths = pd.to_numeric(df.iloc[:, 0], errors='coerce')
-#         scalar_data = df[valid_cols].apply(pd.to_numeric, errors='coerce').T.values
-
-#         valid_depth_mask = ~np.isnan(depths)
-#         depths = depths[valid_depth_mask]
-#         scalar_data = scalar_data[:, valid_depth_mask]
-
-#         X, Y = np.meshgrid(valid_lats, depths)
-
-#         # === Plotting ===
-#         fig, ax = plt.subplots(figsize=(10, 6))
-#         cmap = plt.cm.viridis.copy()
-#         cmap.set_bad(color='white')  # Show NaNs as white
-
-#         masked_data = np.ma.masked_invalid(scalar_data.T)
-#         pcm = ax.pcolormesh(X, Y, masked_data, cmap=cmap, shading='auto')
-
-#         ax.invert_yaxis()
-#         ax.set_xlabel(xlabel)
-#         ax.set_ylabel(ylabel)
-#         ax.set_title(plot_title)
-#         plt.setp(ax.get_xticklabels(), rotation=xtick_rotation)
-
-#         cbar = fig.colorbar(pcm, ax=ax)
-#         cbar.set_label(colorbar_label)
-
-#         st.pyplot(fig)
-        
-           
-
-# # === NetCDF Handling ===
-# else:
-#     from tempfile import NamedTemporaryFile
-
-#     def load_netcdf_safe(file_obj):
-#         with NamedTemporaryFile(delete=False, suffix=".nc") as tmp:
-#             tmp.write(file_obj.read())
-#             tmp_path = tmp.name
-#         try:
-#             return xr.open_dataset(tmp_path, engine="netcdf4")
-#         except Exception as e:
-#             st.error(f"⚠️ NetCDF read error: {e}")
-#             return None
-
-#     if mode == "Use local file (Download Desktop App)":
-#         file_path = st.text_input("Enter full path to NetCDF file")
-#         if file_path:
-#             if os.path.exists(file_path):
-#                 try:
-#                     ds = xr.open_dataset(file_path)
-#                     st.success("✅ NetCDF loaded from local path.")
-#                 except Exception as e:
-#                     st.error(f"❌ Failed to open NetCDF: {e}")
-#             else:
-#                 st.error("❌ File does not exist.")
-#     else:
-#         st.markdown("#### 📂 Upload a NetCDF file")
-#         uploaded_file = st.file_uploader("Upload NetCDF", type=["nc"], label_visibility="collapsed")
-#         if uploaded_file:
-#             ds = load_netcdf_safe(uploaded_file)
-#             if ds is not None:
-#                 st.success("✅ NetCDF uploaded and loaded.")
-
-#     if ds is not None:
-#         st.write("### 📦 Dataset Summary")
-#         st.write(ds)
-#         # You can add your existing plotting or selection options here.
-        
-# #====+++++++ New excel handling block- END +++++++++++++===========#
-        
-		# Detect plot-compatible variables
+        		# Detect plot-compatible variables
                 def is_plot_compatible(da):
                     dims = set(da.dims)
                     return any("lat" in d.lower() for d in dims) and any("lon" in d.lower() for d in dims)
