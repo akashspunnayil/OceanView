@@ -206,22 +206,29 @@ else:
 
 
 		        
-                # Detect plot-compatible variables
+                # # Detect plot-compatible variables
+                # def is_plot_compatible(da):
+                #     dims = set(da.dims)
+                #     return any("lat" in d.lower() for d in dims) and any("lon" in d.lower() for d in dims)
+
+                # plot_vars = {v: ds[v] for v in ds.data_vars if is_plot_compatible(ds[v])}
+                # if not plot_vars:
+                #     st.error("❌ No valid spatial variables (lat/lon) found.")
+                #     st.stop()
+
+
+        		# # Detect plot-compatible variables
+          #       def is_plot_compatible(da):
+          #           dims = set(da.dims)
+          #           return any("lat" in d.lower() for d in dims) and any("lon" in d.lower() for d in dims)
+
                 def is_plot_compatible(da):
-                    dims = set(da.dims)
-                    return any("lat" in d.lower() for d in dims) and any("lon" in d.lower() for d in dims)
+                    coord_map = detect_coord_names(da.to_dataset())
+                    lat = coord_map.get("latitude")
+                    lon = coord_map.get("longitude")
+                    return lat in da.dims and lon in da.dims
+                
 
-                plot_vars = {v: ds[v] for v in ds.data_vars if is_plot_compatible(ds[v])}
-                if not plot_vars:
-                    st.error("❌ No valid spatial variables (lat/lon) found.")
-                    st.stop()
-
-
-        		# Detect plot-compatible variables
-                def is_plot_compatible(da):
-                    dims = set(da.dims)
-                    return any("lat" in d.lower() for d in dims) and any("lon" in d.lower() for d in dims)
-            
                 plot_vars = {v: ds[v] for v in ds.data_vars if is_plot_compatible(ds[v])}
                 if not plot_vars:
                     st.error("❌ No valid spatial variables (lat/lon) found.")
