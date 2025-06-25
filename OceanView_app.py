@@ -672,23 +672,25 @@ else:
                         #         )
 
 
-                        if depth_var and "Depth" in plot_mode:
-                            depth_vals = ds[depth_var].values
-                            if "Depth Range Avg" in plot_mode:
-                                col1, col2 = st.columns(2)
-                                with col1:
-                                    dmin = st.number_input("Min Depth", float(depth_vals.min()), float(depth_vals.max()), value=float(depth_vals.min()), key="depth_min")
-                                with col2:
-                                    dmax = st.number_input("Max Depth", float(depth_vals.min()), float(depth_vals.max()), value=float(depth_vals.max()), key="depth_max")
-                            else:
-                                selected_depth = st.number_input(
-                                    "Depth (m)", float(depth_vals.min()), float(depth_vals.max()),
-                                    value=float(depth_vals.min()), step=10.0, key="depth_single"
-                                )
+                        # if depth_var and "Depth" in plot_mode:
+                        #     depth_vals = ds[depth_var].values
+                        #     if "Depth Range Avg" in plot_mode:
+                        #         col1, col2 = st.columns(2)
+                        #         with col1:
+                        #             dmin = st.number_input("Min Depth", float(depth_vals.min()), float(depth_vals.max()), value=float(depth_vals.min()), key="depth_min")
+                        #         with col2:
+                        #             dmax = st.number_input("Max Depth", float(depth_vals.min()), float(depth_vals.max()), value=float(depth_vals.max()), key="depth_max")
+                        #     else:
+                        #         selected_depth = st.number_input(
+                        #             "Depth (m)", float(depth_vals.min()), float(depth_vals.max()),
+                        #             value=float(depth_vals.min()), step=10.0, key="depth_single"
+                        #         )
 
-                    
+
+                        
+                            
                         # -- Time Input
-                        time_vals, time_labels = try_decode_time(ds, time_var)
+                        # time_vals, time_labels = try_decode_time(ds, time_var)
                         # if "Time Range Avg" in plot_mode:
                         #     t1 = st.date_input("🕒 Start Date", value=pd.to_datetime(time_labels[0]), key="map_start")
                         #     t2 = st.date_input("🕒 End Date", value=pd.to_datetime(time_labels[-1]), key="map_end")
