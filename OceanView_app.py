@@ -263,10 +263,17 @@ else:
                         if d not in ds_sel.coords and d in ds.coords:
                             ds_sel = ds_sel.assign_coords({d: ds[d]})
                             
-                    time_var = find_coord_from_dims(ds_sel, "time")
-                    depth_var = find_coord_from_dims(ds_sel, "depth")
-                    lat_var = find_coord_from_dims(ds_sel, "lat")
-                    lon_var = find_coord_from_dims(ds_sel, "lon")
+                    # time_var = find_coord_from_dims(ds_sel, "time")
+                    # depth_var = find_coord_from_dims(ds_sel, "depth")
+                    # lat_var = find_coord_from_dims(ds_sel, "lat")
+                    # lon_var = find_coord_from_dims(ds_sel, "lon")
+
+                    coord_map = detect_coord_names(ds_sel.to_dataset())
+                    lat_var = coord_map.get("latitude")
+                    lon_var = coord_map.get("longitude")
+                    depth_var = coord_map.get("depth")
+                    time_var = coord_map.get("time")
+
             
                     if lat_var and ds[lat_var][0] > ds[lat_var][-1]:
                         ds = ds.sortby(lat_var)
