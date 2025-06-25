@@ -365,6 +365,9 @@ else:
                     depth_var = coord_map.get("depth")
                     time_var = coord_map.get("time")
 
+                    has_time = time_var in ds[var].dims
+                    has_depth = depth_var in ds[var].dims
+
 
                     # If depth_var or time_var is missing, skip those input widgets
                     if not depth_var:
@@ -727,24 +730,51 @@ else:
             
                         
                         # ------------------ Data Extraction ------------------ #
-                        data = ds[var]
-                        data = data.sel({lat_var: slice(*lat_range), lon_var: slice(*lon_range)})
+                        # data = ds[var]
+                        # data = data.sel({lat_var: slice(*lat_range), lon_var: slice(*lon_range)})
                     
-                        if "Depth Range Avg" in plot_mode:
-                            data = data.sel({depth_var: slice(dmin, dmax)})
-                            data = data.mean(dim=depth_var, skipna=True)
-                            depth_str = f"{dmin:.0f} to {dmax:.0f} m"
-                        else:
-                            data = data.sel({depth_var: selected_depth}, method="nearest")
-                            depth_str = f"{selected_depth:.0f} m"
+                        # if "Depth Range Avg" in plot_mode:
+                        #     data = data.sel({depth_var: slice(dmin, dmax)})
+                        #     data = data.mean(dim=depth_var, skipna=True)
+                        #     depth_str = f"{dmin:.0f} to {dmax:.0f} m"
+                        # else:
+                        #     data = data.sel({depth_var: selected_depth}, method="nearest")
+                        #     depth_str = f"{selected_depth:.0f} m"
                     
-                        if "Time Range Avg" in plot_mode:
-                            data = data.sel({time_var: slice(t1, t2)})
-                            data = data.mean(dim=time_var, skipna=True)
-                            time_str = f"{pd.to_datetime(t1).strftime('%Y-%m-%d')} to {pd.to_datetime(t2).strftime('%Y-%m-%d')}"
+                        # if "Time Range Avg" in plot_mode:
+                        #     data = data.sel({time_var: slice(t1, t2)})
+                        #     data = data.mean(dim=time_var, skipna=True)
+                        #     time_str = f"{pd.to_datetime(t1).strftime('%Y-%m-%d')} to {pd.to_datetime(t2).strftime('%Y-%m-%d')}"
+                        # else:
+                        #     data = data.sel({time_var: raw_time_value})
+                        #     time_str = pd.to_datetime(raw_time_value).strftime('%Y-%m-%d')
+
+
+                        data = ds[var].sel({lat_var: slice(*lat_range), lon_var: slice(*lon_range)})
+
+                        # Depth handling
+                        if has_depth:
+                            if "Depth Range Avg" in plot_mode:
+                                data = data.sel({depth_var: slice(dmin, dmax)})
+                                data = data.mean(dim=depth_var, skipna=True)
+                                depth_str = f"{dmin:.0f} to {dmax:.0f} m"
+                            else:
+                                data = data.sel({depth_var: selected_depth}, method="nearest")
+                                depth_str = f"{selected_depth:.0f} m"
                         else:
-                            data = data.sel({time_var: raw_time_value})
-                            time_str = pd.to_datetime(raw_time_value).strftime('%Y-%m-%d')
+                            depth_str = "Single Depth"
+                        
+                        # Time handling
+                        if has_time:
+                            if "Time Range Avg" in plot_mode:
+                                data = data.sel({time_var: slice(t1, t2)})
+                                data = data.mean(dim=time_var, skipna=True)
+                                time_str = f"{pd.to_datetime(t1).strftime('%Y-%m-%d')} to {pd.to_datetime(t2).strftime('%Y-%m-%d')}"
+                            else:
+                                data = data.sel({time_var: raw_time_value})
+                                time_str = pd.to_datetime(raw_time_value).strftime('%Y-%m-%d')
+                        else:
+                            time_str = "Single Snapshot"
 
                         
                             
