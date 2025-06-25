@@ -886,14 +886,15 @@ else:
                                 da_anim = da_anim.isel({time_var: np.where(valid_time_mask)[0]})
                                 time_labels = time_vals_all[valid_time_mask]
 
-            
                     
                                 if plot_mode == "Constant Depth":
                                     da_anim = da_anim.sel({depth_var: selected_depth}, method="nearest")
                                 else:
                                     da_anim = da_anim.sel({depth_var: slice(dmin, dmax)})
                                     da_anim = da_anim.mean(dim=depth_var, skipna=True)
-                    
+
+                                fps_choice = st.slider("🎚️ Animation Speed (Frames per Second)", min_value=1, max_value=10, value=2)
+
                                 fig_anim, ax_anim = plt.subplots(figsize=(8, 5), subplot_kw={"projection": ccrs.PlateCarree()})
                                 first_frame = da_anim.isel({time_var: 0})
                     
@@ -976,8 +977,11 @@ else:
                     
                                 with tempfile.NamedTemporaryFile(delete=False, suffix=".gif") as tmpfile:
                                     temp_gif_path = tmpfile.name
-                    
-                                ani.save(temp_gif_path, writer="pillow", fps=2, savefig_kwargs={'bbox_inches': 'tight'})
+
+
+                                ani.save(temp_gif_path, writer="pillow", fps=fps_choice, savefig_kwargs={'bbox_inches': 'tight'})
+
+                                # ani.save(temp_gif_path, writer="pillow", fps=2, savefig_kwargs={'bbox_inches': 'tight'})
                     
                                 with open(temp_gif_path, "rb") as f:
                                     gif_bytes = f.read()
