@@ -74,8 +74,11 @@ def load_netcdf_safe(file_obj):
 
     # Detect coords
     coord_map = detect_coord_names(ds)
-    has_time = "time" in coord_map.values()
-    has_depth = "depth" in coord_map.values()
+    # has_time = "time" in coord_map.values()
+    # has_depth = "depth" in coord_map.values()
+
+    has_time = coord_map.get("time") in ds.dims
+    has_depth = coord_map.get("depth") in ds.dims
 
     # Inject singleton dims if needed
     if not has_time:
