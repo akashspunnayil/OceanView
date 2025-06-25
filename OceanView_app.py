@@ -1378,8 +1378,8 @@ else:
                             st.error("❌ Could not detect necessary coordinate names (lat/lon/depth).")
                         else:
                             try:
-                                depth_min = st.number_input("Min Depth (m)", float(ds[depth_key].min()), float(ds[depth_key].max()), value=float(ds[depth_key].min())
-                                depth_max = st.number_input("Max Depth (m)", float(ds[depth_key].min()), float(ds[depth_key].max()), value=float(ds[depth_key].max())
+                                depth_min = st.number_input("Min Depth (m)", float(ds[depth_key].min()), float(ds[depth_key].max()), value=float(ds[depth_key].min()))
+                                depth_max = st.number_input("Max Depth (m)", float(ds[depth_key].min()), float(ds[depth_key].max()), value=float(ds[depth_key].max()))
                     
                                 if profile_mode == "Single Point (lat, lon)":
                                     input_lat = st.number_input("Latitude (°N)", float(ds[lat_key].min()), float(ds[lat_key].max()), value=float(ds[lat_key].min()))
