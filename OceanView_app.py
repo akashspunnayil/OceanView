@@ -450,7 +450,7 @@ else:
                             st.session_state.pop(key, None)
                         st.session_state["cmap_choice"] = "viridis"
             
-                    if show_spatial_map or show_vertical_section or show_interactive_vertical_section or show_time_animation or show_interactive_spatial_map or show_hovmoller:
+                    if show_spatial_map or show_vertical_section or show_interactive_vertical_section or show_time_animation or show_interactive_spatial_map or show_hovmoller or show_interactive_hovmoller:
                         with st.expander("🎨 Colorbar & Colormap Settings"):
                             cols_colorbar = st.columns([2, 1])
                             with cols_colorbar[0]:
