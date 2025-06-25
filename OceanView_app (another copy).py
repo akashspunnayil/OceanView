@@ -32,6 +32,7 @@ st.title("🌊 Ocean Viewer")
 #         else:
 #             raise
 
+
 @st.cache_data
 def load_netcdf_safe(file_obj):
     import tempfile
@@ -49,6 +50,26 @@ def load_netcdf_safe(file_obj):
             return xr.open_dataset(tmp_path, decode_times=False)
         else:
             raise
+
+
+# from tempfile import NamedTemporaryFile
+
+# def load_netcdf_safe(file_obj):
+#     import xarray as xr
+#     from tempfile import NamedTemporaryFile
+
+#     with NamedTemporaryFile(delete=False, suffix=".nc") as tmp:
+#         tmp.write(file_obj.read())
+#         tmp_path = tmp.name
+#     try:
+#         return xr.open_dataset(tmp_path, engine="netcdf4")
+#     except ValueError as e:
+#         if ("unable to decode time units" in str(e)) or ("calendar 'NOLEAP'" in str(e)):
+#             st.warning("⚠️ Time decoding failed. Retrying with decode_times=False using engine='scipy'...")
+#             return xr.open_dataset(tmp_path, decode_times=False, engine="scipy")
+#         else:
+#             raise
+
 
 def load_netcdf_safe_from_path(path):
     try:
@@ -116,9 +137,8 @@ def scale_dataarray(dataarray, op, val):
 
 
 
-
-# ------------------------------------------------ File uploader ---------------------------------------------- #
-uploaded_file = st.file_uploader("📂 Upload a NetCDF file", type=["nc"])
+# # ------------------------------------------------ File uploader ---------------------------------------------- #
+#uploaded_file = st.file_uploader("📂 Upload a NetCDF file", type=["nc"])
 
 # Mode selection
 mode = st.radio("Select mode", ["Upload file (Web App)", "Use local file (Download Desktop App)"])
@@ -154,7 +174,7 @@ else:
                 st.success("✅ File loaded successfully.")
 
 
-        
+		        
                 # Detect plot-compatible variables
                 def is_plot_compatible(da):
                     dims = set(da.dims)
@@ -165,30 +185,201 @@ else:
                     st.error("❌ No valid spatial variables (lat/lon) found.")
                     st.stop()
 
+# #====+++++++ New excel handling block- END +++++++++++++===========#
+
+# st.subheader("🌊 OceanView: NetCDF + Excel Viewer")
+
+# # === File type selector ===
+# file_type = st.radio("Select file type", ["NetCDF (.nc)", "Excel (.xlsx)"], horizontal=True)
+
+# # === Mode selector ===
+# mode = st.radio("Select mode", ["Upload file (Web App)", "Use local file (Download Desktop App)"])
+
+# df = None
+# ds = None
+
+# # === Excel Handling ===
+# if file_type == "Excel (.xlsx)":
+#     if mode == "Use local file (Download Desktop App)":
+#         file_path = st.text_input("Enter full path to Excel file")
+#         if file_path:
+#             if os.path.exists(file_path):
+#                 try:
+#                     df = pd.read_excel(file_path)
+#                     st.success("✅ Excel file loaded from local path.")
+#                 except Exception as e:
+#                     st.error(f"❌ Failed to load Excel file: {e}")
+#             else:
+#                 st.error("❌ File does not exist.")
+#     else:
+#         st.markdown("#### 📂 Upload an Excel file")
+#         uploaded_file = st.file_uploader("Upload Excel file", type=["xlsx", "xls"], label_visibility="collapsed")
+#         if uploaded_file:
+#             try:
+#                 df = pd.read_excel(uploaded_file)
+#                 st.success("✅ Excel file uploaded and loaded.")
+#             except Exception as e:
+#                 st.error(f"❌ Failed to load Excel: {e}")
+
+#     # --- Plot Excel data ---
+#     if df is not None:
+#         #---------------------------------------- Station Contour (Excel) ----------------------------------------------------#
+
+#         st.markdown("### 📈 Contour Plot (Excel: Depth vs Station)")
+        
+#         import streamlit as st
+#         import pandas as pd
+#         import numpy as np
+#         import matplotlib.pyplot as plt
+#         import re
+#         from matplotlib.cm import get_cmap
+        
+#         st.subheader("📊 Section Plot (Depth vs Latitude) from Excel with NaN Handling")
+        
+#         # === STEP 0: User plot label inputs — move this ABOVE file uploader ===
+#         st.markdown("### 🖋️ Customize Plot Labels")
+
+#         plot_title = st.text_input("Plot Title", value="Section Plot (Depth vs Latitude)")
+#         xlabel = st.text_input("X-axis Label", value="Latitude (°N)")
+#         ylabel = st.text_input("Y-axis Label", value="Depth (m)")
+#         colorbar_label = st.text_input("Colorbar Label", value="Scalar Value")
+#         xtick_rotation = st.slider("X-Tick Label Rotation (°)", 0, 90, 45)
+            
+#         # # === STEP 1: File uploader ===
+#         # uploaded_file = st.file_uploader("📂 Upload Excel File", type=["xlsx", "xls"])
+        
+#         # # === STEP 2: Proceed only if file is uploaded ===
+#         # if uploaded_file:
+#         #     try:
+#         # === Load raw file (no header) ===
+#         raw_df = pd.read_excel(uploaded_file, header=None)
+
+#         # Detect header row
+#         data_start_idx = raw_df.applymap(lambda x: str(x).strip().lower() == 'depth').any(axis=1)
+#         header_row = data_start_idx.idxmax() if data_start_idx.any() else 0
+
+#         # Load cleaned DataFrame
+#         df = pd.read_excel(uploaded_file, header=header_row)
+#         df.replace(r'^\s*$', np.nan, regex=True, inplace=True)
+
+#         # Parse latitudes from column headers
+#         station_labels = df.columns[1:]
+#         latitudes = []
+#         for label in station_labels:
+#             match = re.search(r"([0-9.]+)", str(label))
+#             latitudes.append(float(match.group(1)) if match else np.nan)
+#         latitudes = np.array(latitudes)
+
+#         # Filter valid columns
+#         valid_indices = ~np.isnan(latitudes)
+#         valid_lats = latitudes[valid_indices]
+#         valid_cols = df.columns[1:][valid_indices]
+
+#         # Prepare depth and scalar matrix
+#         depths = pd.to_numeric(df.iloc[:, 0], errors='coerce')
+#         scalar_data = df[valid_cols].apply(pd.to_numeric, errors='coerce').T.values
+
+#         valid_depth_mask = ~np.isnan(depths)
+#         depths = depths[valid_depth_mask]
+#         scalar_data = scalar_data[:, valid_depth_mask]
+
+#         X, Y = np.meshgrid(valid_lats, depths)
+
+#         # === Plotting ===
+#         fig, ax = plt.subplots(figsize=(10, 6))
+#         cmap = plt.cm.viridis.copy()
+#         cmap.set_bad(color='white')  # Show NaNs as white
+
+#         masked_data = np.ma.masked_invalid(scalar_data.T)
+#         pcm = ax.pcolormesh(X, Y, masked_data, cmap=cmap, shading='auto')
+
+#         ax.invert_yaxis()
+#         ax.set_xlabel(xlabel)
+#         ax.set_ylabel(ylabel)
+#         ax.set_title(plot_title)
+#         plt.setp(ax.get_xticklabels(), rotation=xtick_rotation)
+
+#         cbar = fig.colorbar(pcm, ax=ax)
+#         cbar.set_label(colorbar_label)
+
+#         st.pyplot(fig)
+        
+           
+
+# # === NetCDF Handling ===
+# else:
+#     from tempfile import NamedTemporaryFile
+
+#     def load_netcdf_safe(file_obj):
+#         with NamedTemporaryFile(delete=False, suffix=".nc") as tmp:
+#             tmp.write(file_obj.read())
+#             tmp_path = tmp.name
+#         try:
+#             return xr.open_dataset(tmp_path, engine="netcdf4")
+#         except Exception as e:
+#             st.error(f"⚠️ NetCDF read error: {e}")
+#             return None
+
+#     if mode == "Use local file (Download Desktop App)":
+#         file_path = st.text_input("Enter full path to NetCDF file")
+#         if file_path:
+#             if os.path.exists(file_path):
+#                 try:
+#                     ds = xr.open_dataset(file_path)
+#                     st.success("✅ NetCDF loaded from local path.")
+#                 except Exception as e:
+#                     st.error(f"❌ Failed to open NetCDF: {e}")
+#             else:
+#                 st.error("❌ File does not exist.")
+#     else:
+#         st.markdown("#### 📂 Upload a NetCDF file")
+#         uploaded_file = st.file_uploader("Upload NetCDF", type=["nc"], label_visibility="collapsed")
+#         if uploaded_file:
+#             ds = load_netcdf_safe(uploaded_file)
+#             if ds is not None:
+#                 st.success("✅ NetCDF uploaded and loaded.")
+
+#     if ds is not None:
+#         st.write("### 📦 Dataset Summary")
+#         st.write(ds)
+#         # You can add your existing plotting or selection options here.
+        
+# #====+++++++ New excel handling block- END +++++++++++++===========#
+        
+		# Detect plot-compatible variables
+                def is_plot_compatible(da):
+                    dims = set(da.dims)
+                    return any("lat" in d.lower() for d in dims) and any("lon" in d.lower() for d in dims)
+            
+                plot_vars = {v: ds[v] for v in ds.data_vars if is_plot_compatible(ds[v])}
+                if not plot_vars:
+                    st.error("❌ No valid spatial variables (lat/lon) found.")
+                    st.stop()
+            
                         
                 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#
                 #--------------------------LEFT SIDE - INPUTS-------------------------------------#
                 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#
                 left_col, right_col = st.columns([1, 2])
-
+            
                 with left_col:
-
+            
                     st.markdown("#### 🔎 Variable")
                     var = st.selectbox("Variable", list(plot_vars.keys()), label_visibility="collapsed")
-
+            
                     with st.expander("🧮 Apply Scaling to Variable Values (Optional)"):
                         apply_scaling = st.checkbox("Apply arithmetic scaling?")
                         if apply_scaling:
                             scale_op = st.selectbox("Operation", ["*", "/", "+", "-"], index=0)
                             scale_val = st.number_input("Scale Value", value=1.0, step=0.1)
-
+            
                     # ds_sel = ds[var]
-    
+            
                     ds_sel = ds[var]
                     if apply_scaling:
                         ds_sel = scale_dataarray(ds_sel, scale_op, scale_val)
-    
-    
+            
+            
                     # Ensure dims are coords
                     for d in ds_sel.dims:
                         if d not in ds_sel.coords and d in ds.coords:
@@ -198,21 +389,21 @@ else:
                     depth_var = find_coord_from_dims(ds_sel, "depth")
                     lat_var = find_coord_from_dims(ds_sel, "lat")
                     lon_var = find_coord_from_dims(ds_sel, "lon")
-
+            
                     if lat_var and ds[lat_var][0] > ds[lat_var][-1]:
                         ds = ds.sortby(lat_var)
-    
+            
                     if "missing_value" in ds[var].attrs:
                         mv = ds[var].attrs["missing_value"]
                         if abs(mv) > 1e10:
                             ds[var] = ds[var].where(ds[var] != mv)
-        
+            
                     if time_var and not np.issubdtype(ds[time_var].dtype, np.datetime64):
                         try:
                             ds = ds.assign_coords({time_var: pd.date_range("2000-01-01", periods=ds.dims[time_var], freq="MS")})
                         except Exception as e:
                             st.error(f"❌ Time decoding failed: {e}")
-        
+            
                     if not lat_var:
                         lat_var = st.text_input("Enter Latitude Dimension Name", value="")
                     if not lon_var:
@@ -221,15 +412,15 @@ else:
                         time_var = st.text_input("Enter Time Dimension Name (if available)", value="")
                     if not depth_var:
                         depth_var = st.text_input("Enter Depth Dimension Name (optional)", value="")
-        
+            
                     if not lat_var.strip() or not lon_var.strip():
                         st.error("❌ Latitude or Longitude coordinate not found.")
                         st.stop()
-        
+            
                     lat_vals = ds[lat_var].values
                     lon_vals = ds[lon_var].values
-
-
+            
+            
                     # --- Define bounds
                     lat_min, lat_max = float(lat_vals.min()), float(lat_vals.max())
                     lon_min, lon_max = float(lon_vals.min()), float(lon_vals.max())
@@ -308,7 +499,7 @@ else:
                     # -- Final lat/lon range
                     lat_range = (south_lat, north_lat)
                     lon_range = (west_lon, east_lon)
-
+            
                         
                     # Use left_col for plot selection checkboxes
                     with st.expander("🗺️ Select Plot Options", expanded=True):
@@ -321,8 +512,8 @@ else:
                         show_vertical_profile = st.checkbox("Vertical Profile")
                         show_interactive_vertical_profile =  st.checkbox("Vertical Interactive Profile ")
                         show_hovmoller = st.checkbox("Hovmöller Diagram")
-                        station_plot = st..checkbox("Station Contour (Using excel/csv)")
-        
+                        station_plot = st.checkbox("Station Contour (Using excel/csv)")
+            
                             
                     if show_spatial_map or show_vertical_section or show_time_animation or show_interactive_spatial_map:
                         with st.expander("🌍 Land/Sea Masking"):
@@ -335,7 +526,7 @@ else:
                         for key in ["vmin", "vmax", "step", "cmap_choice"]:
                             st.session_state.pop(key, None)
                         st.session_state["cmap_choice"] = "viridis"
-        
+            
                     if show_spatial_map or show_vertical_section or show_interactive_vertical_section or show_time_animation or show_interactive_spatial_map or show_hovmoller:
                         with st.expander("🎨 Colorbar & Colormap Settings"):
                             cols_colorbar = st.columns([2, 1])
@@ -348,7 +539,7 @@ else:
                             with cols_colorbar[1]:
                                 # st.button("🔄 Reset", on_click=reset_colorbar_settings)
                                 st.button("🔄 Reset", on_click=reset_colorbar_settings, key="reset_colorbar_btn")
-        
+            
                     # def reset_plot_labels(time_sel_value=None, depth_value=None):
                     #     # title = var
                     #     # if time_sel_value:
@@ -359,7 +550,7 @@ else:
                     #     st.session_state["xlabel"] = "Longitude"
                     #     st.session_state["ylabel"] = "Latitude"
                     #     st.session_state["cbar_label"] = var
-        
+            
                     with st.expander("🖊️ Plot Custom Labels"):
                         label_cols = st.columns([2, 1])
                         with label_cols[0]:
@@ -371,8 +562,8 @@ else:
                             # st.button("🔄 Reset", on_click=reset_plot_labels)
                             # st.button("🔄 Reset", on_click=reset_plot_labels, key="reset_plot_labels_btn")
                             # st.button("🔄 Reset", on_click=lambda: reset_plot_labels(time_sel, selected_depth), key="reset_plot_labels_btn")
-        
-        
+            
+            
                     def reset_tick_settings():
                         st.session_state.pop("manual_ticks", None)
                         for key in ["xtick_step", "ytick_step"]:
@@ -440,13 +631,13 @@ else:
                             st.session_state["font_family"] = "DejaVu Sans"
                     
                         st.button("Reset Font to Default", on_click=reset_font, key="reset_font_btn")
-        
-        
+            
+            
                     with st.expander("💾 Save Plot Options"):
                         save_format = st.selectbox("Select file format", ["png", "jpg", "pdf", "svg", "tiff"], index=0)
                         dpi_value = st.number_input("DPI (dots per inch)", min_value=50, max_value=600, value=150, step=10)
                         save_btn = st.button("💾 Save & Download Plot")
-
+            
                 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#
                 #------------------------RIGHT SIDE - OUTPUTS-------------------------------------#
                 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#
@@ -455,7 +646,7 @@ else:
                     # st.code(ds.__repr__(), language="python")
                     with st.expander("📄 Dataset Structure"):
                         st.code(ds.__repr__(), language="python")
-
+            
                     
                     # =============================
                     # --- Advanced Slicing for Plot Mode ---
@@ -474,7 +665,7 @@ else:
                             "Single Time + Depth Range Avg",
                             "Time Range Avg + Depth Range Avg"
                         ])
-
+            
                         
                         # -- Depth Input
                         depth_vals = ds[depth_var].values if depth_var else None
@@ -502,7 +693,7 @@ else:
                             time_sel = st.selectbox("🕒 Select Time", time_labels, key="map_single_time")
                             time_index = list(time_labels).index(time_sel)
                             raw_time_value = time_vals[time_index]
-
+            
                         # ------------------ Compute time_str and depth_str ------------------ #
                         depth_str = ""
                         time_str = ""
@@ -518,7 +709,7 @@ else:
                             time_str = f"{pd.to_datetime(t1).strftime('%Y-%m-%d')} to {pd.to_datetime(t2).strftime('%Y-%m-%d')}"
                         else:
                             time_str = pd.to_datetime(raw_time_value).strftime('%Y-%m-%d')
-
+            
                         
                         # ------------------ Data Extraction ------------------ #
                         data = ds[var]
@@ -590,7 +781,7 @@ else:
                         ax.text(x_offset - 0.1, 0.5, ylabel, transform=ax.transAxes, ha='right', va='center', rotation='vertical', fontsize=12)
                     
                         st.pyplot(fig)
-
+            
                 
                         # Download
                         if save_btn:
@@ -604,7 +795,7 @@ else:
                                 mime=f"image/{'jpeg' if save_format == 'jpg' else save_format}"
                             )
                     #---------------------------------Intercative Spatial Map View----------------------------------------------------------#
-
+            
                     import plotly.graph_objects as go
                     if show_interactive_spatial_map:
                         # -- Plot Mode Selection
@@ -714,9 +905,9 @@ else:
                         )
                     
                         st.plotly_chart(fig, use_container_width=True)
-
+            
                     #---------------------------------------------Spatial Map Animation--------------------------------------------------#
-
+            
                     if show_time_animation:
                         import matplotlib.animation as animation
                         import io
@@ -738,7 +929,7 @@ else:
                                     t1 = st.date_input("🕒 Start Date", value=time_start_default, key="anim_start_date")
                                 with col2:
                                     t2 = st.date_input("🕒 End Date", value=time_end_default, key="anim_end_date")
-
+            
                                 t1 = np.datetime64(t1)
                                 t2 = np.datetime64(t2)
                     
@@ -759,7 +950,7 @@ else:
                                 da_anim = da_anim.sel({lat_var: slice(*lat_range), lon_var: slice(*lon_range)})
                                 da_anim = da_anim.sel({time_var: slice(t1, t2)})
                                 time_labels = pd.to_datetime(da_anim[time_var].values)
-
+            
                     
                                 if plot_mode == "Constant Depth":
                                     da_anim = da_anim.sel({depth_var: selected_depth}, method="nearest")
@@ -832,7 +1023,7 @@ else:
                                     
                                     title = f"{plot_title} | Time: {time_str}"
                                     
-
+            
                                     if plot_mode == "Constant Depth":
                                         title += f" | Depth: {selected_depth} m"
                                     else:
@@ -870,25 +1061,25 @@ else:
                                 st.error(f"⚠️ Failed to create animation: {e}")
                         else:
                             st.info("⏳ Animation unavailable: Time dimension not found in selected variable.")
-
+            
                     
                     #-------------------------------------------- Vertical Section--------------------------------------------------#
                     
                     if show_vertical_section:
                         st.markdown("### 📉 Vertical Section Plot")
-
+            
                         time_mode = st.radio("🕒 Time Mode", ["Single Time", "Time Range Average"], key="vsec_time_mode")
-
+            
                         section_mode = st.selectbox("Section Mode", [
                             "Z vs Longitude (at fixed Latitude)",
                             "Z vs Latitude (at fixed Longitude)",
                             "Z vs Longitude (averaged over Latitude band)",
                             "Z vs Latitude (averaged over Longitude band)"
                         ])
-
+            
                         # -- Time Input
                         time_vals, time_labels = try_decode_time(ds, time_var)
-
+            
                         if time_mode == "Single Time":
                             time_sel = st.selectbox("Select Time", time_labels, key="vsec_single_time")
                             time_index = list(time_labels).index(time_sel)
@@ -898,21 +1089,21 @@ else:
                             t2 = st.date_input("End Date", value=pd.to_datetime(time_labels[-1]), key="vsec_end")
                             t1 = np.datetime64(t1)
                             t2 = np.datetime64(t2)
-
+            
                         try:
                             section = ds[var]
-
+            
                             if time_var:
                                 if time_mode == "Single Time":
                                     section = section.sel({time_var: raw_time_value}, method="nearest")
                                 else:
                                     section = section.sel({time_var: slice(t1, t2)})
                                     section = section.mean(dim=time_var, skipna=True)
-
-
+            
+            
                             # if time_var and raw_time_value is not None:
                             #     section = section.sel({time_var: raw_time_value}, method="nearest")
-
+            
                             # --- Depth Range Selection ---
                             depth_min = st.number_input("Min Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=0.0, step=10.0)
                             depth_max = st.number_input("Max Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=500.0, step=10.0)
@@ -938,7 +1129,7 @@ else:
                                 x_vals = section[lat_var].values
                                 xlabel = "Latitude (°N)"
                                 section_label = f"{fixed_lon:.2f}°E"
-
+            
                     
                             elif section_mode == "Z vs Longitude (averaged over Latitude band)":
                                 lat_min = st.number_input("Min Latitude", float(lat_vals.min()), float(lat_vals.max()), value=10.0)
@@ -963,7 +1154,7 @@ else:
                                 x_vals = section[lat_var].values
                                 xlabel = "Latitude (°N)"
                                 section_label = f"Lon Avg ({lon_min}-{lon_max}°E)"
-
+            
                     
                             else:
                                 st.warning("🚫 Unknown section mode selected.")
@@ -986,7 +1177,7 @@ else:
                                 time_str = pd.to_datetime(raw_time_value).strftime('%Y-%m-%d')
                             else:
                                 time_str = f"{pd.to_datetime(t1).strftime('%Y-%m-%d')} to {pd.to_datetime(t2).strftime('%Y-%m-%d')}"
-
+            
                             ax.set_title(f"{var} Vertical Section at {section_label}\n {time_str}", fontsize=14)
                             ax.set_xlabel(xlabel)
                             ax.set_ylabel("Depth (m)")
@@ -1007,7 +1198,7 @@ else:
                     
                         except Exception as e:
                             st.error(f"❌ Failed to plot vertical section: {e}")
-
+            
                     #----------------------------------- Interactive Vertical Section--------------------------------------------------#
                   
                     if show_interactive_vertical_section:
@@ -1137,7 +1328,7 @@ else:
                     
                         except Exception as e:
                             st.error(f"❌ Failed to plot interactive vertical section: {e}")
-
+            
                     #---------------------------------Timeseries View----------------------------------------------------------#
                     if show_timeseries_plot:
                         ts_mode = st.selectbox("📌 Select Time Series Mode", [
@@ -1285,7 +1476,7 @@ else:
                     
                                 if time_key and time_key in profile.dims:
                                     time_vals, time_labels = try_decode_time(ds, time_key)
-
+            
                                     if time_profile_mode == "Use selected time only":
                                         time_vals, time_labels = try_decode_time(ds, time_key)
                                         time_sel_label = st.selectbox("Select Time", time_labels, key="vprof_single_timee")
@@ -1339,12 +1530,12 @@ else:
                                 
                                 # Final title
                                 ax.set_title(f"{var} Vertical Profile\n{label}{time_title}")
-
+            
                                 st.pyplot(fig)
                     
                             except Exception as e:
                                 st.error(f"❌ Failed to plot vertical profile: {e}")
-
+            
                     
                                 if save_btn:
                                     buf = io.BytesIO()
@@ -1359,7 +1550,7 @@ else:
                     
                             except Exception as e:
                                 st.error(f"❌ Failed to extract profile: {e}")
-
+            
                     # -----------------------------------Interactive Vetical Profile ---------------------------------------------------#
                    
                     import plotly.graph_objects as go
@@ -1492,7 +1683,7 @@ else:
                     
                             except Exception as e:
                                 st.error(f"❌ Failed to extract profile: {e}")
-
+            
                         
                     #---------------------------------------- Hovmoller ----------------------------------------------------#
                     
@@ -1542,7 +1733,7 @@ else:
                                     da_sel = da_sel.sel({lat_var: fixed_lat}, method="nearest").mean(dim=depth_var, skipna=True)
                                 else:
                                     fixed_depth = st.number_input("Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=10.0, key="hov_depth")
-
+            
                                     da_sel = da.sel({lon_var: slice(lon_min, lon_max), depth_var: fixed_depth})
                                     da_sel = da_sel.sel({lat_var: fixed_lat}, method="nearest")
                     
@@ -1551,7 +1742,7 @@ else:
                                 hov_y = da_sel[time_var]
                                 hov_z = da_sel.transpose(time_var, lon_var)
                     
-
+            
                             elif hov_mode.startswith("Latitude"):
                                 fixed_lon = st.number_input("Longitude (°E)", float(ds[lon_var].min()), float(ds[lon_var].max()), value=60.0, key="hov_fixed_lon")
                                 lat_min = st.number_input("Min Latitude", float(ds[lat_var].min()), float(ds[lat_var].max()), value=float(ds[lat_var].min()))
@@ -1567,12 +1758,12 @@ else:
                                     da_sel = da.sel({lat_var: slice(lat_min, lat_max), depth_var: fixed_depth})
                                     da_sel = da_sel.sel({lon_var: fixed_lon}, method="nearest")
                             
-
+            
                                 da_sel = da_sel.sel({time_var: slice(t1, t2)})
                                 hov_x = da_sel[lat_var]
                                 hov_y = da_sel[time_var]
                                 hov_z = da_sel.transpose(time_var, lat_var)
-
+            
                             
                             elif hov_mode == "Depth vs Time • Fixed Lat & Lon":
                                 lat_pt = st.number_input("Latitude (°N)", float(ds[lat_var].min()), float(ds[lat_var].max()), value=15.0)
@@ -1597,7 +1788,7 @@ else:
                                 hov_x = da_sel[depth_var]
                                 hov_y = da_sel[time_var]
                                 hov_z = da_sel.transpose(time_var, depth_var)
-
+            
                             # --- Build subtitle with spatial info ---
                             if hov_mode.startswith("Longitude"):
                                 if "Depth-avg" in hov_mode:
@@ -1619,8 +1810,8 @@ else:
                             
                             else:
                                 spatial_info = ""
-
-
+            
+            
                             
                             time_range_str = f"{str(t1)[:10]} to {str(t2)[:10]}"
                             
@@ -1633,7 +1824,7 @@ else:
                             plt.xticks(rotation=45)
                             fig.colorbar(c, ax=ax, label=var, shrink=0.65)
                             st.pyplot(fig)
-
+            
                         
                             if save_btn:
                                 buf = io.BytesIO()
@@ -1647,41 +1838,9 @@ else:
                     
                         except Exception as e:
                             st.error(f"❌ Failed to plot Hovmöller diagram: {e}")
-
-
-                    #---------------------------------------- Station Contour (Excel) ----------------------------------------------------#
-
-                    if  station_plot:
-                        st.subheader("📂 Upload Station Excel File")
-                        uploaded_file = st.file_uploader("Upload your Excel file", type=["xlsx", "xls"])
-                        
-                        if uploaded_file:
-                            df = pd.read_excel(uploaded_file)
-                            st.write("Preview of uploaded data:")
-                            st.dataframe(df)
-                        
-                            try:
-                                depths = df.iloc[:, 0].values  # First column: Depths
-                                station_names = df.columns[1:]  # Skip depth column
-                                data_matrix = df.iloc[:, 1:].values  # Only station data
-                        
-                                # Plot
-                                fig, ax = plt.subplots(figsize=(10, 6))
-                                cs = ax.contourf(station_names, depths, data_matrix, levels=15, cmap='viridis')
-                                ax.invert_yaxis()  # Optional: invert y-axis to show surface on top
-                                cbar = plt.colorbar(cs, ax=ax)
-                                cbar.set_label("Scalar Value")
-                        
-                                ax.set_xlabel("Station")
-                                ax.set_ylabel("Depth (m)")
-                                ax.set_title("Contour Plot: Scalar vs. Depth and Station")
-                        
-                                st.pyplot(fig)
-                        
-                            except Exception as e:
-                                st.error(f"❌ Error plotting contour: {e}")
-
-
+    
+    
+            
         except Exception as e:
             st.error(f"⚠️ Failed to subset or plot data: {e}")
 

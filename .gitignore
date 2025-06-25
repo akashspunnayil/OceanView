@@ -6,3 +6,4 @@ OceanView_app_local.py
 build/
 dist/
 OceanView_app_local.spec
+ocean_temp.nc

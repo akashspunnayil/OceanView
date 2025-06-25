@@ -51,26 +51,6 @@ def load_netcdf_safe(file_obj):
         else:
             raise
 
-
-# from tempfile import NamedTemporaryFile
-
-# def load_netcdf_safe(file_obj):
-#     import xarray as xr
-#     from tempfile import NamedTemporaryFile
-
-#     with NamedTemporaryFile(delete=False, suffix=".nc") as tmp:
-#         tmp.write(file_obj.read())
-#         tmp_path = tmp.name
-#     try:
-#         return xr.open_dataset(tmp_path, engine="netcdf4")
-#     except ValueError as e:
-#         if ("unable to decode time units" in str(e)) or ("calendar 'NOLEAP'" in str(e)):
-#             st.warning("⚠️ Time decoding failed. Retrying with decode_times=False using engine='scipy'...")
-#             return xr.open_dataset(tmp_path, decode_times=False, engine="scipy")
-#         else:
-#             raise
-
-
 def load_netcdf_safe_from_path(path):
     try:
         return xr.open_dataset(path, engine="scipy") #netcdf4
@@ -87,12 +67,25 @@ def find_coord_from_dims(da, keyword):
             return dim
     return None
 
+# def try_decode_time(ds, time_var):
+#     time_vals = ds[time_var].values
+#     if np.issubdtype(time_vals.dtype, np.datetime64):
+#         return time_vals, time_vals
+#     else:
+#         st.warning("⚠️ Time not decoded. Approximating monthly time from 2000-01.")
+#         try:
+#             fake_time = pd.date_range("2000-01-01", periods=len(time_vals), freq="MS")
+#             return time_vals, fake_time
+#         except Exception as e:
+#             st.error(f"❌ Failed to create fake time labels: {e}")
+#             return time_vals, time_vals
+
 def try_decode_time(ds, time_var):
     time_vals = ds[time_var].values
     if np.issubdtype(time_vals.dtype, np.datetime64):
         return time_vals, time_vals
     else:
-        st.warning("⚠️ Time not decoded. Approximating monthly time from 2000-01.")
+        st.warning(f"⚠️ Time not decoded from '{time_var}'. Approximating...")
         try:
             fake_time = pd.date_range("2000-01-01", periods=len(time_vals), freq="MS")
             return time_vals, fake_time
@@ -101,28 +94,56 @@ def try_decode_time(ds, time_var):
             return time_vals, time_vals
 
 #-------------------------------------------------------------------------------------------------------------------#
-def detect_coord_names(dataarray):
-    # Known patterns (case-insensitive)
-    candidates = {
-        "latitude": ["lat", "latitude"],
-        "longitude": ["lon", "longitude"],
-        "depth": ["depth", "depth1_1", "DEPTH", "z"],
-        "time": ["time", "TIME"]
-    }
+# def detect_coord_names(dataarray):
+#     # Known patterns (case-insensitive)
+#     candidates = {
+#         "latitude": ["lat", "latitude"],
+#         "longitude": ["lon", "longitude"],
+#         "depth": ["depth", "depth1_1", "DEPTH", "z"],
+#         "time": ["time", "TIME"]
+#     }
 
-    # Match from dataarray coords
-    found = {}
-    coords_lower = {k.lower(): k for k in dataarray.coords}
+#     # Match from dataarray coords
+#     found = {}
+#     coords_lower = {k.lower(): k for k in dataarray.coords}
 
-    for standard_name, options in candidates.items():
-        for name in options:
-            if name.lower() in coords_lower:
-                found[standard_name] = coords_lower[name.lower()]
-                break
-        else:
-            found[standard_name] = None  # Not found
+#     for standard_name, options in candidates.items():
+#         for name in options:
+#             if name.lower() in coords_lower:
+#                 found[standard_name] = coords_lower[name.lower()]
+#                 break
+#         else:
+#             found[standard_name] = None  # Not found
 
-    return found
+#     return found
+
+
+def detect_coord_names(ds):
+    coord_map = {}
+    for name in ds.dims:
+        lname = name.lower()
+        if "lat" in lname or "y" in lname:
+            coord_map["latitude"] = name
+        elif "lon" in lname or "x" in lname:
+            coord_map["longitude"] = name
+        elif "lev" in lname or "depth" in lname or "z" in lname:
+            coord_map["depth"] = name
+        elif "time" in lname:
+            coord_map["time"] = name
+
+    # If any missing, try from variables
+    for var in ds.variables:
+        lname = var.lower()
+        if "lat" in lname and "latitude" not in coord_map:
+            coord_map["latitude"] = var
+        elif "lon" in lname and "longitude" not in coord_map:
+            coord_map["longitude"] = var
+        elif ("lev" in lname or "depth" in lname) and "depth" not in coord_map:
+            coord_map["depth"] = var
+        elif "time" in lname and "time" not in coord_map:
+            coord_map["time"] = var
+
+    return coord_map
 
 def scale_dataarray(dataarray, op, val):
     if op == "*":
