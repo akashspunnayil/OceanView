@@ -645,196 +645,19 @@ else:
                     
                     #---------------------------------Normal Spatial Map View----------------------------------------------------------#
             
-                    # if show_spatial_map:
-                        
-                    #     # -- Plot Mode Selection
-                        
-                    #     # plot_mode = st.radio("🧭 Select Plot Mode", [
-                    #     #     "Single Time + Single Depth",
-                    #     #     "Time Range Avg + Single Depth",
-                    #     #     "Single Time + Depth Range Avg",
-                    #     #     "Time Range Avg + Depth Range Avg"
-                    #     # ])
-
-                    #     plot_options = []
-
-                    #     if not time_var and not depth_var:
-                    #         plot_options = ["Lat-Lon Map (2D Only)"]
-                    #     elif time_var and not depth_var:
-                    #         plot_options = ["Single Time", "Time Range Avg"]
-                    #     elif depth_var and not time_var:
-                    #         plot_options = ["Single Depth", "Depth Range Avg"]
-                    #     else:
-                    #         plot_options = [
-                    #             "Single Time + Single Depth",
-                    #             "Time Range Avg + Single Depth",
-                    #             "Single Time + Depth Range Avg",
-                    #             "Time Range Avg + Depth Range Avg"
-                    #         ]
-                        
-                    #     plot_mode = st.radio("🧭 Select Plot Mode", plot_options)
-
-            
-                    #     # -- Depth Input
-                    #     # depth_vals = ds[depth_var].values if depth_var else None
-                    #     # if depth_var:
-                    #     #     if "Depth Range Avg" in plot_mode:
-                    #     #         col1, col2 = st.columns(2)
-                    #     #         with col1:
-                    #     #             dmin = st.number_input("Min Depth", float(depth_vals.min()), float(depth_vals.max()), value=float(depth_vals.min()), key="depth_min")
-                    #     #         with col2:
-                    #     #             dmax = st.number_input("Max Depth", float(depth_vals.min()), float(depth_vals.max()), value=float(depth_vals.max()), key="depth_max")
-                    #     #     else:
-                    #     #         selected_depth = st.number_input(
-                    #     #             "Depth (m)", float(depth_vals.min()), float(depth_vals.max()),
-                    #     #             value=float(depth_vals.min()), step=10.0, key="depth_single"
-                    #     #         )
-
-
-                    #     if depth_var and "Depth" in plot_mode:
-                    #         depth_vals = ds[depth_var].values
-                    #         if "Depth Range Avg" in plot_mode:
-                    #             col1, col2 = st.columns(2)
-                    #             with col1:
-                    #                 dmin = st.number_input("Min Depth", float(depth_vals.min()), float(depth_vals.max()), value=float(depth_vals.min()), key="depth_min")
-                    #             with col2:
-                    #                 dmax = st.number_input("Max Depth", float(depth_vals.min()), float(depth_vals.max()), value=float(depth_vals.max()), key="depth_max")
-                    #         else:
-                    #             selected_depth = st.number_input(
-                    #                 "Depth (m)", float(depth_vals.min()), float(depth_vals.max()),
-                    #                 value=float(depth_vals.min()), step=10.0, key="depth_single"
-                    #             )
-
-
-                        
-                            
-                    #     # -- Time Input
-                    #     # time_vals, time_labels = try_decode_time(ds, time_var)
-                    #     # if "Time Range Avg" in plot_mode:
-                    #     #     t1 = st.date_input("🕒 Start Date", value=pd.to_datetime(time_labels[0]), key="map_start")
-                    #     #     t2 = st.date_input("🕒 End Date", value=pd.to_datetime(time_labels[-1]), key="map_end")
-                    #     #     t1 = np.datetime64(t1)
-                    #     #     t2 = np.datetime64(t2)
-                    #     # else:
-                    #     #     time_sel = st.selectbox("🕒 Select Time", time_labels, key="map_single_time")
-                    #     #     time_index = list(time_labels).index(time_sel)
-                    #     #     raw_time_value = time_vals[time_index]
-
-                    #     if time_var and "Time" in plot_mode:
-                    #         time_vals, time_labels = try_decode_time(ds, time_var)
-                    #         if "Time Range Avg" in plot_mode:
-                    #             t1 = st.date_input("🕒 Start Date", value=pd.to_datetime(time_labels[0]), key="map_start")
-                    #             t2 = st.date_input("🕒 End Date", value=pd.to_datetime(time_labels[-1]), key="map_end")
-                    #             t1 = np.datetime64(t1)
-                    #             t2 = np.datetime64(t2)
-                    #         else:
-                    #             time_sel = st.selectbox("🕒 Select Time", time_labels, key="map_single_time")
-                    #             time_index = list(time_labels).index(time_sel)
-                    #             raw_time_value = time_vals[time_index]
-
-                    #     # ------------------ Compute time_str and depth_str ------------------ #
-                    #     depth_str = ""
-                    #     time_str = ""
-                        
-                    #     # Depth string
-                    #     if "Depth Range Avg" in plot_mode:
-                    #         depth_str = f"{dmin:.0f} to {dmax:.0f} m"
-                    #     else:
-                    #         depth_str = f"{selected_depth:.0f} m"
-                        
-                    #     # Time string
-                    #     if "Time Range Avg" in plot_mode:
-                    #         time_str = f"{pd.to_datetime(t1).strftime('%Y-%m-%d')} to {pd.to_datetime(t2).strftime('%Y-%m-%d')}"
-                    #     else:
-                    #         time_str = pd.to_datetime(raw_time_value).strftime('%Y-%m-%d')
-            
-                        
-                    #     # ------------------ Data Extraction ------------------ #
-                    #     data = ds[var]
-                    #     data = data.sel({lat_var: slice(*lat_range), lon_var: slice(*lon_range)})
-                    
-                    #     if "Depth Range Avg" in plot_mode:
-                    #         data = data.sel({depth_var: slice(dmin, dmax)})
-                    #         data = data.mean(dim=depth_var, skipna=True)
-                    #         depth_str = f"{dmin:.0f} to {dmax:.0f} m"
-                    #     else:
-                    #         data = data.sel({depth_var: selected_depth}, method="nearest")
-                    #         depth_str = f"{selected_depth:.0f} m"
-                    
-                    #     if "Time Range Avg" in plot_mode:
-                    #         data = data.sel({time_var: slice(t1, t2)})
-                    #         data = data.mean(dim=time_var, skipna=True)
-                    #         time_str = f"{pd.to_datetime(t1).strftime('%Y-%m-%d')} to {pd.to_datetime(t2).strftime('%Y-%m-%d')}"
-                    #     else:
-                    #         data = data.sel({time_var: raw_time_value})
-                    #         time_str = pd.to_datetime(raw_time_value).strftime('%Y-%m-%d')
-                    
-                    #     # ------------------ Plotting ------------------ #
-                    #     st.subheader("🗺️ Map View")
-                    #     plt.rcParams['font.family'] = st.session_state.get("font_family", "DejaVu Sans")                
-                    
-                    #     fig, ax = plt.subplots(figsize=(10, 6), subplot_kw={"projection": ccrs.PlateCarree()})
-                    #     plot_kwargs = {
-                    #         "ax": ax,
-                    #         "transform": ccrs.PlateCarree(),
-                    #         "cmap": cmap_choice,
-                    #         "add_colorbar": True
-                    #     }
-                    #     if set_clim:
-                    #         plot_kwargs["vmin"] = vmin
-                    #         plot_kwargs["vmax"] = vmax
-                    
-                    #     im = data.squeeze().plot.pcolormesh(**plot_kwargs)
-                    #     ax.coastlines()
-                    
-                    #     gl = ax.gridlines(draw_labels=True, linewidth=0.5, color='gray', alpha=0.5, linestyle='--')
-                    #     gl.top_labels = gl.right_labels = False
-                    #     gl.xlabel_style = gl.ylabel_style = {'size': 12}
-                    
-                    #     if st.session_state.get("manual_ticks", False):
-                    #         xtick_step = st.session_state.get("xtick_step")
-                    #         ytick_step = st.session_state.get("ytick_step")
-                    #         if xtick_step and ytick_step:
-                    #             gl.xlocator = mticker.FixedLocator(np.arange(lon_range[0], lon_range[1] + xtick_step, xtick_step))
-                    #             gl.ylocator = mticker.FixedLocator(np.arange(lat_range[0], lat_range[1] + ytick_step, ytick_step))
-                    
-                    #     if mask_land:
-                    #         ax.add_feature(cfeature.LAND, facecolor=mask_color, zorder=3)
-                    #     if mask_sea:
-                    #         ax.add_feature(cfeature.OCEAN, facecolor=mask_color, zorder=3)
-                    
-                    #     ax.set_title(f"{plot_title}\n {time_str} | Depth: {depth_str}", fontsize=14)
-                    
-                    #     # Replace colorbar
-                    #     if hasattr(im, 'colorbar') and im.colorbar:
-                    #         im.colorbar.remove()
-                    #     cbar = fig.colorbar(im, ax=ax, orientation='vertical', shrink=0.6, pad=0.05)
-                    #     cbar.set_label(cbar_label, fontsize=12)
-                    
-                    #     # Axis labels
-                    #     fig_w, fig_h = fig.get_size_inches()
-                    #     x_offset = -0.05 * (10 / fig_w)
-                    #     y_offset = -0.1 * (6 / fig_h)
-                    #     ax.text(0.5, y_offset, xlabel, transform=ax.transAxes, ha='center', va='top', fontsize=12)
-                    #     ax.text(x_offset - 0.1, 0.5, ylabel, transform=ax.transAxes, ha='right', va='center', rotation='vertical', fontsize=12)
-                    
-                    #     st.pyplot(fig)
-            
-                
-                    #     # Download
-                    #     if save_btn:
-                    #         buf = io.BytesIO()
-                    #         fig.savefig(buf, format=save_format, dpi=dpi_value, bbox_inches="tight")
-                    #         st.success(f"✅ Plot saved as {save_format.upper()} ({dpi_value} DPI)")
-                    #         st.download_button(
-                    #             label=f"📥 Download {save_format.upper()} file",
-                    #             data=buf.getvalue(),
-                    #             file_name=f"ocean_plot.{save_format}",
-                    #             mime=f"image/{'jpeg' if save_format == 'jpg' else save_format}"
-                    #         )
-
                     if show_spatial_map:
-                        # --- Dynamic Plot Modes Based on Dimensions ---
+                        
+                        # -- Plot Mode Selection
+                        
+                        # plot_mode = st.radio("🧭 Select Plot Mode", [
+                        #     "Single Time + Single Depth",
+                        #     "Time Range Avg + Single Depth",
+                        #     "Single Time + Depth Range Avg",
+                        #     "Time Range Avg + Depth Range Avg"
+                        # ])
+
+                        plot_options = []
+
                         if not time_var and not depth_var:
                             plot_options = ["Lat-Lon Map (2D Only)"]
                         elif time_var and not depth_var:
@@ -848,9 +671,26 @@ else:
                                 "Single Time + Depth Range Avg",
                                 "Time Range Avg + Depth Range Avg"
                             ]
+                        
                         plot_mode = st.radio("🧭 Select Plot Mode", plot_options)
-                    
-                        # --- Depth Input ---
+
+            
+                        # -- Depth Input
+                        # depth_vals = ds[depth_var].values if depth_var else None
+                        # if depth_var:
+                        #     if "Depth Range Avg" in plot_mode:
+                        #         col1, col2 = st.columns(2)
+                        #         with col1:
+                        #             dmin = st.number_input("Min Depth", float(depth_vals.min()), float(depth_vals.max()), value=float(depth_vals.min()), key="depth_min")
+                        #         with col2:
+                        #             dmax = st.number_input("Max Depth", float(depth_vals.min()), float(depth_vals.max()), value=float(depth_vals.max()), key="depth_max")
+                        #     else:
+                        #         selected_depth = st.number_input(
+                        #             "Depth (m)", float(depth_vals.min()), float(depth_vals.max()),
+                        #             value=float(depth_vals.min()), step=10.0, key="depth_single"
+                        #         )
+
+
                         if depth_var and "Depth" in plot_mode:
                             depth_vals = ds[depth_var].values
                             if "Depth Range Avg" in plot_mode:
@@ -860,9 +700,26 @@ else:
                                 with col2:
                                     dmax = st.number_input("Max Depth", float(depth_vals.min()), float(depth_vals.max()), value=float(depth_vals.max()), key="depth_max")
                             else:
-                                selected_depth = st.number_input("Depth (m)", float(depth_vals.min()), float(depth_vals.max()), value=float(depth_vals.min()), step=10.0, key="depth_single")
-                    
-                        # --- Time Input ---
+                                selected_depth = st.number_input(
+                                    "Depth (m)", float(depth_vals.min()), float(depth_vals.max()),
+                                    value=float(depth_vals.min()), step=10.0, key="depth_single"
+                                )
+
+
+                        
+                            
+                        # -- Time Input
+                        # time_vals, time_labels = try_decode_time(ds, time_var)
+                        # if "Time Range Avg" in plot_mode:
+                        #     t1 = st.date_input("🕒 Start Date", value=pd.to_datetime(time_labels[0]), key="map_start")
+                        #     t2 = st.date_input("🕒 End Date", value=pd.to_datetime(time_labels[-1]), key="map_end")
+                        #     t1 = np.datetime64(t1)
+                        #     t2 = np.datetime64(t2)
+                        # else:
+                        #     time_sel = st.selectbox("🕒 Select Time", time_labels, key="map_single_time")
+                        #     time_index = list(time_labels).index(time_sel)
+                        #     raw_time_value = time_vals[time_index]
+
                         if time_var and "Time" in plot_mode:
                             time_vals, time_labels = try_decode_time(ds, time_var)
                             if "Time Range Avg" in plot_mode:
@@ -874,25 +731,48 @@ else:
                                 time_sel = st.selectbox("🕒 Select Time", time_labels, key="map_single_time")
                                 time_index = list(time_labels).index(time_sel)
                                 raw_time_value = time_vals[time_index]
+
+                        # ------------------ Compute time_str and depth_str ------------------ #
+                        depth_str = ""
+                        time_str = ""
+                        
+                        # Depth string
+                        if "Depth Range Avg" in plot_mode:
+                            depth_str = f"{dmin:.0f} to {dmax:.0f} m"
+                        else:
+                            depth_str = f"{selected_depth:.0f} m"
+                        
+                        # Time string
+                        if "Time Range Avg" in plot_mode:
+                            time_str = f"{pd.to_datetime(t1).strftime('%Y-%m-%d')} to {pd.to_datetime(t2).strftime('%Y-%m-%d')}"
+                        else:
+                            time_str = pd.to_datetime(raw_time_value).strftime('%Y-%m-%d')
+            
+                        
+                        # ------------------ Data Extraction ------------------ #
+                        data = ds[var]
+                        data = data.sel({lat_var: slice(*lat_range), lon_var: slice(*lon_range)})
                     
-                        # --- Construct Labels ---
-                        depth_str = "No Depth"
-                        time_str = "No Time"
-                        if depth_var and "Depth" in plot_mode:
-                            depth_str = f"{dmin:.0f} to {dmax:.0f} m" if "Range" in plot_mode else f"{selected_depth:.0f} m"
-                        if time_var and "Time" in plot_mode:
-                            time_str = f"{pd.to_datetime(t1).strftime('%Y-%m-%d')} to {pd.to_datetime(t2).strftime('%Y-%m-%d')}" if "Range" in plot_mode else pd.to_datetime(raw_time_value).strftime('%Y-%m-%d')
+                        if "Depth Range Avg" in plot_mode:
+                            data = data.sel({depth_var: slice(dmin, dmax)})
+                            data = data.mean(dim=depth_var, skipna=True)
+                            depth_str = f"{dmin:.0f} to {dmax:.0f} m"
+                        else:
+                            data = data.sel({depth_var: selected_depth}, method="nearest")
+                            depth_str = f"{selected_depth:.0f} m"
                     
-                        # --- Data Extraction ---
-                        data = ds[var].sel({lat_var: slice(*lat_range), lon_var: slice(*lon_range)})
-                        if depth_var and "Depth" in plot_mode:
-                            data = data.sel({depth_var: slice(dmin, dmax)}).mean(dim=depth_var, skipna=True) if "Range" in plot_mode else data.sel({depth_var: selected_depth}, method="nearest")
-                        if time_var and "Time" in plot_mode:
-                            data = data.sel({time_var: slice(t1, t2)}).mean(dim=time_var, skipna=True) if "Range" in plot_mode else data.sel({time_var: raw_time_value})
+                        if "Time Range Avg" in plot_mode:
+                            data = data.sel({time_var: slice(t1, t2)})
+                            data = data.mean(dim=time_var, skipna=True)
+                            time_str = f"{pd.to_datetime(t1).strftime('%Y-%m-%d')} to {pd.to_datetime(t2).strftime('%Y-%m-%d')}"
+                        else:
+                            data = data.sel({time_var: raw_time_value})
+                            time_str = pd.to_datetime(raw_time_value).strftime('%Y-%m-%d')
                     
-                        # --- Plotting ---
+                        # ------------------ Plotting ------------------ #
                         st.subheader("🗺️ Map View")
-                        plt.rcParams['font.family'] = st.session_state.get("font_family", "DejaVu Sans")
+                        plt.rcParams['font.family'] = st.session_state.get("font_family", "DejaVu Sans")                
+                    
                         fig, ax = plt.subplots(figsize=(10, 6), subplot_kw={"projection": ccrs.PlateCarree()})
                         plot_kwargs = {
                             "ax": ax,
@@ -925,11 +805,13 @@ else:
                     
                         ax.set_title(f"{plot_title}\n {time_str} | Depth: {depth_str}", fontsize=14)
                     
+                        # Replace colorbar
                         if hasattr(im, 'colorbar') and im.colorbar:
                             im.colorbar.remove()
                         cbar = fig.colorbar(im, ax=ax, orientation='vertical', shrink=0.6, pad=0.05)
                         cbar.set_label(cbar_label, fontsize=12)
                     
+                        # Axis labels
                         fig_w, fig_h = fig.get_size_inches()
                         x_offset = -0.05 * (10 / fig_w)
                         y_offset = -0.1 * (6 / fig_h)
@@ -937,7 +819,8 @@ else:
                         ax.text(x_offset - 0.1, 0.5, ylabel, transform=ax.transAxes, ha='right', va='center', rotation='vertical', fontsize=12)
                     
                         st.pyplot(fig)
-                    
+            
+                
                         # Download
                         if save_btn:
                             buf = io.BytesIO()
@@ -949,6 +832,123 @@ else:
                                 file_name=f"ocean_plot.{save_format}",
                                 mime=f"image/{'jpeg' if save_format == 'jpg' else save_format}"
                             )
+
+                    # if show_spatial_map:
+                    #     # --- Dynamic Plot Modes Based on Dimensions ---
+                    #     if not time_var and not depth_var:
+                    #         plot_options = ["Lat-Lon Map (2D Only)"]
+                    #     elif time_var and not depth_var:
+                    #         plot_options = ["Single Time", "Time Range Avg"]
+                    #     elif depth_var and not time_var:
+                    #         plot_options = ["Single Depth", "Depth Range Avg"]
+                    #     else:
+                    #         plot_options = [
+                    #             "Single Time + Single Depth",
+                    #             "Time Range Avg + Single Depth",
+                    #             "Single Time + Depth Range Avg",
+                    #             "Time Range Avg + Depth Range Avg"
+                    #         ]
+                    #     plot_mode = st.radio("🧭 Select Plot Mode", plot_options)
+                    
+                    #     # --- Depth Input ---
+                    #     if depth_var and "Depth" in plot_mode:
+                    #         depth_vals = ds[depth_var].values
+                    #         if "Depth Range Avg" in plot_mode:
+                    #             col1, col2 = st.columns(2)
+                    #             with col1:
+                    #                 dmin = st.number_input("Min Depth", float(depth_vals.min()), float(depth_vals.max()), value=float(depth_vals.min()), key="depth_min")
+                    #             with col2:
+                    #                 dmax = st.number_input("Max Depth", float(depth_vals.min()), float(depth_vals.max()), value=float(depth_vals.max()), key="depth_max")
+                    #         else:
+                    #             selected_depth = st.number_input("Depth (m)", float(depth_vals.min()), float(depth_vals.max()), value=float(depth_vals.min()), step=10.0, key="depth_single")
+                    
+                    #     # --- Time Input ---
+                    #     if time_var and "Time" in plot_mode:
+                    #         time_vals, time_labels = try_decode_time(ds, time_var)
+                    #         if "Time Range Avg" in plot_mode:
+                    #             t1 = st.date_input("🕒 Start Date", value=pd.to_datetime(time_labels[0]), key="map_start")
+                    #             t2 = st.date_input("🕒 End Date", value=pd.to_datetime(time_labels[-1]), key="map_end")
+                    #             t1 = np.datetime64(t1)
+                    #             t2 = np.datetime64(t2)
+                    #         else:
+                    #             time_sel = st.selectbox("🕒 Select Time", time_labels, key="map_single_time")
+                    #             time_index = list(time_labels).index(time_sel)
+                    #             raw_time_value = time_vals[time_index]
+                    
+                    #     # --- Construct Labels ---
+                    #     depth_str = "No Depth"
+                    #     time_str = "No Time"
+                    #     if depth_var and "Depth" in plot_mode:
+                    #         depth_str = f"{dmin:.0f} to {dmax:.0f} m" if "Range" in plot_mode else f"{selected_depth:.0f} m"
+                    #     if time_var and "Time" in plot_mode:
+                    #         time_str = f"{pd.to_datetime(t1).strftime('%Y-%m-%d')} to {pd.to_datetime(t2).strftime('%Y-%m-%d')}" if "Range" in plot_mode else pd.to_datetime(raw_time_value).strftime('%Y-%m-%d')
+                    
+                    #     # --- Data Extraction ---
+                    #     data = ds[var].sel({lat_var: slice(*lat_range), lon_var: slice(*lon_range)})
+                    #     if depth_var and "Depth" in plot_mode:
+                    #         data = data.sel({depth_var: slice(dmin, dmax)}).mean(dim=depth_var, skipna=True) if "Range" in plot_mode else data.sel({depth_var: selected_depth}, method="nearest")
+                    #     if time_var and "Time" in plot_mode:
+                    #         data = data.sel({time_var: slice(t1, t2)}).mean(dim=time_var, skipna=True) if "Range" in plot_mode else data.sel({time_var: raw_time_value})
+                    
+                    #     # --- Plotting ---
+                    #     st.subheader("🗺️ Map View")
+                    #     plt.rcParams['font.family'] = st.session_state.get("font_family", "DejaVu Sans")
+                    #     fig, ax = plt.subplots(figsize=(10, 6), subplot_kw={"projection": ccrs.PlateCarree()})
+                    #     plot_kwargs = {
+                    #         "ax": ax,
+                    #         "transform": ccrs.PlateCarree(),
+                    #         "cmap": cmap_choice,
+                    #         "add_colorbar": True
+                    #     }
+                    #     if set_clim:
+                    #         plot_kwargs["vmin"] = vmin
+                    #         plot_kwargs["vmax"] = vmax
+                    
+                    #     im = data.squeeze().plot.pcolormesh(**plot_kwargs)
+                    #     ax.coastlines()
+                    
+                    #     gl = ax.gridlines(draw_labels=True, linewidth=0.5, color='gray', alpha=0.5, linestyle='--')
+                    #     gl.top_labels = gl.right_labels = False
+                    #     gl.xlabel_style = gl.ylabel_style = {'size': 12}
+                    
+                    #     if st.session_state.get("manual_ticks", False):
+                    #         xtick_step = st.session_state.get("xtick_step")
+                    #         ytick_step = st.session_state.get("ytick_step")
+                    #         if xtick_step and ytick_step:
+                    #             gl.xlocator = mticker.FixedLocator(np.arange(lon_range[0], lon_range[1] + xtick_step, xtick_step))
+                    #             gl.ylocator = mticker.FixedLocator(np.arange(lat_range[0], lat_range[1] + ytick_step, ytick_step))
+                    
+                    #     if mask_land:
+                    #         ax.add_feature(cfeature.LAND, facecolor=mask_color, zorder=3)
+                    #     if mask_sea:
+                    #         ax.add_feature(cfeature.OCEAN, facecolor=mask_color, zorder=3)
+                    
+                    #     ax.set_title(f"{plot_title}\n {time_str} | Depth: {depth_str}", fontsize=14)
+                    
+                    #     if hasattr(im, 'colorbar') and im.colorbar:
+                    #         im.colorbar.remove()
+                    #     cbar = fig.colorbar(im, ax=ax, orientation='vertical', shrink=0.6, pad=0.05)
+                    #     cbar.set_label(cbar_label, fontsize=12)
+                    
+                    #     fig_w, fig_h = fig.get_size_inches()
+                    #     x_offset = -0.05 * (10 / fig_w)
+                    #     y_offset = -0.1 * (6 / fig_h)
+                    #     ax.text(0.5, y_offset, xlabel, transform=ax.transAxes, ha='center', va='top', fontsize=12)
+                    #     ax.text(x_offset - 0.1, 0.5, ylabel, transform=ax.transAxes, ha='right', va='center', rotation='vertical', fontsize=12)
+                    
+                    #     st.pyplot(fig)
+                    
+                    #     # Download
+                    #     if save_btn:
+                    #         buf = io.BytesIO()
+                    #         fig.savefig(buf, format=save_format, dpi=dpi_value, bbox_inches="tight")
+                    #         st.success(f"✅ Plot saved as {save_format.upper()} ({dpi_value} DPI)")
+                    #         st.download_button(
+                    #             label=f"📥 Download {save_format.upper()} file",
+                    #             data=buf.getvalue(),
+                    #             file_name=f"ocean_plot.{save_format}",
+                    #             mime=f"image/{'jpeg' if save_format == 'jpg' else save_format}"
+                    #         )
                     
                             
                     #---------------------------------Intercative Spatial Map View----------------------------------------------------------#
