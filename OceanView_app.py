@@ -632,14 +632,19 @@ else:
                     with st.expander("📄 Dataset Structure"):
                         st.code(ds.__repr__(), language="python")
             
-                    
+                    try:
+                        st.write("Dims:", ds[var].dims)
+                    except Exception as e:
+                        st.error(f"Error accessing variable {var}: {e}")
+                        st.stop()
+
                     # =============================
                     # --- Advanced Slicing for Plot Mode ---
                     # =============================
                     data = ds[var]
                     data = data.sel({lat_var: slice(*lat_range), lon_var: slice(*lon_range)})
                                
-
+                    
                     
                     #---------------------------------Normal Spatial Map View----------------------------------------------------------#
             
