@@ -1045,12 +1045,12 @@ else:
                             #     section = section.sel({time_var: raw_time_value}, method="nearest")
             
                             # --- Depth Range Selection ---
-                            depth_min = st.number_input("Min Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=0.0, step=10.0)
-                            depth_max = st.number_input("Max Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=500.0, step=10.0)
+                            depth_min = st.number_input("Min Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=float(ds[depth_var].min()), step=10.0)
+                            depth_max = st.number_input("Max Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=float(ds[depth_var].max()), step=10.0)
                             
                             if section_mode == "Z vs Longitude (at fixed Latitude)":
-                                fixed_lat = st.number_input("Fixed Latitude (°N)", float(lat_vals.min()), float(lat_vals.max()), value=15.0)
-                                lon_min, lon_max = st.slider("Longitude Range (°E)", float(lon_vals.min()), float(lon_vals.max()), (50.0, 80.0))
+                                fixed_lat = st.number_input("Fixed Latitude (°N)", float(lat_vals.min()), float(lat_vals.max()), float(lat_vals.min()))
+                                lon_min, lon_max = st.slider("Longitude Range (°E)", float(lon_vals.min()), float(lon_vals.max()), (float(lon_vals.min()), float(lon_vals.max())))
                                 section = section.sel({lat_var: fixed_lat}, method="nearest")
                                 section = section.sel({lon_var: slice(lon_min, lon_max)})
                                 section = section.transpose(depth_var, lon_var)
@@ -1060,8 +1060,8 @@ else:
                                 section_label = f"{fixed_lat:.2f}°N"
                     
                             elif section_mode == "Z vs Latitude (at fixed Longitude)":
-                                fixed_lon = st.number_input("Fixed Longitude (°E)", float(lon_vals.min()), float(lon_vals.max()), value=60.0)
-                                lat_min, lat_max = st.slider("Latitude Range (°N)", float(lat_vals.min()), float(lat_vals.max()), (0.0, 25.0))
+                                fixed_lon = st.number_input("Fixed Longitude (°E)", float(lon_vals.min()), float(lon_vals.max()), value=float(lon_vals.min()))
+                                lat_min, lat_max = st.slider("Latitude Range (°N)", float(lat_vals.min()), float(lat_vals.max()), (float(lat_vals.min()), float(lat_vals.max())))
                                 section = section.sel({lon_var: fixed_lon}, method="nearest")
                                 section = section.sel({lat_var: slice(lat_min, lat_max)})
                                 section = section.transpose(depth_var, lat_var)  # ✅ FIX HERE
@@ -1072,9 +1072,9 @@ else:
             
                     
                             elif section_mode == "Z vs Longitude (averaged over Latitude band)":
-                                lat_min = st.number_input("Min Latitude", float(lat_vals.min()), float(lat_vals.max()), value=10.0)
-                                lat_max = st.number_input("Max Latitude", float(lat_vals.min()), float(lat_vals.max()), value=20.0)
-                                lon_min, lon_max = st.slider("Longitude Range (°E)", float(lon_vals.min()), float(lon_vals.max()), (50.0, 80.0))
+                                lat_min = st.number_input("Min Latitude", float(lat_vals.min()), float(lat_vals.max()), value=float(lat_vals.min()))
+                                lat_max = st.number_input("Max Latitude", float(lat_vals.min()), float(lat_vals.max()), value=float(lat_vals.max()))
+                                lon_min, lon_max = st.slider("Longitude Range (°E)", float(lon_vals.min()), float(lon_vals.max()), (float(lon_vals.min()), float(lon_vals.max())))
                                 section = section.sel({lat_var: slice(lat_min, lat_max), lon_var: slice(lon_min, lon_max)})
                                 section = section.mean(dim=lat_var, skipna=True)
                                 section = section.transpose(depth_var, lon_var)
@@ -1084,9 +1084,9 @@ else:
                                 section_label = f"Lat Avg ({lat_min}-{lat_max}°N)"
                     
                             elif section_mode == "Z vs Latitude (averaged over Longitude band)":
-                                lon_min = st.number_input("Min Longitude", float(lon_vals.min()), float(lon_vals.max()), value=50.0)
-                                lon_max = st.number_input("Max Longitude", float(lon_vals.min()), float(lon_vals.max()), value=70.0)
-                                lat_min, lat_max = st.slider("Latitude Range (°N)", float(lat_vals.min()), float(lat_vals.max()), (0.0, 25.0))
+                                lon_min = st.number_input("Min Longitude", float(lon_vals.min()), float(lon_vals.max()), value=float(lon_vals.min()))
+                                lon_max = st.number_input("Max Longitude", float(lon_vals.min()), float(lon_vals.max()), value=float(lon_vals.max()))
+                                lat_min, lat_max = st.slider("Latitude Range (°N)", float(lat_vals.min()), float(lat_vals.max()), (float(lat_vals.min()), float(lat_vals.max())))
                                 section = section.sel({lat_var: slice(lat_min, lat_max), lon_var: slice(lon_min, lon_max)})
                                 section = section.mean(dim=lon_var, skipna=True)
                                 section = section.transpose(depth_var, lat_var)  # ✅ FIX HERE
@@ -1181,8 +1181,8 @@ else:
                             depth_max = st.number_input("Max Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=500.0, step=10.0, key="dmax_int")
                     
                             if section_mode == "Z vs Longitude (at fixed Latitude)":
-                                fixed_lat = st.number_input("Fixed Latitude (°N)", float(lat_vals.min()), float(lat_vals.max()), value=15.0, key="fixed_lat_int")
-                                lon_min, lon_max = st.slider("Longitude Range (°E)", float(lon_vals.min()), float(lon_vals.max()), (50.0, 80.0), key="lon_range_int")
+                                fixed_lat = st.number_input("Fixed Latitude (°N)", float(lat_vals.min()), float(lat_vals.max()), value=float(lat_vals.min()), key="fixed_lat_int")
+                                lon_min, lon_max = st.slider("Longitude Range (°E)", float(lon_vals.min()), float(lon_vals.max()), (float(lon_vals.min()), float(lon_vals.max())), key="lon_range_int")
                                 section = section.sel({lat_var: fixed_lat}, method="nearest")
                                 section = section.sel({lon_var: slice(lon_min, lon_max)})
                                 section = section.transpose(depth_var, lon_var)
@@ -1192,8 +1192,8 @@ else:
                                 section_label = f"{fixed_lat:.2f}°N"
                     
                             elif section_mode == "Z vs Latitude (at fixed Longitude)":
-                                fixed_lon = st.number_input("Fixed Longitude (°E)", float(lon_vals.min()), float(lon_vals.max()), value=60.0, key="fixed_lon_int")
-                                lat_min, lat_max = st.slider("Latitude Range (°N)", float(lat_vals.min()), float(lat_vals.max()), (0.0, 25.0), key="lat_range_int")
+                                fixed_lon = st.number_input("Fixed Longitude (°E)", float(lon_vals.min()), float(lon_vals.max()), value=float(lon_vals.min()), key="fixed_lon_int")
+                                lat_min, lat_max = st.slider("Latitude Range (°N)", float(lat_vals.min()), float(lat_vals.max()), (float(lat_vals.min()), float(lat_vals.max())), key="lat_range_int")
                                 section = section.sel({lon_var: fixed_lon}, method="nearest")
                                 section = section.sel({lat_var: slice(lat_min, lat_max)})
                                 section = section.transpose(depth_var, lat_var)
@@ -1203,9 +1203,9 @@ else:
                                 section_label = f"{fixed_lon:.2f}°E"
                     
                             elif section_mode == "Z vs Longitude (averaged over Latitude band)":
-                                lat_min = st.number_input("Min Latitude", float(lat_vals.min()), float(lat_vals.max()), value=10.0, key="latmin_int")
-                                lat_max = st.number_input("Max Latitude", float(lat_vals.min()), float(lat_vals.max()), value=20.0, key="latmax_int")
-                                lon_min, lon_max = st.slider("Longitude Range (°E)", float(lon_vals.min()), float(lon_vals.max()), (50.0, 80.0), key="lon_avg_int")
+                                lat_min = st.number_input("Min Latitude", float(lat_vals.min()), float(lat_vals.max()), value=float(lat_vals.min()), key="latmin_int")
+                                lat_max = st.number_input("Max Latitude", float(lat_vals.min()), float(lat_vals.max()), value=float(lat_vals.max()), key="latmax_int")
+                                lon_min, lon_max = st.slider("Longitude Range (°E)", float(lon_vals.min()), float(lon_vals.max()), (float(lon_vals.min()), float(lon_vals.max())), key="lon_avg_int")
                                 section = section.sel({lat_var: slice(lat_min, lat_max), lon_var: slice(lon_min, lon_max)})
                                 section = section.mean(dim=lat_var, skipna=True)
                                 section = section.transpose(depth_var, lon_var)
@@ -1215,9 +1215,9 @@ else:
                                 section_label = f"Lat Avg ({lat_min}-{lat_max}°N)"
                     
                             elif section_mode == "Z vs Latitude (averaged over Longitude band)":
-                                lon_min = st.number_input("Min Longitude", float(lon_vals.min()), float(lon_vals.max()), value=50.0, key="lonmin_int")
-                                lon_max = st.number_input("Max Longitude", float(lon_vals.min()), float(lon_vals.max()), value=70.0, key="lonmax_int")
-                                lat_min, lat_max = st.slider("Latitude Range (°N)", float(lat_vals.min()), float(lat_vals.max()), (0.0, 25.0), key="lat_avg_int")
+                                lon_min = st.number_input("Min Longitude", float(lon_vals.min()), float(lon_vals.max()), value=float(lon_vals.min()), key="lonmin_int")
+                                lon_max = st.number_input("Max Longitude", float(lon_vals.min()), float(lon_vals.max()), value=float(lon_vals.max()), key="lonmax_int")
+                                lat_min, lat_max = st.slider("Latitude Range (°N)", float(lat_vals.min()), float(lat_vals.max()), (float(lat_vals.min()), float(lat_vals.max())), key="lat_avg_int")
                                 section = section.sel({lat_var: slice(lat_min, lat_max), lon_var: slice(lon_min, lon_max)})
                                 section = section.mean(dim=lon_var, skipna=True)
                                 section = section.transpose(depth_var, lat_var)
