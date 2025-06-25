@@ -585,7 +585,7 @@ else:
                         
                         # Depth string
                         if "Depth Range Avg" in plot_mode:
-                            depth_str = f"{dmin:.0f}–{dmax:.0f} m"
+                            depth_str = f"{dmin:.0f} to {dmax:.0f} m"
                         else:
                             depth_str = f"{selected_depth:.0f} m"
                         
@@ -603,7 +603,7 @@ else:
                         if "Depth Range Avg" in plot_mode:
                             data = data.sel({depth_var: slice(dmin, dmax)})
                             data = data.mean(dim=depth_var, skipna=True)
-                            depth_str = f"{dmin:.0f}–{dmax:.0f} m"
+                            depth_str = f"{dmin:.0f} to {dmax:.0f} m"
                         else:
                             data = data.sel({depth_var: selected_depth}, method="nearest")
                             depth_str = f"{selected_depth:.0f} m"
@@ -725,7 +725,7 @@ else:
                         if "Depth Range Avg" in plot_mode:
                             data = data.sel({depth_var: slice(dmin, dmax)})
                             data = data.mean(dim=depth_var, skipna=True)
-                            depth_str = f"{dmin:.0f}–{dmax:.0f} m"
+                            depth_str = f"{dmin:.0f} to {dmax:.0f} m"
                         else:
                             data = data.sel({depth_var: selected_depth}, method="nearest")
                             depth_str = f"{selected_depth:.0f} m"
@@ -912,7 +912,7 @@ else:
                                     if plot_mode == "Constant Depth":
                                         title += f" | Depth: {selected_depth} m"
                                     else:
-                                        title += f" | Depth Avg: {dmin}–{dmax} m"
+                                        title += f" | Depth Avg: {dmin} to {dmax} m"
                     
                                     ax_anim.set_title(title, fontsize=12)
                                     return [im]
