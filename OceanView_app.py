@@ -558,9 +558,9 @@ else:
                             if "Depth Range Avg" in plot_mode:
                                 col1, col2 = st.columns(2)
                                 with col1:
-                                    dmin = st.number_input("Min Depth", float(depth_vals.min()), float(depth_vals.max()), value=0.0, key="depth_min")
+                                    dmin = st.number_input("Min Depth", float(depth_vals.min()), float(depth_vals.max()), value=value=float(depth_vals.min()), key="depth_min")
                                 with col2:
-                                    dmax = st.number_input("Max Depth", float(depth_vals.min()), float(depth_vals.max()), value=200.0, key="depth_max")
+                                    dmax = st.number_input("Max Depth", float(depth_vals.min()), float(depth_vals.max()), value=value=float(depth_vals.max()), key="depth_max")
                             else:
                                 selected_depth = st.number_input(
                                     "Depth (m)", float(depth_vals.min()), float(depth_vals.max()),
@@ -697,9 +697,9 @@ else:
                             if "Depth Range Avg" in plot_mode:
                                 col1, col2 = st.columns(2)
                                 with col1:
-                                    dmin = st.number_input("Min Depth", float(depth_vals.min()), float(depth_vals.max()), value=0.0, key="imap_depth_min")
+                                    dmin = st.number_input("Min Depth", float(depth_vals.min()), float(depth_vals.max()), value=value=float(depth_vals.min()), key="imap_depth_min")
                                 with col2:
-                                    dmax = st.number_input("Max Depth", float(depth_vals.min()), float(depth_vals.max()), value=200.0, key="imap_depth_max")
+                                    dmax = st.number_input("Max Depth", float(depth_vals.min()), float(depth_vals.max()), value=value=float(depth_vals.max()), key="imap_depth_max")
                             else:
                                 selected_depth = st.number_input(
                                     "Depth (m)", float(depth_vals.min()), float(depth_vals.max()),
@@ -827,8 +827,8 @@ else:
                                 if plot_mode == "Constant Depth":
                                     selected_depth = st.number_input("Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=10.0)
                                 else:
-                                    dmin = st.number_input("Min Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=0.0)
-                                    dmax = st.number_input("Max Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=200.0)
+                                    dmin = st.number_input("Min Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=value=float(depth_vals.min()))
+                                    dmax = st.number_input("Max Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=value=float(depth_vals.max()))
                     
                                 # Select and slice data
                                 da_anim = ds[var]
