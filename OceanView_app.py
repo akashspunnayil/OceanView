@@ -783,7 +783,8 @@ else:
                         if set_clim:
                             plot_kwargs["vmin"] = vmin
                             plot_kwargs["vmax"] = vmax
-                    
+
+                        
                         im = data.squeeze().plot.pcolormesh(**plot_kwargs)
                         ax.coastlines()
                     
