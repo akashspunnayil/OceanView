@@ -1177,8 +1177,8 @@ else:
                                     section = section.mean(dim=time_var, skipna=True)
                     
                             # --- Depth Range Selection ---
-                            depth_min = st.number_input("Min Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=0.0, step=10.0, key="dmin_int")
-                            depth_max = st.number_input("Max Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=500.0, step=10.0, key="dmax_int")
+                            depth_min = st.number_input("Min Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=float(ds[depth_var].min()), step=10.0, key="dmin_int")
+                            depth_max = st.number_input("Max Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=float(ds[depth_var].max()), step=10.0, key="dmax_int")
                     
                             if section_mode == "Z vs Longitude (at fixed Latitude)":
                                 fixed_lat = st.number_input("Fixed Latitude (°N)", float(lat_vals.min()), float(lat_vals.max()), value=float(lat_vals.min()), key="fixed_lat_int")
