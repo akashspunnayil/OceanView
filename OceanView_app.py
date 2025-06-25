@@ -869,7 +869,7 @@ else:
                                     selected_depth = st.number_input("Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=10.0)
                                 else:
                                     dmin = st.number_input("Min Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=float(depth_vals.min()))
-                                    dmax = st.number_input("Max Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=float(depth_vals.max()))
+                                    # dmax = st.number_input("Max Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=float(depth_vals.max()))
                     
                                 # Select and slice data
                                 da_anim = ds[var]
