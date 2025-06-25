@@ -744,10 +744,29 @@ else:
                         def figsize_to_plotly(width_in, height_in, dpi=100):
                             return int(width_in * dpi), int(height_in * dpi)
                     
+                        # def standardize_coords(dataarray):
+                        #     coord_map = {'latitude': None, 'longitude': None, 'time': None, 'depth': None}
+                        #     # coord_candidates = {k.lower(): k for k in dataarray.coords}
+                        #     coord_candidates = {k.lower(): k for k in list(dataarray.coords) + list(dataarray.dims)}
+                        
                         def standardize_coords(dataarray):
                             coord_map = {'latitude': None, 'longitude': None, 'time': None, 'depth': None}
-                            # coord_candidates = {k.lower(): k for k in dataarray.coords}
-                            coord_candidates = {k.lower(): k for k in list(dataarray.coords) + list(dataarray.dims)}
+                            all_candidates = list(dataarray.coords) + list(dataarray.dims)
+                            for standard, options in {
+                                'latitude': ['lat', 'latitude'],
+                                'longitude': ['lon', 'longitude'],
+                                'time': ['time'],
+                                'depth': ['depth', 'lev', 'z']
+                            }.items():
+                                for opt in options:
+                                    for candidate in all_candidates:
+                                        if opt in candidate.lower():
+                                            coord_map[standard] = candidate
+                                            break
+                                    if coord_map[standard]:
+                                        break
+                            return coord_map
+                        
 
                             for standard, options in {
                                 'latitude': ['lat', 'latitude'],
@@ -763,15 +782,14 @@ else:
                     
                         data_2d = data.squeeze()
                         coord_map = standardize_coords(data_2d)
-                    
-                        lat = data_2d[coord_map['latitude']].values
-                        lon = data_2d[coord_map['longitude']].values
-                        z = data_2d.values
 
                         if coord_map['latitude'] is None or coord_map['longitude'] is None:
                             st.error("❌ Could not detect latitude or longitude dimensions for Plotly heatmap.")
                             st.stop()
-                        
+                            
+                        lat = data_2d[coord_map['latitude']].values
+                        lon = data_2d[coord_map['longitude']].values
+                        z = data_2d.values
 
                         fig = go.Figure(
                             data=go.Heatmap(
