@@ -876,10 +876,8 @@ else:
                                 da_anim = da_anim.sel({lat_var: slice(*lat_range), lon_var: slice(*lon_range)})
                                 # da_anim = da_anim.sel({time_var: slice(t1, t2)})
                                 # da_anim = da_anim.where((da_anim[time_var] >= t1) & (da_anim[time_var] <= t2), drop=True)
-                                da_anim = da_anim.where(
-                                    (da_anim[time_var] >= t1) & (da_anim[time_var] <= t2),
-                                    drop=True
-                                )
+                                da_anim = da_anim.where((da_anim[time_var] >= t1) & (da_anim[time_var] <= t2), drop=True)
+
 
                                 time_labels = pd.to_datetime(da_anim[time_var].values)
             
