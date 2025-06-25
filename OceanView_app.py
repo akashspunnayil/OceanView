@@ -1822,7 +1822,124 @@ else:
                         except Exception as e:
                             st.error(f"❌ Failed to plot Hovmöller diagram: {e}")
     
-    
+                    #---------------------------------------- Interactive Hovmoller ----------------------------------------------------#
+                    if show_interactive_hovmoller:
+                        st.markdown("### 📊 Interactive Hovmöller Diagram")
+                    
+                        hov_mode = st.selectbox("📌 Select Hovmöller Mode", [
+                            "Longitude vs Time • Fixed Lat & Depth",
+                            "Longitude vs Time • Fixed Lat & Depth-avg",
+                            "Latitude vs Time • Fixed Lon & Depth",
+                            "Latitude vs Time • Fixed Lon & Depth-avg",
+                            "Depth vs Time • Fixed Lat & Lon",
+                            "Depth vs Time • Grid Avg (Lat-Lon box)"
+                        ], key="hov_mode_inter")
+                    
+                        da = ds[var]
+                        coord_map = detect_coord_names(ds)
+                        lat_var, lon_var, depth_var, time_var = coord_map['latitude'], coord_map['longitude'], coord_map['depth'], coord_map['time']
+                    
+                        # Decode time
+                        time_vals, time_labels = try_decode_time(ds, time_var)
+                        da.coords[time_var] = time_labels
+                    
+                        # Time range
+                        t1 = st.date_input("🕒 Start Date", value=pd.to_datetime(time_labels[0]), key="hov_int_start")
+                        t2 = st.date_input("🕒 End Date", value=pd.to_datetime(time_labels[-1]), key="hov_int_end")
+                        t1 = np.datetime64(t1)
+                        t2 = np.datetime64(t2)
+                    
+                        try:
+                            if hov_mode.startswith("Longitude"):
+                                fixed_lat = st.number_input("Latitude (°N)", float(ds[lat_var].min()), float(ds[lat_var].max()), value=15.0)
+                                lon_min = st.number_input("Min Longitude", float(ds[lon_var].min()), float(ds[lon_var].max()), value=float(ds[lon_var].min()))
+                                lon_max = st.number_input("Max Longitude", float(ds[lon_var].min()), float(ds[lon_var].max()), value=float(ds[lon_var].max()))
+                    
+                                if "Depth-avg" in hov_mode:
+                                    d1 = st.number_input("Min Depth", float(ds[depth_var].min()), float(ds[depth_var].max()), value=0.0)
+                                    d2 = st.number_input("Max Depth", float(ds[depth_var].min()), float(ds[depth_var].max()), value=200.0)
+                                    da_sel = da.sel({lon_var: slice(lon_min, lon_max)})
+                                    da_sel = da_sel.where((da_sel[depth_var] >= d1) & (da_sel[depth_var] <= d2), drop=True)
+                                    da_sel = da_sel.sel({lat_var: fixed_lat}, method="nearest").mean(dim=depth_var, skipna=True)
+                                else:
+                                    fixed_depth = st.number_input("Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=10.0, key="hov_int_depth")
+                                    da_sel = da.sel({lon_var: slice(lon_min, lon_max), depth_var: fixed_depth})
+                                    da_sel = da_sel.sel({lat_var: fixed_lat}, method="nearest")
+                    
+                                da_sel = da_sel.sel({time_var: slice(t1, t2)})
+                                hov_x = da_sel[lon_var]
+                                hov_y = da_sel[time_var]
+                                hov_z = da_sel.transpose(time_var, lon_var)
+                    
+                            elif hov_mode.startswith("Latitude"):
+                                fixed_lon = st.number_input("Longitude (°E)", float(ds[lon_var].min()), float(ds[lon_var].max()), value=60.0)
+                                lat_min = st.number_input("Min Latitude", float(ds[lat_var].min()), float(ds[lat_var].max()), value=float(ds[lat_var].min()))
+                                lat_max = st.number_input("Max Latitude", float(ds[lat_var].min()), float(ds[lat_var].max()), value=float(ds[lat_var].max()))
+                    
+                                if "Depth-avg" in hov_mode:
+                                    d1 = st.number_input("Min Depth", float(ds[depth_var].min()), float(ds[depth_var].max()), value=0.0)
+                                    d2 = st.number_input("Max Depth", float(ds[depth_var].min()), float(ds[depth_var].max()), value=200.0)
+                                    da_sel = da.sel({lat_var: slice(lat_min, lat_max)})
+                                    da_sel = da_sel.where((da_sel[depth_var] >= d1) & (da_sel[depth_var] <= d2), drop=True)
+                                    da_sel = da_sel.sel({lon_var: fixed_lon}, method="nearest").mean(dim=depth_var, skipna=True)
+                                else:
+                                    fixed_depth = st.number_input("Depth (m)", float(ds[depth_var].min()), float(ds[depth_var].max()), value=10.0, key="hov_int_depth_lat")
+                                    da_sel = da.sel({lat_var: slice(lat_min, lat_max), depth_var: fixed_depth})
+                                    da_sel = da_sel.sel({lon_var: fixed_lon}, method="nearest")
+                    
+                                da_sel = da_sel.sel({time_var: slice(t1, t2)})
+                                hov_x = da_sel[lat_var]
+                                hov_y = da_sel[time_var]
+                                hov_z = da_sel.transpose(time_var, lat_var)
+                    
+                            elif hov_mode == "Depth vs Time • Fixed Lat & Lon":
+                                lat_pt = st.number_input("Latitude (°N)", float(ds[lat_var].min()), float(ds[lat_var].max()), value=15.0)
+                                lon_pt = st.number_input("Longitude (°E)", float(ds[lon_var].min()), float(ds[lon_var].max()), value=60.0)
+                                da_sel = da.sel({lat_var: lat_pt, lon_var: lon_pt}, method="nearest")
+                                da_sel = da_sel.sel({time_var: slice(t1, t2)})
+                                hov_x = da_sel[depth_var]
+                                hov_y = da_sel[time_var]
+                                hov_z = da_sel.transpose(time_var, depth_var)
+                    
+                            elif hov_mode == "Depth vs Time • Grid Avg (Lat-Lon box)":
+                                lat_min = st.number_input("Min Latitude", float(ds[lat_var].min()), float(ds[lat_var].max()), value=10.0)
+                                lat_max = st.number_input("Max Latitude", float(ds[lat_var].min()), float(ds[lat_var].max()), value=20.0)
+                                lon_min = st.number_input("Min Longitude", float(ds[lon_var].min()), float(ds[lon_var].max()), value=50.0)
+                                lon_max = st.number_input("Max Longitude", float(ds[lon_var].min()), float(ds[lon_var].max()), value=70.0)
+                                da_sel = da.sel({lat_var: slice(lat_min, lat_max), lon_var: slice(lon_min, lon_max)})
+                                da_sel = da_sel.mean(dim=[lat_var, lon_var], skipna=True)
+                                da_sel = da_sel.sel({time_var: slice(t1, t2)})
+                                hov_x = da_sel[depth_var]
+                                hov_y = da_sel[time_var]
+                                hov_z = da_sel.transpose(time_var, depth_var)
+                    
+                            import plotly.graph_objects as go
+                            fig = go.Figure(data=go.Heatmap(
+                                z=hov_z.values,
+                                x=hov_x.values,
+                                y=pd.to_datetime(hov_y.values),
+                                colorscale=cmap_choice,
+                                zmin=vmin if set_clim else None,
+                                zmax=vmax if set_clim else None,
+                                colorbar=dict(title=cbar_label),
+                                hovertemplate=f"{hov_x.name}: %{{x}}<br>Time: %{{y}}<br>{var}: %{{z:.2f}}<extra></extra>"
+                            ))
+                    
+                            fig.update_layout(
+                                title=f"{var} Hovmöller Diagram<br>{hov_mode}",
+                                xaxis_title=hov_x.name,
+                                yaxis_title="Time",
+                                yaxis_autorange='reversed' if 'Depth' in hov_mode else True,
+                                height=500,
+                                width=900,
+                                margin=dict(l=60, r=40, t=80, b=60)
+                            )
+                    
+                            st.plotly_chart(fig, use_container_width=True)
+                    
+                        except Exception as e:
+                            st.error(f"❌ Failed to plot interactive Hovmöller: {e}")
+
             
         except Exception as e:
             st.error(f"⚠️ Failed to subset or plot data: {e}")
