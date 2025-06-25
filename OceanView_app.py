@@ -259,12 +259,25 @@ else:
           #           dims = set(da.dims)
           #           return any("lat" in d.lower() for d in dims) and any("lon" in d.lower() for d in dims)
 
+                # def is_plot_compatible(da):
+                #     coord_map = detect_coord_names(da.to_dataset())
+                #     lat = coord_map.get("latitude")
+                #     lon = coord_map.get("longitude")
+                #     return lat in da.dims and lon in da.dims
+
                 def is_plot_compatible(da):
+                    dims = set(da.dims)
+                    if len(dims) == 2:
+                        return (
+                            any("lat" in d.lower() for d in dims)
+                            and any("lon" in d.lower() for d in dims)
+                        )
+                    # Fallback to your current logic for 3D/4D
                     coord_map = detect_coord_names(da.to_dataset())
                     lat = coord_map.get("latitude")
                     lon = coord_map.get("longitude")
                     return lat in da.dims and lon in da.dims
-                
+
 
                 plot_vars = {v: ds[v] for v in ds.data_vars if is_plot_compatible(ds[v])}
                 if not plot_vars:
@@ -291,6 +304,7 @@ else:
                     # ds_sel = ds[var]
             
                     ds_sel = ds[var]
+
                     if apply_scaling:
                         ds_sel = scale_dataarray(ds_sel, scale_op, scale_val)
             
@@ -311,7 +325,13 @@ else:
                     depth_var = coord_map.get("depth")
                     time_var = coord_map.get("time")
 
-            
+
+                    # If depth_var or time_var is missing, skip those input widgets
+                    if not depth_var:
+                        st.info("ℹ️ No depth dimension found in this dataset.")
+                    if not time_var:
+                        st.info("ℹ️ No time dimension found in this dataset.")
+                        
                     if lat_var and ds[lat_var][0] > ds[lat_var][-1]:
                         ds = ds.sortby(lat_var)
             
@@ -437,7 +457,20 @@ else:
                         show_interactive_hovmoller = st.checkbox("Hovmöller Interactive Diagram")
                         station_plot = st.checkbox("Station Contour (Using excel/csv)")
             
-                            
+
+                    # === Disable unsupported plots based on missing dimensions ===
+                    if not time_var:
+                        show_time_animation = False
+                        show_timeseries_plot = False
+                        show_hovmoller = False
+                        show_interactive_hovmoller = False
+                    
+                    if not depth_var:
+                        show_vertical_section = False
+                        show_interactive_vertical_section = False
+                        show_vertical_profile = False
+                        show_interactive_vertical_profile = False
+
                     if show_spatial_map or show_vertical_section or show_time_animation or show_interactive_spatial_map:
                         with st.expander("🌍 Land/Sea Masking"):
                             mask_land = st.checkbox("Mask Land", value=False)
@@ -591,8 +624,23 @@ else:
                         ])
             
                         # -- Depth Input
-                        depth_vals = ds[depth_var].values if depth_var else None
-                        if depth_var:
+                        # depth_vals = ds[depth_var].values if depth_var else None
+                        # if depth_var:
+                        #     if "Depth Range Avg" in plot_mode:
+                        #         col1, col2 = st.columns(2)
+                        #         with col1:
+                        #             dmin = st.number_input("Min Depth", float(depth_vals.min()), float(depth_vals.max()), value=float(depth_vals.min()), key="depth_min")
+                        #         with col2:
+                        #             dmax = st.number_input("Max Depth", float(depth_vals.min()), float(depth_vals.max()), value=float(depth_vals.max()), key="depth_max")
+                        #     else:
+                        #         selected_depth = st.number_input(
+                        #             "Depth (m)", float(depth_vals.min()), float(depth_vals.max()),
+                        #             value=float(depth_vals.min()), step=10.0, key="depth_single"
+                        #         )
+
+
+                        if depth_var and "Depth" in plot_mode:
+                            depth_vals = ds[depth_var].values
                             if "Depth Range Avg" in plot_mode:
                                 col1, col2 = st.columns(2)
                                 with col1:
@@ -604,7 +652,7 @@ else:
                                     "Depth (m)", float(depth_vals.min()), float(depth_vals.max()),
                                     value=float(depth_vals.min()), step=10.0, key="depth_single"
                                 )
-                        
+
                     
                         # -- Time Input
                         time_vals, time_labels = try_decode_time(ds, time_var)
@@ -732,7 +780,21 @@ else:
                     
                         # -- Depth Input
                         depth_vals = ds[depth_var].values if depth_var else None
-                        if depth_var:
+                        # if depth_var:
+                        #     if "Depth Range Avg" in plot_mode:
+                        #         col1, col2 = st.columns(2)
+                        #         with col1:
+                        #             dmin = st.number_input("Min Depth", float(depth_vals.min()), float(depth_vals.max()), value=float(depth_vals.min()), key="imap_depth_min")
+                        #         with col2:
+                        #             dmax = st.number_input("Max Depth", float(depth_vals.min()), float(depth_vals.max()), value=float(depth_vals.max()), key="imap_depth_max")
+                        #     else:
+                        #         selected_depth = st.number_input(
+                        #             "Depth (m)", float(depth_vals.min()), float(depth_vals.max()),
+                        #             value=float(depth_vals.min()), step=10.0, key="imap_depth_single"
+                        #         )
+
+                        if depth_var and "Depth" in plot_mode:
+                            depth_vals = ds[depth_var].values
                             if "Depth Range Avg" in plot_mode:
                                 col1, col2 = st.columns(2)
                                 with col1:
@@ -744,19 +806,33 @@ else:
                                     "Depth (m)", float(depth_vals.min()), float(depth_vals.max()),
                                     value=float(depth_vals.min()), step=10.0, key="imap_depth_single"
                                 )
+
                     
                         # -- Time Input
                         time_vals, time_labels = try_decode_time(ds, time_var)
-                        if "Time Range Avg" in plot_mode:
-                            t1 = st.date_input("🕒 Start Date", value=pd.to_datetime(time_labels[0]), key="imap_start")
-                            t2 = st.date_input("🕒 End Date", value=pd.to_datetime(time_labels[-1]), key="imap_end")
-                            t1 = np.datetime64(t1)
-                            t2 = np.datetime64(t2)
-                        else:
-                            time_sel = st.selectbox("🕒 Select Time", time_labels, key="imap_single_time")
-                            time_index = list(time_labels).index(time_sel)
-                            raw_time_value = time_vals[time_index]
-                    
+                        # if "Time Range Avg" in plot_mode:
+                        #     t1 = st.date_input("🕒 Start Date", value=pd.to_datetime(time_labels[0]), key="imap_start")
+                        #     t2 = st.date_input("🕒 End Date", value=pd.to_datetime(time_labels[-1]), key="imap_end")
+                        #     t1 = np.datetime64(t1)
+                        #     t2 = np.datetime64(t2)
+                        # else:
+                        #     time_sel = st.selectbox("🕒 Select Time", time_labels, key="imap_single_time")
+                        #     time_index = list(time_labels).index(time_sel)
+                        #     raw_time_value = time_vals[time_index]
+
+                        if time_var and "Time" in plot_mode:
+                            time_vals, time_labels = try_decode_time(ds, time_var)
+                            if "Time Range Avg" in plot_mode:
+                                t1 = st.date_input("🕒 Start Date", value=pd.to_datetime(time_labels[0]), key="map_start")
+                                t2 = st.date_input("🕒 End Date", value=pd.to_datetime(time_labels[-1]), key="map_end")
+                                t1 = np.datetime64(t1)
+                                t2 = np.datetime64(t2)
+                            else:
+                                time_sel = st.selectbox("🕒 Select Time", time_labels, key="map_single_time")
+                                time_index = list(time_labels).index(time_sel)
+                                raw_time_value = time_vals[time_index]
+                        
+                                
                         # ------------------ Data Extraction ------------------ #
                         data = ds[var]
                         data = data.sel({lat_var: slice(*lat_range), lon_var: slice(*lon_range)})
