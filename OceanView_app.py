@@ -33,23 +33,66 @@ st.title("🌊 Ocean Viewer")
 #             raise
 
 
+# @st.cache_data
+# def load_netcdf_safe(file_obj):
+#     import tempfile
+#     import xarray as xr
+
+#     with tempfile.NamedTemporaryFile(delete=False, suffix=".nc") as tmp:
+#         tmp.write(file_obj.read())
+#         tmp_path = tmp.name
+
+#     try:
+#         return xr.open_dataset(tmp_path)
+#     except ValueError as e:
+#         if "unable to decode time units" in str(e) and "calendar 'NOLEAP'" in str(e):
+#             st.warning("⚠️ Time decoding failed. Retrying with decode_times=False...")
+#             return xr.open_dataset(tmp_path, decode_times=False)
+#         else:
+#             raise
+
+
 @st.cache_data
 def load_netcdf_safe(file_obj):
     import tempfile
     import xarray as xr
+    import numpy as np
+    import pandas as pd
 
     with tempfile.NamedTemporaryFile(delete=False, suffix=".nc") as tmp:
         tmp.write(file_obj.read())
         tmp_path = tmp.name
 
     try:
-        return xr.open_dataset(tmp_path)
+        ds = xr.open_dataset(tmp_path)
     except ValueError as e:
         if "unable to decode time units" in str(e) and "calendar 'NOLEAP'" in str(e):
             st.warning("⚠️ Time decoding failed. Retrying with decode_times=False...")
-            return xr.open_dataset(tmp_path, decode_times=False)
+            ds = xr.open_dataset(tmp_path, decode_times=False)
         else:
             raise
+
+    # --- Detect missing time or depth and inject dummy dimensions ---
+    coord_map = detect_coord_names(ds)
+    time_var = coord_map.get("time", None)
+    depth_var = coord_map.get("depth", None)
+
+    for var in ds.data_vars:
+        da = ds[var]
+        
+        # If time is missing from dims, add a singleton time dimension
+        if time_var and time_var not in da.dims:
+            dummy_time = pd.date_range("2000-01-01", periods=1)
+            da = da.expand_dims({time_var: dummy_time})
+        
+        # If depth is missing from dims, add a singleton depth dimension
+        if depth_var and depth_var not in da.dims:
+            dummy_depth = np.array([0])  # or use surface depth if needed
+            da = da.expand_dims({depth_var: dummy_depth})
+        
+        ds[var] = da
+
+    return ds
 
 
 def load_netcdf_safe_from_path(path):
